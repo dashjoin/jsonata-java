@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import com.dashjoin.jsonata.Parser.Symbol;
-
 public class Utils {
     public static boolean isNumeric(Object v) throws JException {
         boolean isNum = false;
@@ -52,12 +50,25 @@ public class Utils {
     public static List<Object> createSequence() { return createSequence(null); }
 
     public static List<Object> createSequence(Object el) {
-        List<Object> sequence = new ArrayList<>();
-        // FIXME - needed in Java? sequence.sequence = true;
+        JList<Object> sequence = new JList<>();
+        sequence.sequence = true;
         if (el!=null) {
             sequence.add(el);
         }
         return sequence;
+    }
+
+    public static class JList<E> extends ArrayList<E> {
+        public JList() { super(); }
+        public JList(int capacity) { super(capacity); }
+        public JList(Collection<? extends E> c) {
+            super(c);
+        }
+
+        // Jsonata specific flags
+        public boolean sequence;
+
+        public boolean outerWrapper;
     }
 
         // createSequence,
