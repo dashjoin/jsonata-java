@@ -69,6 +69,8 @@ public class Utils {
         public boolean sequence;
 
         public boolean outerWrapper;
+
+        public boolean tupleStream;
     }
 
         // createSequence,
