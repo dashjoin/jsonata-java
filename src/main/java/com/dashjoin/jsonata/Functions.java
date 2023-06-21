@@ -23,7 +23,7 @@ public class Functions {
 
         // undefined inputs always return undefined
         if (arg == null) {
-            return null;
+            return false; // null; // Uli: Null would need to be handled as false anyway
         }
 
         var result = false;
@@ -40,8 +40,8 @@ public class Functions {
             if (s.length() > 0) {
                 result = true;
             }
-        } else if (arg instanceof Double) { //isNumeric(arg)) {
-            if ((double)arg != 0) {
+        } else if (arg instanceof Number) { //isNumeric(arg)) {
+            if (((Number)arg).doubleValue() != 0) {
                 result = true;
             }
         // FIXME what is the semantic in Java?
@@ -201,7 +201,7 @@ public class Functions {
                     }
                 }
             }
-        } else if (input != null) { // && typeof input === 'object') {
+        } else if (input instanceof Map) { // && typeof input === 'object') {
             result = ((java.util.Map)input).get(key);
         }
         return result;
