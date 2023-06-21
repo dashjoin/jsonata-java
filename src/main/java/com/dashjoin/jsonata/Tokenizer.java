@@ -169,37 +169,38 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
             return create("regex", scanRegex());
         }
         // handle double-char operators
-        if (currentChar == '.' && path.charAt(position + 1) == '.') {
+        boolean haveMore = position < path.length()-1; // Java: position+1 is valid
+        if (currentChar == '.' && haveMore && path.charAt(position + 1) == '.') {
             // double-dot .. range operator
             position += 2;
             return create("operator", "..");
         }
-        if (currentChar == ':' && path.charAt(position + 1) == '=') {
+        if (currentChar == ':' && haveMore && path.charAt(position + 1) == '=') {
             // := assignment
             position += 2;
             return create("operator", ":=");
         }
-        if (currentChar == '!' && path.charAt(position + 1) == '=') {
+        if (currentChar == '!' && haveMore && path.charAt(position + 1) == '=') {
             // !=
             position += 2;
             return create("operator", "!=");
         }
-        if (currentChar == '>' && path.charAt(position + 1) == '=') {
+        if (currentChar == '>' && haveMore && path.charAt(position + 1) == '=') {
             // >=
             position += 2;
             return create("operator", ">=");
         }
-        if (currentChar == '<' && path.charAt(position + 1) == '=') {
+        if (currentChar == '<' && haveMore && path.charAt(position + 1) == '=') {
             // <=
             position += 2;
             return create("operator", "<=");
         }
-        if (currentChar == '*' && path.charAt(position + 1) == '*') {
+        if (currentChar == '*' && haveMore && path.charAt(position + 1) == '*') {
             // **  descendant wildcard
             position += 2;
             return create("operator", "**");
         }
-        if (currentChar == '~' && path.charAt(position + 1) == '>') {
+        if (currentChar == '~' && haveMore && path.charAt(position + 1) == '>') {
             // ~>  chain function
             position += 2;
             return create("operator", "~>");
