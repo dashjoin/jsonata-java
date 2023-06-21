@@ -858,7 +858,7 @@ public class Jsonata {
          // type checks
          var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
          var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
- System.out.println("evalComparison "+ltype+","+rtype);
+        System.out.println("evalComparison "+ltype+","+rtype);
          var lcomparable = (ltype == null || ltype.equals("String") || ltype.equals("Double"));
          var rcomparable = (rtype == null || rtype.equals("String") || rtype.equals("Double"));
  
@@ -878,7 +878,16 @@ public class Jsonata {
          }
  
          //if aa and bb are not of the same type
-         if (ltype != rtype) {
+         if (!ltype.equals(rtype)) {
+
+            if (lhs instanceof Number && rhs instanceof Number) {
+                // Java : handle Double / Integer / Long comparisons
+                // convert all to double -> loss of precision (64-bit long to double) be a problem here?
+                lhs = ((Number)lhs).doubleValue();
+                rhs = ((Number)rhs).doubleValue();
+
+            } else
+
              throw new JException(
                 "T2009",
                 0, // location?
