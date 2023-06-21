@@ -167,7 +167,7 @@ public class Parser {
         Symbol() {}
         Symbol(String id) { this(id, 0); }
         Symbol(String id, int bp) {
-            this.id = id;
+            this.id = id; this.value = id;
             this.bp = bp;
 /* use register(Symbol) ! Otherwise inheritance doesn't work
             Symbol s = symbolTable.get(id);
@@ -392,8 +392,6 @@ public class Parser {
         // <expression> <operator> <expression>
         // right associative
         class InfixR extends Symbol {
-
-            Symbol lhs, rhs;
 
             InfixR(String id, int bp) {
                 super(id, bp);
@@ -1451,7 +1449,7 @@ public class Parser {
                 //System.out.println("case unary "+expr.value.getClass());
                 // {type: expr.type, value: expr.value, position: expr.position};
                 // expr.value might be Character!
-                String exprValue = ""+expr.value;
+                String exprValue = ""+expr.id; // FIXME: id why not value ???
                 if (exprValue.equals("[")) {
                     final Infix _result = new Infix(null);
                     _result.type = expr.type; _result.value = expr.value; _result.position = expr.position;
@@ -1487,6 +1485,7 @@ public class Parser {
                     if (exprValue.equals("-") && result.expression.type.equals("number")) {
                         result = result.expression;
                         result.value = -(double)result.value;
+                        System.out.println("unary - value="+result.value);
                     } else {
                         pushAncestry(result, result.expression);
                     }
