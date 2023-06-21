@@ -97,7 +97,7 @@ public class Parser {
         public boolean keepSingletonArray;
         public boolean consarray;
         public int level;
-        public boolean focus;
+        public Object focus;
         public Object token;
         public boolean thunk;
 
@@ -111,8 +111,33 @@ public class Parser {
         public Frame environment;
         public Object tuple;
         public Object expr;
-        public Object group;
+        public Symbol group;
         public Object name;
+
+        // Infix attributes
+        Symbol lhs, rhs;
+        // where rhs = list of Symbol pairs
+        public List<Symbol[]> lhsObject, rhsObject;
+        // where rhs = list of Symbols
+        List<Symbol> rhsTerms;
+        List<Symbol> terms;
+
+        // Ternary operator:
+        Symbol condition, then, _else;
+
+        List<Symbol> expressions;
+
+        // processAST error handling
+        public JException error;
+        public Object signature;
+
+        // Prefix attributes
+        Symbol pattern, update, delete;
+
+        // Ancestor attributes
+        public String label;
+        public int index;
+
 
         Symbol nud() throws JException {
             //if (true) return null; // throw new Error("nud not implemented");
@@ -317,16 +342,6 @@ public class Parser {
         // <expression> <operator> <expression>
         // left associative
         class Infix extends Symbol {
-
-
-        // Infix attributes
-        Symbol lhs, rhs;
-        public List<Symbol[]> rhsObject;
-
-        // Ternary operator:
-        Symbol condition, then, _else;
-
-        List<Symbol> expressions;
 
             Infix(String id) { this(id,0); }
             Infix(String id, int bp) {
@@ -698,7 +713,7 @@ public class Parser {
 
             @Override Symbol nud() throws JException {
                 if (dbg) System.out.println("Prefix (");
-                expressions = new ArrayList<>();
+                List<Symbol> expressions = new ArrayList<>();
                 while (node.id != ")") {
                     expressions.add(Parser.this.expression(0));
                     if (node.id != ";") {
@@ -839,8 +854,6 @@ public class Parser {
 
         // order-by
         register(new Infix("^", Tokenizer.operators.get("^")) {
-
-            List<Symbol> rhsTerms;
 
             @Override Symbol led(Symbol left) throws JException {
                 advance("(");
@@ -1097,7 +1110,6 @@ public class Parser {
 
         // object transformer
         register(new Prefix("|") {
-            Symbol pattern, update, delete;
 
             @Override Symbol nud() throws JException {
                 this.type = "transform";
@@ -1113,6 +1125,11 @@ public class Parser {
                 }
         });
     }
+
+    int ancestorLabel = 0;
+    int ancestorIndex = 0;
+    List<Symbol> ancestry = new ArrayList<>();
+
 
     void pushAncestry(Symbol result, Symbol value) {
         if (value==null) return; // Added NPE check
@@ -1151,7 +1168,7 @@ public class Parser {
                 // try previous step
                 var step = path.steps.get(index--);
                 // multiple contiguous steps that bind the focus should be skipped
-                while(index >= 0 && step.focus && path.steps.get(index).focus) {
+                while(index >= 0 && step.focus!=null && path.steps.get(index).focus!=null) {
                     step = path.steps.get(index--);
                 }
                 // FIXME slot = seekParent(step, slot);
@@ -1168,7 +1185,7 @@ public class Parser {
     Symbol processAST(Symbol expr) throws JException {
         Symbol result = expr;
         if (expr==null) return null;
-        System.out.println("processAST "+expr.type+" val="+expr.value);
+        System.out.println(" > processAST type="+expr.type+" value='"+expr.value+"'");
         switch (expr.type) {
             case "binary": {
                 switch (""+expr.value) {
@@ -1294,6 +1311,129 @@ public class Parser {
                                 step.predicate.add(s);
                             //step[type].push({type: 'filter', expr: predicate, position: expr.position});
                             break;
+                    case "{":
+                            // group-by
+                            // LHS is a step or a predicated step
+                            // RHS is the object constructor expr
+                            result = processAST(expr.lhs);
+                            if (result.group != null) {
+                                throw new JException("S0210",
+                                    //stack: (new Error()).stack,
+                                    expr.position
+                                );
+                            }
+                            // object constructor - process each pair
+                            result.group = new Symbol();
+                            // FIXME
+                            result.group.lhsObject = expr.rhsObject.stream().map(pair -> {
+                                    Symbol p0=null, p1=null;
+                                    try {
+                                        p0 = processAST(pair[0]);
+                                    } catch (JException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }
+                                    try {
+                                        p1 = processAST(pair[1]);
+                                    } catch (JException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }
+                                    return new Symbol[] {p0, p1};
+                                }).toList();
+                            result.group.position = expr.position;
+                        break;
+                    
+                    case "^":
+                        // order-by
+                        // LHS is the array to be ordered
+                        // RHS defines the terms
+                        result = processAST(expr.lhs);
+                        if (!result.type.equals("path")) {
+                            Symbol _res = new Symbol();
+                            _res.type = "path"; _res.steps = new ArrayList<>(); _res.steps.add(result);
+                            result = _res;
+                        }
+                        var sortStep = new Symbol(); sortStep.type = "sort"; sortStep.position = expr.position;                        
+                        sortStep.terms = expr.rhsTerms.stream().map(terms -> {
+                            Symbol expression = null;
+                            try {
+                                expression = processAST(terms.expression);
+                            } catch (JException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                            pushAncestry(sortStep, expression);
+                            Symbol res = new Symbol();
+                            res.descending = terms.descending;
+                            res.expression = expression;
+                            return res;
+                        }).toList();
+                        result.steps.add(sortStep);
+                        resolveAncestry(result);
+                        break;
+                    case ":=":
+                        result = new Symbol();
+                        result.type = "bind"; result.value = expr.value; result.position = expr.position;
+                        result.lhs = processAST(expr.lhs);
+                        result.rhs = processAST(expr.rhs);
+                        pushAncestry(result, result.rhs);
+                        break;
+                    case "@":
+                        result = processAST(expr.lhs);
+                        step = result;
+                        if (result.type.equals("path")) {
+                            step = result.steps.get(result.steps.size() - 1);
+                        }
+                        // throw error if there are any predicates defined at this point
+                        // at this point the only type of stages can be predicates
+                        if(step.stages != null || step.predicate != null) {
+                            throw new JException("S0215",
+                                //stack: (new Error()).stack,
+                                expr.position
+                            );
+                        }
+                        // also throw if this is applied after an 'order-by' clause
+                        if(step.type.equals("sort")) {
+                            throw new JException("S0216",
+                                //stack: (new Error()).stack,
+                                expr.position
+                            );
+                        }
+                        if(expr.keepArray) {
+                            step.keepArray = true;
+                        }
+                        step.focus = expr.rhs.value;
+                        step.tuple = true;
+                        break;
+                    case "#":
+                        result = processAST(expr.lhs);
+                        step = result;
+                        if (result.type.equals("path")) {
+                            step = result.steps.get(result.steps.size() - 1);
+                        } else {
+                            Symbol _res = new Symbol();
+                            _res.type = "path"; _res.steps = new ArrayList<>(); _res.steps.add(result);
+                            result = _res;
+                            if (step.predicate != null) {
+                                step.stages = step.predicate;
+                                step.predicate = null;
+                            }
+                        }
+                        if (step.stages == null) {
+                            step.index = (int)(double)expr.rhs.value; // TODO: not sure what type value is here...
+                        } else {
+                            Symbol _res = new Symbol();
+                            _res.type = "index"; _res.value = expr.rhs.value; _res.position = expr.position;
+                            step.stages.add(_res);
+                        }
+                        step.tuple = true;
+                        break;
+                    case "~>":
+                        result = new Symbol(); result.type = "apply"; result.value = expr.value; result.position = expr.position;
+                        result.lhs = processAST(expr.lhs);
+                        result.rhs = processAST(expr.rhs);
+                        break;                    
                     default:
                         Infix _result = new Infix(null);
                         _result.type = expr.type; _result.value = expr.value; _result.position = expr.position;
@@ -1372,6 +1512,126 @@ public class Parser {
                 }).toList();
                 result.procedure = processAST(expr.procedure);
                 break;
+            case "lambda":
+                result = new Symbol();
+                result.type = expr.type;
+                result.arguments = expr.arguments;
+                result.signature = expr.signature;
+                result.position = expr.position;
+                var body = processAST(expr.body);
+                result.body = body; // FIXME: tailCallOptimize(body);
+                break;
+            case "condition":
+                result = new Symbol();
+                result.type = expr.type; result.position = expr.position;
+                result.condition = processAST(expr.condition);
+                pushAncestry(result, result.condition);
+                result.then = processAST(expr.then);
+                pushAncestry(result, result.then);
+                if (expr._else != null) {
+                    result._else = processAST(expr._else);
+                    pushAncestry(result, result._else);
+                }
+                break;
+            case "transform":
+                result = new Symbol();
+                result.type = expr.type; result.position = expr.position;
+                result.pattern = processAST(expr.pattern);
+                result.update = processAST(expr.update);
+                if (expr.delete != null) {
+                    result.delete = processAST(expr.delete);
+                }
+                break;
+            case "block":
+                result = new Symbol();
+                result.type = expr.type; result.position = expr.position;
+                // array of expressions - process each one
+                final Symbol __result = result;
+                result.expressions = expr.expressions.stream().map(item -> {
+                    Symbol part = null;
+                    try {
+                        part = processAST(item);
+                    } catch (JException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    pushAncestry(__result, part);
+                    if (part.consarray || (part.type.equals("path") && part.steps.get(0).consarray)) {
+                        __result.consarray = true;
+                    }
+                    return part;
+                }).toList();
+                // TODO scan the array of expressions to see if any of them assign variables
+                // if so, need to mark the block as one that needs to create a new frame
+                break;
+            case "name":
+                result = new Symbol();
+                result.type = "path"; result.steps = new ArrayList<>(); result.steps.add(expr);
+                if (expr.keepArray) {
+                    result.keepSingletonArray = true;
+                }
+                break;
+            case "parent":
+                result = new Symbol();
+                result.type = "parent";
+                result.slot = new Symbol();
+                result.slot.label = "!"+ancestorLabel++;
+                result.slot.level = 1;
+                result.slot.index = ancestorIndex++;
+                //slot: { label: '!' + ancestorLabel++, level: 1, index: ancestorIndex++ } };
+                ancestry.add(result);
+                break;
+            case "string":
+            case "number":
+            case "value":
+            case "wildcard":
+            case "descendant":
+            case "variable":
+            case "regex":
+                result = expr;
+                break;
+            case "operator":
+                // the tokens 'and' and 'or' might have been used as a name rather than an operator
+                if (expr.value.equals("and") || expr.value.equals("or") || expr.value.equals("in")) {
+                    expr.type = "name";
+                    result = processAST(expr);
+                } else /* istanbul ignore else */ if (expr.value.equals("?")) {
+                    // partial application
+                    result = expr;
+                } else {
+                    throw new JException("S0201",
+                        //stack: (new Error()).stack,
+                        expr.position,
+                        expr.value
+                    );
+                }
+                break;
+            case "error":
+                result = expr;
+                if (expr.lhs!=null) {
+                    result = processAST(expr.lhs);
+                }
+                break;
+            default:
+                var code = "S0206";
+                /* istanbul ignore else */
+                if (expr.id.equals("(end)")) {
+                    code = "S0207";
+                }
+                var err = new JException(code,
+                    expr.position,
+                    expr.value
+                );
+                if (recover) {
+                    errors.add(err);
+                    Symbol ret = new Symbol();
+                    ret.type = "error"; ret.error = err;
+                    return ret;
+                } else {
+                    //err.stack = (new Error()).stack;
+                    throw err;
+                }
+
         }
 
         return result;
