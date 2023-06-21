@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 import com.dashjoin.jsonata.Parser.Infix;
 import com.dashjoin.jsonata.Parser.Symbol;
+import com.dashjoin.jsonata.Utils.JList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -177,18 +178,19 @@ public class Jsonata {
         //  }
 
         
-        // FIXME mangle result
-        //  if(result && isSequence(result) && !result.tupleStream) {
-        //      if(expr.keepArray) {
-        //          result.keepSingleton = true;
-        //      }
-        //      if(result.length === 0) {
-        //          result = undefined;
-        //      } else if(result.length === 1) {
-        //          result =  result.keepSingleton ? result : result[0];
-        //      }
- 
-        //  }
+        // mangle result (list of 1 element -> 1 element, empty list -> null)
+         if(result!=null && (result instanceof List) /* && !result.tupleStream */ ) {
+            List _result = (List)result;
+            boolean result_keepSingleton = false;
+             if(expr.keepArray) {
+                 result_keepSingleton = true;
+             }
+             if(_result.isEmpty()) {
+                 result = null;
+             } else if(_result.size() == 1) {
+                 result =  result_keepSingleton ? result : _result.get(0);
+             }
+         }
  
          return result;
      }
@@ -443,7 +445,7 @@ public class Jsonata {
              input = Utils.createSequence(input);
          }
          if (predicate.type.equals("number")) {
-             var index = (int)predicate.value;  // round it down - was Math.floor
+             var index = (int)(double)predicate.value;  // round it down - was Math.floor
              if (index < 0) {
                  // count in from end of array
                  index = ((List)input).size() + index;
@@ -782,8 +784,8 @@ public class Jsonata {
         //  }
  
         //System.out.println("op22 "+op+" "+_lhs+" "+_rhs);
-        double lhs = (double)_lhs;
-        double rhs = (double)_rhs;
+        double lhs = ((Number)_lhs).doubleValue();
+        double rhs = ((Number)_rhs).doubleValue();
 
          switch (op) {
              case "+":
@@ -856,23 +858,23 @@ public class Jsonata {
          // type checks
          var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
          var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
- System.out.println(ltype+","+rtype);
+ System.out.println("evalComparison "+ltype+","+rtype);
          var lcomparable = (ltype == null || ltype.equals("String") || ltype.equals("Double"));
          var rcomparable = (rtype == null || rtype.equals("String") || rtype.equals("Double"));
  
+         // if either side is undefined, the result is undefined
+         if (ltype == null || rtype==null) {
+             return null;
+         }
+
          // if either aa or bb are not comparable (string or numeric) values, then throw an error
-         if (!lcomparable || !rcomparable) {
+         if (!(lhs instanceof Comparable) || !(rhs instanceof Comparable)) {
              throw new JException(
                 "T2010",
                 0, //position,
                 //stack: (new Error()).stack,
                 lhs!=null ? lhs : rhs
              );
-         }
- 
-         // if either side is undefined, the result is undefined
-         if (ltype == null || rtype==null) {
-             return null;
          }
  
          //if aa and bb are not of the same type
@@ -1255,7 +1257,7 @@ public class Jsonata {
          // if the variable name is empty string, then it refers to context value
          if (expr.value.equals("")) {
             // Empty string == "$" !
-            result = input; // FIXME handle outerWrapper: input!=null && input.outerWrapper ? input.get(0) : input;
+            result = input instanceof JList && ((JList)input).outerWrapper ? ((JList)input).get(0) : input;
          } else  {
             result = environment.lookup((String)expr.value);
             System.out.println("variable name="+expr.value+" val="+result);
@@ -1504,15 +1506,15 @@ public class Jsonata {
          // can"t assume that expr.procedure is a lambda type directly
          // could be an expression that evaluates to a Object (e.g. variable reference, parens expr etc.
          // evaluate it generically first, then check that it is a function.  Throw error if not.
-         var proc = /* await */ evaluate(((Infix)expr).procedure, input, environment);
+         var proc = /* await */ evaluate(expr.procedure, input, environment);
  
-         if (proc == null && ((Infix)expr).procedure.type == "path" && environment.lookup((String)((Infix)expr).procedure.steps.get(0).value)!=null) {
+         if (proc == null && (expr).procedure.type == "path" && environment.lookup((String)((Infix)expr).procedure.steps.get(0).value)!=null) {
              // help the user out here if they simply forgot the leading $
              throw new JException(
                  "T1005",
                  //stack: (new Error()).stack,
                  expr.position,
-                 ((Infix)expr).procedure.steps.get(0).value
+                 (expr).procedure.steps.get(0).value
              );
          }
  
@@ -1522,8 +1524,8 @@ public class Jsonata {
             // FIXME evaluatedArgs.add(applyto.context);
          }
          // eager evaluation - evaluate the arguments
-         for (int jj = 0; jj < ((Infix)expr).arguments.size(); jj++) {
-             Object arg = /* await */ evaluate(((Infix)expr).arguments.get(jj), input, environment);
+         for (int jj = 0; jj < expr.arguments.size(); jj++) {
+             Object arg = /* await */ evaluate(expr.arguments.get(jj), input, environment);
              if(Utils.isFunction(arg)) {
                  // wrap this in a closure
                 //  const closure = /* async */ Object (...params) {
@@ -1537,7 +1539,7 @@ public class Jsonata {
              }
          }
          // apply the procedure
-         var procName = ((Infix)expr).procedure.type == "path" ? ((Infix)expr).procedure.steps.get(0).value : ((Infix)expr).procedure.value;
+         var procName = expr.procedure.type == "path" ? expr.procedure.steps.get(0).value : expr.procedure.value;
          try {
              if(proc instanceof Symbol) {
                  ((Symbol)proc).token = procName;
