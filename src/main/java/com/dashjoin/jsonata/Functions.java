@@ -129,10 +129,20 @@ public class Functions {
         }
 
         String s = (String)o;
-        int i1 = (int)(double)l.get(1);
-        int i2 = l.size()>1 ? (int)(double)l.get(2) : s.length()-i1;
+        if (s==null)
+            return null;
+        int i1 = ((Number)l.get(1)).intValue();
+        if (i1<0) {
+            i1 = s.length()+i1;
+            if (i1<0)
+                i1 = 0;
+        }
+        int i2 = l.size()>2 ? ((Number)l.get(2)).intValue() : s.length()-i1;
+        if (i2<0)
+            i2 = 0;
         String t = null;
         try {
+            System.out.println("substring "+s+" "+i1+" "+i2);
             t = s.substring(i1, i1+i2);
         } catch (Exception ignore) {
             //
