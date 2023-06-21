@@ -223,17 +223,17 @@ public class Jsonata {
          for(var ii = 0; ii < expr.steps.size(); ii++) {
              var step = expr.steps.get(ii);
  
-            //  if(((Infix)step).tuple!=null) {
-            //      isTupleStream = true;
-            //  }
+             if(step.tuple!=null) {
+                 isTupleStream = true;
+             }
  
              // if the first step is an explicit array constructor, then just evaluate that (i.e. don"t iterate over a context array)
              if(ii == 0 && step.consarray) {
                  resultSequence = /* await */ evaluate(step, inputSequence, environment);
              } else {
-                 /*if(isTupleStream) {
-                     tupleBindings = / await / evaluateTupleStep(step, inputSequence, tupleBindings, environment);
-                 } else */ {
+                 if(isTupleStream) {
+                     tupleBindings = /* await */ evaluateTupleStep(step, inputSequence, tupleBindings, environment);
+                 } else {
                      resultSequence = /* await */ evaluateStep(step, inputSequence, environment, ii == expr.steps.size() - 1);
                  }
              }
@@ -333,7 +333,7 @@ public class Jsonata {
          return resultSequence;
      }
  
-     /* async */ Object evaluateStages(List<Symbol> stages, Object input, Frame environment) {
+     /* async */ Object evaluateStages(List<Symbol> stages, Object input, Frame environment) throws JException {
          var result = input;
          for(var ss = 0; ss < stages.size(); ss++) {
              var stage = stages.get(ss);
@@ -342,9 +342,10 @@ public class Jsonata {
                      result = /* await */ evaluateFilter(stage.expr, result, environment);
                      break;
                  case "index":
-                     for(var ee = 0; ee < result.length; ee++) {
-                         var tuple = result[ee];
-                         tuple[stage.value] = ee;
+                     for(var ee = 0; ee < ((List)result).size(); ee++) {
+                        // FIXME: completely unsure if this is correct 
+                        var tuple = ((List)result).get(ee);
+                        ((Map)tuple).put(""+stage.value, ee);
                      }
                      break;
              }
@@ -360,16 +361,16 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateTupleStep(Symbol expr, Object input, Object tupleBindings, Environment environment) {
-         var result;
-         if(expr.type === "sort") {
-             if(tupleBindings) {
+     /* async */ Object evaluateTupleStep(Symbol expr, Object input, Object tupleBindings, Frame environment) {
+         Object result = null;
+         if(expr.type.equals("sort")) {
+             if(tupleBindings!=null) {
                  result = /* await */ evaluateSortExpression(expr, tupleBindings, environment);
              } else {
                  var sorted = /* await */ evaluateSortExpression(expr, input, environment);
-                 result = createSequence();
-                 result.tupleStream = true;
-                 for(var ss = 0; ss < sorted.length; ss++) {
+                 result = Utils.createSequence();
+                 ((JList)result).tupleStream = true;
+                 for(var ss = 0; ss < ((List)sorted).size(); ss++) {
                      var tuple = {"@": sorted[ss]};
                      tuple[expr.index] = ss;
                      result.push(tuple);
@@ -381,7 +382,7 @@ public class Jsonata {
              return result;
          }
  
-         result = createSequence();
+         result = Utils.createSequence();
          result.tupleStream = true;
          var stepEnv = environment;
          if(tupleBindings == null) {
@@ -475,7 +476,7 @@ public class Jsonata {
                     for (Object ires : ((List)res)) {
 //                     res.forEach(Object (ires) {
                          // round it down
-                         var ii = (int)ires; // Math.floor(ires);
+                         var ii = ((Number)ires).intValue(); // Math.floor(ires);
                          if (ii < 0) {
                              // count in from end of array
                              ii = ((List)input).size() + ii;
@@ -671,20 +672,21 @@ public class Jsonata {
       * @returns {*} Evaluated input data
       */
      Object evaluateWildcard(Symbol expr, Object input) {
-         var results = createSequence();
-         if (Array.isArray(input) && input.outerWrapper && input.length > 0) {
-             input = input[0];
+         var results = Utils.createSequence();
+         if ((input instanceof JList) && ((JList)input).outerWrapper && ((JList)input).size() > 0) {
+             input = ((JList)input).get(0);
          }
-         if (input !== null && typeof input === "object") {
-             Object.keys(input).forEach(Object (key) {
-                 var value = input[key];
-                 if(Array.isArray(value)) {
-                     value = flatten(value);
-                     results = fn.append(results, value);
+         if (input != null && input instanceof Map) { // typeof input === "object") {
+            for (Object key : ((Map)input).keySet()) {
+            // Object.keys(input).forEach(Object (key) {
+                 var value = ((Map)input).get(key);
+                 if((value instanceof List)) {
+                     value = flatten(value, null);
+                     results = (List)Functions.append(results, value);
                  } else {
-                     results.push(value);
+                     results.add(value);
                  }
-             });
+             }
          }
  
          //        result = normalizeSequence(results);
@@ -697,16 +699,16 @@ public class Jsonata {
       * @param {Array} flattened - carries the flattened array - if not defined, will initialize to []
       * @returns {Array} - the flattened array
       */
-     Object flatten(var arg, var flattened) {
-         if(typeof flattened === "undefined") {
-             flattened = [];
+     Object flatten(Object arg, List flattened) {
+         if(flattened == null) {
+             flattened = new ArrayList<>();
          }
-         if(Array.isArray(arg)) {
-             arg.forEach(Object (item) {
+         if(arg instanceof List) {
+             for (Object item : ((List)arg)) {
                  flatten(item, flattened);
-             });
+             }
          } else {
-             flattened.push(arg);
+             flattened.add(arg);
          }
          return flattened;
      }
@@ -718,13 +720,13 @@ public class Jsonata {
       * @returns {*} Evaluated input data
       */
      Object evaluateDescendants(Symbol expr, Object input) {
-         var result;
-         var resultSequence = createSequence();
-         if (typeof input !== "undefined") {
+         Object result = null;
+         var resultSequence = Utils.createSequence();
+         if (input != null) {
              // traverse all descendants of this object/array
              recurseDescendants(input, resultSequence);
-             if (resultSequence.length === 1) {
-                 result = resultSequence[0];
+             if (resultSequence.size() == 1) {
+                 result = resultSequence.get(0);
              } else {
                  result = resultSequence;
              }
@@ -737,19 +739,20 @@ public class Jsonata {
       * @param {Object} input - Input data
       * @param {Object} results - Results
       */
-     Object recurseDescendants(Object input, Object results) {
+     void recurseDescendants(Object input, List results) {
          // this is the equivalent of //* in XPath
-         if (!Array.isArray(input)) {
-             results.push(input);
+         if (!(input instanceof List)) {
+             results.add(input);
          }
-         if (Array.isArray(input)) {
-             input.forEach(Object (member) {
+         if (input instanceof List) {
+            for (Object member : ((List)input)) { //input.forEach(Object (member) {
                  recurseDescendants(member, results);
-             });
-         } else if (input !== null && typeof input === "object") {
-             Object.keys(input).forEach(Object (key) {
-                 recurseDescendants(input[key], results);
-             });
+            }
+         } else if (input != null && input instanceof Map) {
+            //Object.keys(input).forEach(Object (key) {
+            for (Object key : ((Map)input).keySet()) {
+                 recurseDescendants(((Map)input).get(key), results);
+            }
          }
      }
  
@@ -926,17 +929,18 @@ public class Jsonata {
      Object evaluateIncludesExpression(Object lhs, Object rhs) {
          var result = false;
  
-         if (typeof lhs === "undefined" || typeof rhs === "undefined") {
+         if (lhs == null || rhs == null) {
              // if either side is undefined, the result is false
              return false;
          }
  
-         if(!Array.isArray(rhs)) {
-             rhs = [rhs];
+         if(!(rhs instanceof List)) {
+            var _rhs = new ArrayList<>(); _rhs.add(rhs);
+            rhs = _rhs;
          }
  
-         for(var i = 0; i < rhs.length; i++) {
-             if(rhs[i] === lhs) {
+         for(var i = 0; i < ((List)rhs).size(); i++) {
+             if(((List)rhs).get(i).equals(lhs)) {
                  result = true;
                  break;
              }
@@ -1153,13 +1157,14 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
+     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateBindExpression(Symbol expr, Object input, Object environment) {
+     /* async */ Object evaluateBindExpression(Symbol expr, Object input, Frame environment) throws JException {
          // The RHS is the expression to evaluate
          // The LHS is the name of the variable to bind to - should be a VARIABLE token (enforced by parser)
          var value = /* await */ evaluate(expr.rhs, input, environment);
-         environment.bind(expr.lhs.value, value);
+         environment.bind(""+expr.lhs.value, value);
          return value;
      }
  
@@ -1189,9 +1194,9 @@ public class Jsonata {
      * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateBlock(Symbol _expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateBlock(Symbol expr, Object input, Frame environment) throws JException {
         Object result = null;
-        Infix expr = (Infix)_expr;
+        //Infix expr = (Infix)_expr;
          // create a new frame to limit the scope of variable assignments
          // TODO, only do this if the post-parse stage has flagged this as required
          var frame = createFrame(environment);
@@ -1472,7 +1477,7 @@ public class Jsonata {
  
  
          var lhs = /* await */ evaluate(expr.lhs, input, environment);
-         if(expr.rhs.type === "function") {
+         if(expr.rhs.type.equals("function")) {
              // this is a Object _invocation_; invoke it with lhs expression as the first argument
              result = /* await */ evaluateFunction(expr.rhs, input, environment, { context: lhs });
          } else {
