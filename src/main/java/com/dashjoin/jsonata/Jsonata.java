@@ -687,6 +687,16 @@ public class Jsonata {
                      results.add(value);
                  }
              }
+         } else if (input instanceof List) {
+            // Java: need to handle List separately
+            for (Object value : ((List)input)) {
+                 if((value instanceof List)) {
+                     value = flatten(value, null);
+                     results = (List)Functions.append(results, value);
+                 } else {
+                     results.add(value);
+                 }
+            }
          }
  
          //        result = normalizeSequence(results);
@@ -1173,15 +1183,16 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
+     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateCondition(Symbol expr, Object input, Object environment) {
-         var result;
+     /* async */ Object evaluateCondition(Symbol expr, Object input, Frame environment) throws JException {
+         Object result = null;
          var condition = /* await */ evaluate(expr.condition, input, environment);
-         if (fn.boolean(condition)) {
+         if (Functions.toBoolean(condition)) {
              result = /* await */ evaluate(expr.then, input, environment);
-         } else if (typeof expr.else !== "undefined") {
-             result = /* await */ evaluate(expr.else, input, environment);
+         } else if (expr._else != null) {
+             result = /* await */ evaluate(expr._else, input, environment);
          }
          return result;
      }
