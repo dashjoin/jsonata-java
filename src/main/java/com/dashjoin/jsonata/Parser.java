@@ -41,7 +41,7 @@ public class Parser {
 
         List<Token> remainingTokens() throws JException {
             List<Token> remaining = new ArrayList<>();
-            if (node.id != "(end)") {
+            if (!node.id.equals("(end)")) {
                 Token t = new Token();
                 t.type = node.type; t.value = node.value; t.position = node.position;
                 remaining.add(t);
@@ -73,7 +73,7 @@ public class Parser {
         }
     }
     
-    class Symbol implements Cloneable {
+    static class Symbol implements Cloneable {
 
         //Symbol s;
         String id;
@@ -137,6 +137,7 @@ public class Parser {
         // Ancestor attributes
         public String label;
         public int index;
+        public boolean _jsonata_lambda;
 
 
         Symbol nud() throws JException {
@@ -245,7 +246,7 @@ public class Parser {
         Symbol advance(String id, boolean infix) throws JException {
             if (id!=null && !node.id.equals(id)) {
                 String code;
-                if (node.id == "(end)") {
+                if (node.id.equals("(end)")) {
                     // unexpected end of buffer
                     code = "S0203";
                 } else {
@@ -572,9 +573,9 @@ public class Parser {
             this.procedure = left;
             this.type = "function";
             this.arguments = new ArrayList<>();
-            if (node.id != ")") {
+            if (!node.id.equals(")")) {
                 for (; ;) {
-                    if (node.type == "operator" && node.id == "?") {
+                    if (node.type.equals("operator") && node.id.equals("?")) {
                         // partial function application
                         this.type = "partial";
                         this.arguments.add(node);
@@ -582,18 +583,18 @@ public class Parser {
                     } else {
                         this.arguments.add(expression(0));
                     }
-                    if (node.id != ",") break;
+                    if (!node.id.equals(",")) break;
                     advance(",");
                 }
             }
             advance(")", true);
             // if the name of the function is 'function' or λ, then this is function definition (lambda function)
-            if (left.type == "name" && (left.value == "function" || left.value == "\u03BB")) {
+            if (left.type.equals("name") && (left.value.equals("function") || left.value.equals("\u03BB"))) {
                 // all of the args must be VARIABLE tokens
                 int index = 0;
                 for (Symbol arg : arguments) {
                 //this.arguments.forEach(function (arg, index) {
-                    if (arg.type != "variable") {
+                    if (!arg.type.equals("variable")) {
                         return handleError(new JException("S0208",
                             arg.position,
                             arg.value//,
@@ -605,15 +606,15 @@ public class Parser {
                 }
                 this.type = "lambda";
                 // is the next token a '<' - if so, parse the function signature
-                if (node.id == "<") {
+                if (node.id.equals("<")) {
                     int sigPos = node.position;
                     int depth = 1;
                     String sig = "<";
-                    while (depth > 0 && node.id != "{" && node.id != "(end)") {
+                    while (depth > 0 && !node.id.equals("{") && !node.id.equals("(end)")) {
                         Symbol tok = advance();
-                        if (tok.id == ">") {
+                        if (tok.id.equals(">")) {
                             depth--;
-                        } else if (tok.id == "<") {
+                        } else if (tok.id.equals("<")) {
                             depth++;
                         }
                         sig += tok.value;
@@ -712,9 +713,9 @@ public class Parser {
             @Override Symbol nud() throws JException {
                 if (dbg) System.out.println("Prefix (");
                 List<Symbol> expressions = new ArrayList<>();
-                while (node.id != ")") {
+                while (!node.id.equals(")")) {
                     expressions.add(Parser.this.expression(0));
-                    if (node.id != ";") {
+                    if (!node.id.equals(";")) {
                         break;
                     }
                     advance(";");
@@ -752,7 +753,7 @@ public class Parser {
 
             @Override Symbol nud() throws JException {
                 List<Symbol> a = new ArrayList<>();
-                if (node.id != "]") {
+                if (!node.id.equals("]")) {
                     for (; ;) {
                         var item = Parser.this.expression(0);
                         // FIXME: if (node.id == "..") {
@@ -763,7 +764,7 @@ public class Parser {
                         //     item = range;
                         // }
                         a.add(item);
-                        if (node.id != ",") {
+                        if (!node.id.equals(",")) {
                             break;
                         }
                         advance(",");
@@ -809,10 +810,10 @@ public class Parser {
         //register(new Infix("[", Tokenizer.operators.get("[")) {
 
             @Override Symbol led(Symbol left) throws JException {
-                if (node.id == "]") {
+                if (node.id.equals("]")) {
                     // empty predicate means maintain singleton arrays in the output
                     var step = left;
-                    while (step!=null && step.type == "binary" && step.value == "[") {
+                    while (step!=null && step.type.equals("binary") && step.value.equals("[")) {
                         step = ((Infix)step).lhs;
                     }
                     step.keepArray = true;
@@ -860,10 +861,10 @@ public class Parser {
                     final Symbol term = new Symbol();
                     term.descending = false;
 
-                    if (node.id == "<") {
+                    if (node.id.equals("<")) {
                         // ascending sort
                         advance("<");
-                    } else if (node.id == ">") {
+                    } else if (node.id.equals(">")) {
                         // descending sort
                         term.descending = true;
                         advance(">");
@@ -872,7 +873,7 @@ public class Parser {
                     }
                     term.expression = Parser.this.expression(0);
                     terms.add(term);
-                    if (node.id != ",") {
+                    if (!node.id.equals(",")) {
                         break;
                     }
                     advance(",");
@@ -975,7 +976,7 @@ public class Parser {
         register(new InfixR(":=", Tokenizer.operators.get(":=")) {
 
             @Override Symbol led(Symbol left) throws JException {
-                if (left.type != "variable") {
+                if (!left.type.equals("variable")) {
                     return handleError(new JException(
                         "S0212",
                         left.position,
@@ -1012,7 +1013,7 @@ public class Parser {
             @Override Symbol led(Symbol left) throws JException {
                 this.lhs = left;
                 this.rhs = expression(Tokenizer.operators.get("@"));
-                if(this.rhs.type != "variable") {
+                if(!this.rhs.type.equals("variable")) {
                     return handleError(new JException("S0214",
                         this.rhs.position,
                         "@"
@@ -1046,7 +1047,7 @@ public class Parser {
             @Override Symbol led(Symbol left) throws JException {
                 this.lhs = left;
                 this.rhs = expression(Tokenizer.operators.get("#"));
-                if(this.rhs.type != "variable") {
+                if(!this.rhs.type.equals("variable")) {
                     return handleError(new JException("S0214",
                         this.rhs.position,
                         "#"
@@ -1082,7 +1083,7 @@ public class Parser {
                 this.type = "condition";
                 this.condition = left;
                 this.then = expression(0);
-                if (node.id == ":") {
+                if (node.id.equals(":")) {
                     // else condition
                     advance(":");
                     this._else = expression(0);
@@ -1114,7 +1115,7 @@ public class Parser {
                 this.pattern = Parser.this.expression(0);
                 advance("|");
                 this.update = Parser.this.expression(0);
-                if (node.id == ",") {
+                if (node.id.equals(",")) {
                     advance(",");
                     this.delete = Parser.this.expression(0);
                 }
@@ -1190,7 +1191,7 @@ public class Parser {
                     case ".":
                         var lstep = processAST(((Infix)expr).lhs);
 
-                        if (lstep.type == "path") {
+                        if (lstep.type.equals("path")) {
                             result = lstep;
                         } else {
                             result = new Infix(null);
@@ -1198,19 +1199,19 @@ public class Parser {
                             result.steps = new ArrayList<>(Arrays.asList(lstep));
                             //result = {type: 'path', steps: [lstep]};
                         }
-                        if(lstep.type == "parent") {
+                        if(lstep.type.equals("parent")) {
                             result.seekingParent = new ArrayList<>(Arrays.asList(lstep.slot));
                         }
                         var rest = processAST(((Infix)expr).rhs);
-                        if (rest.type == "function" &&
-                            rest.procedure.type == "path" &&
+                        if (rest.type.equals("function") &&
+                            rest.procedure.type.equals("path") &&
                             rest.procedure.steps.size() == 1 &&
-                            rest.procedure.steps.get(0).type == "name" &&
-                            result.steps.get(result.steps.size() - 1).type == "function") {
+                            rest.procedure.steps.get(0).type.equals("name") &&
+                            result.steps.get(result.steps.size() - 1).type.equals("function")) {
                             // next function in chain of functions - will override a thenable
                             result.steps.get(result.steps.size() - 1).nextFunction = (Symbol)rest.procedure.steps.get(0).value;
                         }
-                        if (rest.type == "path") {
+                        if (rest.type.equals("path")) {
                             result.steps.addAll(rest.steps);
                         } else {
                             if(rest.predicate != null) {
@@ -1253,12 +1254,12 @@ public class Parser {
                         }
                         // if first step is a path constructor, flag it for special handling
                         var firststep = result.steps.get(0);
-                        if (firststep.type == "unary" && firststep.value == "[") {
+                        if (firststep.type.equals("unary") && firststep.value.equals("[")) {
                             firststep.consarray = true;
                         }
                         // if the last step is an array constructor, flag it so it doesn't flatten
                         var laststep = result.steps.get(result.steps.size() - 1);
-                        if (laststep.type == "unary" && laststep.value == "[") {
+                        if (laststep.type.equals("unary") && laststep.value.equals("[")) {
                             laststep.consarray = true;
                         }
                         resolveAncestry(result);
@@ -1271,7 +1272,7 @@ public class Parser {
                             result = processAST(((Infix)expr).lhs);
                             var step = result;
                             var type = "predicate";
-                            if (result.type == "path") {
+                            if (result.type.equals("path")) {
                                 step = result.steps.get(result.steps.size() - 1);
                                 type = "stages";
                             }
@@ -1303,7 +1304,7 @@ public class Parser {
                             // }
                             Symbol s = new Symbol();
                             s.type = "filter"; s.expr = predicate; s.position = expr.position;
-                            if (step.type=="stages")
+                            if (step.type.equals("stages"))
                                 step.stages.add(s);
                             else
                                 step.predicate.add(s);
@@ -2148,14 +2149,14 @@ public class Parser {
         Symbol res = left!=null ? new Infix(null) : new Prefix(null);
 
         List< Symbol[] > a = new ArrayList<>();
-        if (node.id != "}") {
+        if (!node.id.equals("}")) {
             for (; ;) {
                 var n = Parser.this.expression(0);
                 advance(":");
                 var v = Parser.this.expression(0);
                 Symbol[] pair = new Symbol[] { n, v };
                 a.add( pair ); // holds an array of name/value expression pairs
-                if (node.id != ",") {
+                if (!node.id.equals(",")) {
                     break;
                 }
                 advance(",");
@@ -2184,7 +2185,7 @@ public class Parser {
         advance();
         // parse the tokens
         var expr = expression(0);
-        if (node.id != "(end)") {
+        if (!node.id.equals("(end)")) {
             var err = new JException("S0201",
                 node.position,
                 node.value
@@ -2194,7 +2195,7 @@ public class Parser {
 
         expr = processAST(expr);
 
-        if(expr.type == "parent" || expr.seekingParent != null) {
+        if(expr.type.equals("parent") || expr.seekingParent != null) {
             // error - trying to derive ancestor at top level
             throw new JException("S0217",
                 expr.position,
