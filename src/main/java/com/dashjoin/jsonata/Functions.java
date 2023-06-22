@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.dashjoin.jsonata.Parser.Symbol;
+
 public class Functions {
     /**
      * Evaluate an input and return a boolean
@@ -187,7 +189,7 @@ public class Functions {
     }
 
     public static boolean isLambda(Object result) {
-        return false;
+        return (result instanceof Symbol && ((Symbol)result)._jsonata_lambda);
     }
 
     /**
