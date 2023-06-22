@@ -142,8 +142,8 @@ public class Functions {
             i2 = 0;
         String t = null;
         try {
-            System.out.println("substring "+s+" "+i1+" "+i2);
             t = s.substring(i1, i1+i2);
+            //System.out.println("substring "+s+" "+i1+" "+i2+" = "+t+" l1="+s.length()+" l2="+t.length());
         } catch (Exception ignore) {
             //
         }            
@@ -173,15 +173,16 @@ public class Functions {
 
         // if either argument is not an array, make it so
         if (!(arg1 instanceof List)) {
-            arg1 = new ArrayList<>(Arrays.asList(arg1));
+            arg1 = Utils.createSequence(arg1);
         }
         if (!(arg2 instanceof List)) {
             arg2 = new ArrayList<>(Arrays.asList(arg2));
-            ((List)arg1).addAll((List)arg2);
         }
-        else
-            // Arg2 was a list: add it as a list element (don't flatten)
-            ((List)arg1).add((List)arg2);
+        // else
+        //     // Arg2 was a list: add it as a list element (don't flatten)
+        //     ((List)arg1).add((List)arg2);
+        arg1 = new ArrayList<>((List)arg1); // create a new copy!
+        ((List)arg1).addAll((List)arg2);
         return arg1;
     }
 
