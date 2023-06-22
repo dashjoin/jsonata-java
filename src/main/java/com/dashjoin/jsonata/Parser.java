@@ -756,13 +756,14 @@ public class Parser {
                 if (!node.id.equals("]")) {
                     for (; ;) {
                         var item = Parser.this.expression(0);
-                        // FIXME: if (node.id == "..") {
-                        //     // range operator
-                        //     var range = {type: "binary", value: "..", position: node.position, lhs: item};
-                        //     advance("..");
-                        //     range.rhs = expression(0);
-                        //     item = range;
-                        // }
+                        if (node.id.equals("..")) {
+                            // range operator
+                            var range = new Symbol();
+                            range.type = "binary"; range.value = ".."; range.position = node.position; range.lhs = item;
+                            advance("..");
+                            range.rhs = expression(0);
+                            item = range;
+                        }
                         a.add(item);
                         if (!node.id.equals(",")) {
                             break;
@@ -1137,7 +1138,7 @@ public class Parser {
             if (value.type.equals("parent")) {
                 slots.add(value.slot);
             }
-            if (result.seekingParent!=null) {
+            if (result.seekingParent==null) {
                 result.seekingParent = slots;
             } else {
                 result.seekingParent.addAll(slots);
@@ -1157,7 +1158,7 @@ public class Parser {
             index = path.steps.size() - 2;
             while (slot.level > 0) {
                 if (index < 0) {
-                    if(path.seekingParent != null) {
+                    if(path.seekingParent == null) {
                         path.seekingParent = new ArrayList<>(Arrays.asList(slot));
                     } else {
                         path.seekingParent.add(slot);
@@ -1436,8 +1437,8 @@ public class Parser {
                     default:
                         Infix _result = new Infix(null);
                         _result.type = expr.type; _result.value = expr.value; _result.position = expr.position;
-                        _result.lhs = processAST(((Infix)expr).lhs);
-                        _result.rhs = processAST(((Infix)expr).rhs);
+                        _result.lhs = processAST((expr).lhs);
+                        _result.rhs = processAST((expr).rhs);
                         pushAncestry(_result, _result.lhs);
                         pushAncestry(_result, _result.rhs);
                         result = _result;
@@ -1471,14 +1472,27 @@ public class Parser {
                     result = _result;
                 } else if (exprValue.equals("{")) {
                     // object constructor - process each pair
-                    throw new Error("processAST {} unimpl");
-                    // result.lhs = expr.lhs.map(function (pair) {
-                    //     var key = processAST(pair[0]);
-                    //     pushAncestry(result, key);
-                    //     var value = processAST(pair[1]);
-                    //     pushAncestry(result, value);
-                    //     return [key, value];
-                    // });
+                    //throw new Error("processAST {} unimpl");
+                    final Symbol _result = result;
+                    result.lhsObject = expr.lhsObject.stream().map(pair -> {
+                        Symbol key = null;;
+                        try {
+                            key = processAST(pair[0]);
+                        } catch (JException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        pushAncestry(_result, key);
+                        Symbol value = null;
+                        try {
+                            value = processAST(pair[1]);
+                        } catch (JException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        pushAncestry(_result, value);
+                        return new Symbol[] {key, value};
+                    }).toList();
                 } else {
                     // all other unary expressions - just process the expression
                     result.expression = processAST(expr.expression);
@@ -2146,7 +2160,7 @@ public class Parser {
 
     Symbol objectParser(Symbol left) throws JException {
 
-        Symbol res = left!=null ? new Infix(null) : new Prefix(null);
+        Symbol res = left!=null ? new Infix("{") : new Prefix("{");
 
         List< Symbol[] > a = new ArrayList<>();
         if (!node.id.equals("}")) {
@@ -2165,7 +2179,7 @@ public class Parser {
         advance("}", true);
         if (left==null) { //typeof left === 'undefined') {
             // NUD - unary prefix form
-            ((Prefix)res).lhs = a;
+            ((Prefix)res).lhsObject = a;
             ((Prefix)res).type = "unary";
         } else {
             // LED - binary infix form
@@ -2219,7 +2233,7 @@ public class Parser {
         String s4 = "(Account)";
         String s5 = "(in.(-3+and*or-5))";
         String s6 = "{'v':(-or-(-and)*in in b)}";
-        String s7 = "true or false";
+        String s7 = "[1..1e5]";
 
         String s = args.length>0 ? args[0] : s7;
 System.out.println("Parsing "+s);
