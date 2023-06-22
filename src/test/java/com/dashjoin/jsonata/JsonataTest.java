@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Map.Entry;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import com.dashjoin.jsonata.Jsonata.Frame;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
@@ -72,16 +74,26 @@ public class JsonataTest {
         return res;
     }
 
-    void testExpr(String expr, Object data, String expected) throws JException {
+    void testExpr(String expr, Object data, Map<String,Object> bindings, String expected) throws JException {
         try {
 
         if (debug) System.out.println("Expr="+expr+" Expected="+expected);
         if (debug) System.out.println(data);
 
+        Frame bindingFrame = null;
+        if (bindings!=null) {
+            // If we have bindings, create a binding env with the settings
+            bindingFrame = new Frame(null);
+            for (Entry<String,Object> e : bindings.entrySet()) {
+                bindingFrame.bind(e.getKey(), e.getValue());
+            }
+        }
+
         Jsonata jsonata = new Jsonata(expr, false);
-        Object result = jsonata.evaluate(data, null);
-        convertNumbers(result);
+        Object result = jsonata.evaluate(data, bindingFrame);
+        result = convertNumbers(result);
         System.out.println("Result = "+result);
+        System.out.println("Expect = "+expected);
         if (!expected.equals(""+result))
             System.out.println("WRONG RESULT");
 
@@ -102,21 +114,21 @@ public class JsonataTest {
 
     Object readJson(String name) throws StreamReadException, DatabindException, IOException {
         ObjectMapper om = new ObjectMapper();
-        Object json = om.readValue(new java.io.File(name), Object.class);
+        Object json = om.readValue(new java.io.FileReader(name, Charset.forName("UTF-8")), Object.class);
         return json;
     }
 
     @Test
     public void testSimple() throws JException {
-        testExpr("42", null, "42.0");
-        testExpr("(3*(4-2)+1.01e2)/-2", null, "-53.5");
+        testExpr("42", null, null, "42.0");
+        testExpr("(3*(4-2)+1.01e2)/-2", null, null, "-53.5");
     }
 
     @Test
     public void testPath() throws Exception {
         Object data = readJson("test/test-suite/datasets/dataset0.json");
         System.out.println(data);
-        testExpr("foo.bar", data, "42");
+        testExpr("foo.bar", data, null, "42");
     }
 
     static class TestDef {
@@ -149,7 +161,7 @@ public class JsonataTest {
 
     void runTestCase(String name, Map<String, Object> testDef) throws Exception {
         testCases++;
-        System.out.println("Running test "+name);
+        System.out.println("\nRunning test "+name);
 
         String expr = (String)testDef.get("expr");
 
@@ -160,7 +172,7 @@ public class JsonataTest {
         }
 
         String dataset = (String)testDef.get("dataset");
-        Object bindings = testDef.get("bindings");
+        Map<String,Object> bindings = (Map)testDef.get("bindings");
         Object result = testDef.get("result");
 
         //System.out.println(""+bindings);
@@ -169,7 +181,7 @@ public class JsonataTest {
         if (data==null && dataset!=null)
             data = readJson("test/test-suite/datasets/"+dataset+".json");
 
-        testExpr(expr, data, ""+result);
+        testExpr(expr, data, bindings, ""+result);
     }
 
     String groupDir = "test/test-suite/groups/";
@@ -198,12 +210,19 @@ public class JsonataTest {
         //runTestGroup("comments");
         //runTestGroup("comparison-operators");
         //runTestGroup("boolean-expresssions");
-        //runTestGroup("array-constructor");
+        runTestGroup("array-constructor");
         //runTestGroup("transform");
+        //runTestGroup("function-substring");
+        //runTestGroup("wildcards");
+        //runTestSuite("test/test-suite/groups/function-substring/case012.json");
         //runTestSuite("test/test-suite/groups/transform/case030.json");
-        //runTestSuite("test/test-suite/groups/array-constructor/case004.json");
+        //runTestSuite("test/test-suite/groups/array-constructor/case006.json");
         // Filter:
-        runTestSuite("test/test-suite/groups/array-constructor/case017.json");
+        //runTestSuite("test/test-suite/groups/array-constructor/case017.json");
+        String s = "test/test-suite/groups/wildcards/case003.json";
+        //runTestSuite(s);
+        String g = "variables";
+        //runTestGroup(g);
         //runAllTestGroups();
     }
 
