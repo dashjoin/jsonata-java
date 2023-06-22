@@ -71,6 +71,14 @@ public class Functions {
         return !toBoolean(arg);
     }
 
+    public static Object count(Object input, Object arg) {
+        Object el = ((List)arg).get(0);
+        if (el instanceof List) {
+            return ((List)el).size();
+        } else
+            return 1;
+    }
+
     /**
      * Join an array of strings
      * @param {Array} strs - array of string
@@ -94,7 +102,18 @@ public class Functions {
     public static Object join(Object input, Object arg) {
         //System.out.println(((List)arg).get(0)+" "+arg.getClass());
         List l = (List)arg;
-        String res = String.join((String)l.get(1), (List)l.get(0));
+        if (l.isEmpty()) return null;
+        String sep = l.size()==1 ? "": (String)l.get(1);
+        String[] strs;
+        if (l.get(0) instanceof String) {
+            // single string
+            strs = new String[]{(String)l.get(0)};
+        } else {
+            // list of strings
+            List<String> lstr = (List)l.get(0);
+            strs = lstr.toArray(new String[lstr.size()]);
+        }
+        String res = String.join(sep, strs);
         //System.out.println("joined = "+res);
         return res;
         //return null;
