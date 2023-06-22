@@ -603,7 +603,7 @@ public class Jsonata {
                 for (var item : ((Infix)expr).expressions) {
                     Object value = evaluate(item, input, environment);
                     if (value!=null) {
-                        if (item.value=="[")
+                        if ((""+item.value).equals("["))
                             ((List)result).add(value);
                         else
                             result = Functions.append(result, value);
@@ -693,6 +693,9 @@ public class Jsonata {
                  if((value instanceof List)) {
                      value = flatten(value, null);
                      results = (List)Functions.append(results, value);
+                 } else if (value instanceof Map) {
+                    // Call recursively do decompose the map
+                    results.addAll((List)evaluateWildcard(expr, value));
                  } else {
                      results.add(value);
                  }
