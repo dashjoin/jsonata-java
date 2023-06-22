@@ -1477,42 +1477,45 @@ public class Jsonata {
          return defineFunction(transformer, "<(oa):o>");
      }
  
-    //Object chainAST = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
+    Symbol chainAST = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
  
      /**
       * Apply the Object on the RHS using the sequence on the LHS as the first argument
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
+     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateApplyExpression(Symbol expr, Object input, Object environment) {
-         var result;
+     /* async */ Object evaluateApplyExpression(Symbol expr, Object input, Frame environment) throws JException {
+         Object result = null;
  
  
          var lhs = /* await */ evaluate(expr.lhs, input, environment);
          if(expr.rhs.type.equals("function")) {
+            //Symbol applyTo = new Symbol(); applyTo.context = lhs;
              // this is a Object _invocation_; invoke it with lhs expression as the first argument
-             result = /* await */ evaluateFunction(expr.rhs, input, environment, { context: lhs });
+             result = /* await */ evaluateFunction(expr.rhs, input, environment, lhs);
          } else {
              var func = /* await */ evaluate(expr.rhs, input, environment);
  
-             if(!isFunction(func)) {
-                 throw {
-                     code: "T2006",
-                     stack: (new Error()).stack,
-                     position: expr.position,
-                     value: func
-                 };
+             if(!Utils.isFunction(func)) {
+                 throw new JException("T2006",
+                     //stack: (new Error()).stack,
+                     expr.position,
+                     func
+                 );
              }
  
-             if(isFunction(lhs)) {
+             if(Utils.isFunction(lhs)) {
                  // this is Object chaining (func1 ~> func2)
                  // λ($f, $g) { λ($x){ $g($f($x)) } }
                  var chain = /* await */ evaluate(chainAST, null, environment);
-                 result = /* await */ apply(chain, [lhs, func], null, environment);
+                 List args = new ArrayList<>(); args.add(lhs); args.add(func); // == [lhs, func]
+                 result = /* await */ apply(chain, args, null, environment);
              } else {
-                 result = /* await */ apply(func, [lhs], null, environment);
+                 List args = new ArrayList<>(); args.add(lhs); // == [lhs]
+                 result = /* await */ apply(func, args, null, environment);
              }
  
          }
@@ -1527,7 +1530,7 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Symbol applyto) throws JException {
+     /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Object applytoContext) throws JException {
          Object result = null;
  
          // create the procedure
@@ -1548,8 +1551,8 @@ public class Jsonata {
  
         List<Object> evaluatedArgs = new ArrayList();
 
-         if (applyto != null) {
-            // FIXME evaluatedArgs.add(applyto.context);
+         if (applytoContext != null) {
+            evaluatedArgs.add(applytoContext);
          }
          // eager evaluation - evaluate the arguments
          for (int jj = 0; jj < expr.arguments.size(); jj++) {
