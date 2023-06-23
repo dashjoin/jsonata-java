@@ -452,7 +452,7 @@ public class Jsonata {
              input = Utils.createSequence(input);
          }
          if (predicate.type.equals("number")) {
-             var index = (int)(double)predicate.value;  // round it down - was Math.floor
+             var index = ((Number)predicate.value).intValue();  // round it down - was Math.floor
              if (index < 0) {
                  // count in from end of array
                  index = ((List)input).size() + index;
@@ -592,7 +592,7 @@ public class Jsonata {
                  if (result==null) { //(typeof result === "undefined") {
                      result = UNDEFINED;
                  } else if (Utils.isNumeric(result)) {
-                     result = -(double)result;
+                     result = Utils.convertNumber( -((Number)result).doubleValue() );
                  } else {
                      throw new JException(
                          "D1002",
@@ -774,7 +774,7 @@ public class Jsonata {
             }
          }
      }
- 
+
      /**
       * Evaluate numeric expression against input data
       * @param {Object} lhs - LHS value
@@ -826,7 +826,7 @@ public class Jsonata {
                  result = lhs % rhs;
                  break;
          }
-         return result;
+         return Utils.convertNumber(result);
      }
  
      /**
@@ -1596,6 +1596,11 @@ public class Jsonata {
          }
          // apply the procedure
          var procName = expr.procedure.type == "path" ? expr.procedure.steps.get(0).value : expr.procedure.value;
+
+        // Error if proc is null
+        if (proc==null)
+            throw new JException("T1006", expr.position, procName);
+
          try {
              if(proc instanceof Symbol) {
                  ((Symbol)proc).token = procName;
@@ -1660,8 +1665,8 @@ public class Jsonata {
          Object result = null;
          try {
              var validatedArgs = args;
-             if (proc!=null) {
-                 validatedArgs = args; // FIXME validateArguments(proc.signature, args, input);
+             if (proc instanceof JFunctionSignatureValidation) {
+                 validatedArgs = validateArguments(proc, args, input);
              }
  
              if (Functions.isLambda(proc)) {
@@ -1718,7 +1723,7 @@ public class Jsonata {
       */
      Object evaluateLambda(Symbol expr, Object input, Frame environment) {
         // make a Object (closure)
-        var procedure = new Symbol();
+        var procedure = parser.new Symbol();
         
         procedure._jsonata_lambda = true;
         procedure.input = input;
@@ -1791,12 +1796,12 @@ public class Jsonata {
       * @param {*} context - context value
       * @returns {Array} - validated arguments
       */
-     Object validateArguments(Function signature, Object args, Object context) {
-         if(signature==null) { //typeof signature === "undefined") {
+     Object validateArguments(Object signature, Object args, Object context) {
+         if(!(signature instanceof JFunction)) { //typeof signature === "undefined") {
              // nothing to validate
              return args;
          }
-         var validatedArgs = signature.validate(args, context);
+         var validatedArgs = ((JFunction)signature).validate(args, context);
          return validatedArgs;
      }
  
@@ -1928,7 +1933,9 @@ public class Jsonata {
         //  }
         //  return definition;
      }
- 
+    JFunction defineFunction(String func, String signature) {
+        return new JFunction(func, signature);
+    }
  
      /**
       * parses and evaluates the supplied expression
@@ -2031,101 +2038,130 @@ public class Jsonata {
         Object call(Object input, Object args);
     }
 
+    public static interface JFunctionSignatureValidation {
+        Object validate(Object args, Object context);
+    }
+
     /**
      * JFunction definition class
      */
-    public static class JFunction implements JFunctionCallable {
+    public static class JFunction implements JFunctionCallable, JFunctionSignatureValidation {
         JFunctionCallable function;
-        String signature;
+        String functionName;
+        Signature signature;
 
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
-            this.signature = signature;
+            this.signature = new Signature(signature);
         }
+
+        public JFunction(String functionName, String signature) {
+            this.functionName = functionName;
+            this.signature = new Signature(signature);
+        }
+
 
         @Override
         public Object call(Object input, Object args) {
-            return function.call(input, args);
+            if (function!=null) {
+                return function.call(input, args);
+            } else {
+                // call by name
+                try {
+                    return Functions.call(functionName, (List)args);
+                } catch (Throwable e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        }
+
+        @Override
+        public Object validate(Object args, Object context) {
+            return signature.validate(args, context);
         }
     }
 
     void registerFunctions0() {
-        staticFrame.bind("count", defineFunction(Functions::count, "<a:n>"));
-        staticFrame.bind("string", defineFunction(Functions::string, "<x-b?:s>"));
-        staticFrame.bind("not", defineFunction(Functions::not, "<x-:b>"));
-        staticFrame.bind("join", defineFunction(Functions::join, "<a<s>s?:s>"));
-        staticFrame.bind("lowercase", defineFunction(Functions::lowercase, "<s-:s>"));
-        staticFrame.bind("uppercase", defineFunction(Functions::uppercase, "<s-:s>"));
-        staticFrame.bind("substring", defineFunction(Functions::substring, "<s-nn?:s>"));
+        staticFrame.bind("sum", defineFunction("sum", "<a<n>:n>"));
+        staticFrame.bind("substringBefore", defineFunction("substringBefore", "<s-s:s>"));
+        staticFrame.bind("substringAfter", defineFunction("substringAfter", "<s-s:s>"));
+
+        staticFrame.bind("count", defineFunction(Functions::_count, "<a:n>"));
+        staticFrame.bind("string", defineFunction(Functions::_string, "<x-b?:s>"));
+        staticFrame.bind("not", defineFunction(Functions::_not, "<x-:b>"));
+        staticFrame.bind("join", defineFunction(Functions::_join, "<a<s>s?:s>"));
+        staticFrame.bind("lowercase", defineFunction(Functions::_lowercase, "<s-:s>"));
+        staticFrame.bind("uppercase", defineFunction(Functions::_uppercase, "<s-:s>"));
+        staticFrame.bind("substring", defineFunction(Functions::_substring, "<s-nn?:s>"));
     }
 
      // Function registration
     void registerFunctions() {
-    /*
-     staticFrame.bind("sum", defineFunction(Functions::sum, "<a<n>:n>"));
-     staticFrame.bind("count", defineFunction(Functions::count, "<a:n>"));
-     staticFrame.bind("max", defineFunction(Functions::max, "<a<n>:n>"));
-     staticFrame.bind("min", defineFunction(Functions::min, "<a<n>:n>"));
-     staticFrame.bind("average", defineFunction(Functions::average, "<a<n>:n>"));
-     staticFrame.bind("string", defineFunction(Functions::string, "<x-b?:s>"));
-     staticFrame.bind("substring", defineFunction(Functions::substring, "<s-nn?:s>"));
-     staticFrame.bind("substringBefore", defineFunction(Functions::substringBefore, "<s-s:s>"));
-     staticFrame.bind("substringAfter", defineFunction(Functions::substringAfter, "<s-s:s>"));
-     staticFrame.bind("lowercase", defineFunction(Functions::lowercase, "<s-:s>"));
-     staticFrame.bind("uppercase", defineFunction(Functions::uppercase, "<s-:s>"));
-     staticFrame.bind("length", defineFunction(Functions::length, "<s-:n>"));
-     staticFrame.bind("trim", defineFunction(Functions::trim, "<s-:s>"));
-     staticFrame.bind("pad", defineFunction(Functions::pad, "<s-ns?:s>"));
-     staticFrame.bind("match", defineFunction(Functions::match, "<s-f<s:o>n?:a<o>>"));
-     staticFrame.bind("contains", defineFunction(Functions::contains, "<s-(sf):b>")); // TODO <s-(sf<s:o>):b>
-     staticFrame.bind("replace", defineFunction(Functions::replace, "<s-(sf)(sf)n?:s>")); // TODO <s-(sf<s:o>)(sf<o:s>)n?:s>
-     staticFrame.bind("split", defineFunction(Functions::split, "<s-(sf)n?:a<s>>")); // TODO <s-(sf<s:o>)n?:a<s>>
-     staticFrame.bind("join", defineFunction(Functions::join, "<a<s>s?:s>"));
-     staticFrame.bind("formatNumber", defineFunction(Functions::formatNumber, "<n-so?:s>"));
-     staticFrame.bind("formatBase", defineFunction(Functions::formatBase, "<n-n?:s>"));
-     staticFrame.bind("formatInteger", defineFunction(Functions::dateTimeFormatInteger, "<n-s:s>"));
-     staticFrame.bind("parseInteger", defineFunction(Functions::dateTimeParseInteger, "<s-s:n>"));
-     staticFrame.bind("number", defineFunction(Functions::number, "<(nsb)-:n>"));
-     staticFrame.bind("floor", defineFunction(Functions::floor, "<n-:n>"));
-     staticFrame.bind("ceil", defineFunction(Functions::ceil, "<n-:n>"));
-     staticFrame.bind("round", defineFunction(Functions::round, "<n-n?:n>"));
-     staticFrame.bind("abs", defineFunction(Functions::abs, "<n-:n>"));
-     staticFrame.bind("sqrt", defineFunction(Functions::sqrt, "<n-:n>"));
-     staticFrame.bind("power", defineFunction(Functions::power, "<n-n:n>"));
-     staticFrame.bind("random", defineFunction(Functions::random, "<:n>"));
-     staticFrame.bind("boolean", defineFunction(Functions::booleanFn, "<x-:b>"));
-     staticFrame.bind("not", defineFunction(Functions::not, "<x-:b>"));
-     staticFrame.bind("map", defineFunction(Functions::map, "<af>"));
-     staticFrame.bind("zip", defineFunction(Functions::zip, "<a+>"));
-     staticFrame.bind("filter", defineFunction(Functions::filter, "<af>"));
-     staticFrame.bind("single", defineFunction(Functions::single, "<af?>"));
-     staticFrame.bind("reduce", defineFunction(Functions::foldLeft, "<afj?:j>")); // TODO <f<jj:j>a<j>j?:j>
-     staticFrame.bind("sift", defineFunction(Functions::sift, "<o-f?:o>"));
-     staticFrame.bind("keys", defineFunction(Functions::keys, "<x-:a<s>>"));
-     staticFrame.bind("lookup", defineFunction(Functions::lookup, "<x-s:x>"));
-     staticFrame.bind("append", defineFunction(Functions::append, "<xx:a>"));
-     staticFrame.bind("exists", defineFunction(Functions::exists, "<x:b>"));
-     staticFrame.bind("spread", defineFunction(Functions::spread, "<x-:a<o>>"));
-     staticFrame.bind("merge", defineFunction(Functions::merge, "<a<o>:o>"));
-     staticFrame.bind("reverse", defineFunction(Functions::reverse, "<a:a>"));
-     staticFrame.bind("each", defineFunction(Functions::each, "<o-f:a>"));
-     staticFrame.bind("error", defineFunction(Functions::error, "<s?:x>"));
-     staticFrame.bind("assert", defineFunction(Functions::assertFn, "<bs?:x>"));
-     staticFrame.bind("type", defineFunction(Functions::type, "<x:s>"));
-     staticFrame.bind("sort", defineFunction(Functions::sort, "<af?:a>"));
-     staticFrame.bind("shuffle", defineFunction(Functions::shuffle, "<a:a>"));
-     staticFrame.bind("distinct", defineFunction(Functions::distinct, "<x:x>"));
-     staticFrame.bind("base64encode", defineFunction(Functions::base64encode, "<s-:s>"));
-     staticFrame.bind("base64decode", defineFunction(Functions::base64decode, "<s-:s>"));
-     staticFrame.bind("encodeUrlComponent", defineFunction(Functions::encodeUrlComponent, "<s-:s>"));
-     staticFrame.bind("encodeUrl", defineFunction(Functions::encodeUrl, "<s-:s>"));
-     staticFrame.bind("decodeUrlComponent", defineFunction(Functions::decodeUrlComponent, "<s-:s>"));
-     staticFrame.bind("decodeUrl", defineFunction(Functions::decodeUrl, "<s-:s>"));
-     staticFrame.bind("eval", defineFunction(Functions::functionEval, "<sx?:x>"));
-     staticFrame.bind("toMillis", defineFunction(Functions::dataTimeToMillis, "<s-s?:n>"));
-     staticFrame.bind("fromMillis", defineFunction(Functions::dateTimeFromMillis, "<n-s?s?:s>"));
-     staticFrame.bind("clone", defineFunction(Functions::functionClone, "<(oa)-:o>"));
-     */
+        staticFrame.bind("sum", defineFunction("sum", "<a<n>:n>"));
+        staticFrame.bind("count", defineFunction("count", "<a:n>"));
+        staticFrame.bind("max", defineFunction("max", "<a<n>:n>"));
+        staticFrame.bind("min", defineFunction("min", "<a<n>:n>"));
+        staticFrame.bind("average", defineFunction("average", "<a<n>:n>"));
+        staticFrame.bind("string", defineFunction("string", "<x-b?:s>"));
+        staticFrame.bind("substring", defineFunction("substring", "<s-nn?:s>"));
+        staticFrame.bind("substringBefore", defineFunction("substringBefore", "<s-s:s>"));
+        staticFrame.bind("substringAfter", defineFunction("substringAfter", "<s-s:s>"));
+        staticFrame.bind("lowercase", defineFunction("lowercase", "<s-:s>"));
+        staticFrame.bind("uppercase", defineFunction("uppercase", "<s-:s>"));
+        staticFrame.bind("length", defineFunction("length", "<s-:n>"));
+        staticFrame.bind("trim", defineFunction("trim", "<s-:s>"));
+        staticFrame.bind("pad", defineFunction("pad", "<s-ns?:s>"));
+        staticFrame.bind("match", defineFunction("match", "<s-f<s:o>n?:a<o>>"));
+        staticFrame.bind("contains", defineFunction("contains", "<s-(sf):b>")); // TODO <s-(sf<s:o>):b>
+        staticFrame.bind("replace", defineFunction("replace", "<s-(sf)(sf)n?:s>")); // TODO <s-(sf<s:o>)(sf<o:s>)n?:s>
+        staticFrame.bind("split", defineFunction("split", "<s-(sf)n?:a<s>>")); // TODO <s-(sf<s:o>)n?:a<s>>
+        staticFrame.bind("join", defineFunction("join", "<a<s>s?:s>"));
+        staticFrame.bind("formatNumber", defineFunction("formatNumber", "<n-so?:s>"));
+        staticFrame.bind("formatBase", defineFunction("formatBase", "<n-n?:s>"));
+        staticFrame.bind("formatInteger", defineFunction("dateTimeFormatInteger", "<n-s:s>"));
+        staticFrame.bind("parseInteger", defineFunction("dateTimeParseInteger", "<s-s:n>"));
+        staticFrame.bind("number", defineFunction("number", "<(nsb)-:n>"));
+        staticFrame.bind("floor", defineFunction("floor", "<n-:n>"));
+        staticFrame.bind("ceil", defineFunction("ceil", "<n-:n>"));
+        staticFrame.bind("round", defineFunction("round", "<n-n?:n>"));
+        staticFrame.bind("abs", defineFunction("abs", "<n-:n>"));
+        staticFrame.bind("sqrt", defineFunction("sqrt", "<n-:n>"));
+        staticFrame.bind("power", defineFunction("power", "<n-n:n>"));
+        staticFrame.bind("random", defineFunction("random", "<:n>"));
+        staticFrame.bind("boolean", defineFunction("booleanFn", "<x-:b>"));
+        staticFrame.bind("not", defineFunction("not", "<x-:b>"));
+        staticFrame.bind("map", defineFunction("map", "<af>"));
+        staticFrame.bind("zip", defineFunction("zip", "<a+>"));
+        staticFrame.bind("filter", defineFunction("filter", "<af>"));
+        staticFrame.bind("single", defineFunction("single", "<af?>"));
+        staticFrame.bind("reduce", defineFunction("foldLeft", "<afj?:j>")); // TODO <f<jj:j>a<j>j?:j>
+        staticFrame.bind("sift", defineFunction("sift", "<o-f?:o>"));
+        staticFrame.bind("keys", defineFunction("keys", "<x-:a<s>>"));
+        staticFrame.bind("lookup", defineFunction("lookup", "<x-s:x>"));
+        staticFrame.bind("append", defineFunction("append", "<xx:a>"));
+        staticFrame.bind("exists", defineFunction("exists", "<x:b>"));
+        staticFrame.bind("spread", defineFunction("spread", "<x-:a<o>>"));
+        staticFrame.bind("merge", defineFunction("merge", "<a<o>:o>"));
+        staticFrame.bind("reverse", defineFunction("reverse", "<a:a>"));
+        staticFrame.bind("each", defineFunction("each", "<o-f:a>"));
+        staticFrame.bind("error", defineFunction("error", "<s?:x>"));
+        staticFrame.bind("assert", defineFunction("assertFn", "<bs?:x>"));
+        staticFrame.bind("type", defineFunction("type", "<x:s>"));
+        staticFrame.bind("sort", defineFunction("sort", "<af?:a>"));
+        staticFrame.bind("shuffle", defineFunction("shuffle", "<a:a>"));
+        staticFrame.bind("distinct", defineFunction("distinct", "<x:x>"));
+        staticFrame.bind("base64encode", defineFunction("base64encode", "<s-:s>"));
+        staticFrame.bind("base64decode", defineFunction("base64decode", "<s-:s>"));
+        staticFrame.bind("encodeUrlComponent", defineFunction("encodeUrlComponent", "<s-:s>"));
+        staticFrame.bind("encodeUrl", defineFunction("encodeUrl", "<s-:s>"));
+        staticFrame.bind("decodeUrlComponent", defineFunction("decodeUrlComponent", "<s-:s>"));
+        staticFrame.bind("decodeUrl", defineFunction("decodeUrl", "<s-:s>"));
+        staticFrame.bind("eval", defineFunction("functionEval", "<sx?:x>"));
+        staticFrame.bind("toMillis", defineFunction("dataTimeToMillis", "<s-s?:n>"));
+        staticFrame.bind("fromMillis", defineFunction("dateTimeFromMillis", "<n-s?s?:s>"));
+        staticFrame.bind("clone", defineFunction("functionClone", "<(oa)-:o>"));
     }
 
      /**
@@ -2281,7 +2317,7 @@ public class Jsonata {
      public Jsonata(String expr, boolean optionsRecover) throws JException {
          try {
             staticFrame = createFrame(null);
-            registerFunctions0();
+            registerFunctions();
              ast = parser.parse(expr);//, optionsRecover);
              errors = ast.errors;
              ast.errors = null; //delete ast.errors;
@@ -2392,9 +2428,15 @@ public class Jsonata {
     public static void main(String[] args) throws Throwable {
 
         String s = "$join(['a','b','c'], '#')";
-        s = "$count([1..(1e4-1)])";
+        //s = "$count([1..(1e4-1)])";
         //s = "{ 'number': [1..10].$string() }"; // FIXME
-        s = "[1].$[]";
+        //s = "[1..10].($ * $).$sum()";
+        s = "($a := [1..10].($ * $); $sum($a) )";
+        s = "$substringBefore(\"Alalala\", \"la\")";
+        s = "$substring(\"Alalala\", 1,4)";
+        s = "$pad('xxx', -5, 'abrac')";
+        //s = "$contains(\"Alalala\", /l(a|b)/)";
+        s = "[-1,-2]";
         Jsonata jsonata = new Jsonata(s, false);
         Object result = jsonata.evaluate(null, null);
         System.out.println("Result = "+new ObjectMapper().writeValueAsString(result));
