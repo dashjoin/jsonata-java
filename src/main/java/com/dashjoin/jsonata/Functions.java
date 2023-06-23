@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.dashjoin.jsonata.Parser.Symbol;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Functions {
     /**
@@ -77,6 +79,17 @@ public class Functions {
             return ((List)el).size();
         } else
             return 1;
+    }
+
+    public static Object string(Object input, Object arg) { 
+        try {
+            return new ObjectMapper().writeValueAsString(input);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return input.toString();
+        }
+        //return input.toString();
     }
 
     /**
