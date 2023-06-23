@@ -73,7 +73,7 @@ public class Parser {
         }
     }
     
-    static class Symbol implements Cloneable {
+    class Symbol implements Cloneable {
 
         //Symbol s;
         String id;
@@ -374,6 +374,13 @@ public class Parser {
                 // type="unary";
                 // return this;
             }
+
+            @Override public Object clone() throws CloneNotSupportedException {
+                Object c = super.clone();
+                // IMPORTANT: make sure to allocate a new Prefix!!!
+                ((InfixAndPrefix)c).prefix = new Prefix(((InfixAndPrefix)c).id);
+                return c;
+            }
         }
 
         /*
@@ -411,7 +418,7 @@ public class Parser {
         // match prefix operators
         // <operator> <expression>
         class Prefix extends Symbol {
-            public List<Symbol[]> lhs;
+            //public List<Symbol[]> lhs;
 
             Prefix(String id) {
                 super(id);
@@ -1453,12 +1460,12 @@ public class Parser {
                 result = new Symbol();
                 result.type = expr.type; result.value = expr.value; result.position = expr.position;
                 // expr.value might be Character!
-                String exprValue = ""+expr.id; // FIXME: id why not value ???
+                String exprValue = ""+expr.value;
                 if (exprValue.equals("[")) {
                     System.out.println("unary [ "+result);
                     // array constructor - process each item
                     final Symbol _result = result;
-                    _result.expressions = ((Infix)expr).expressions.stream().map(item -> {
+                    result.expressions = expr.expressions.stream().map(item -> {
                         Symbol value = null;
                         try {
                             value = processAST(item);
@@ -1470,7 +1477,6 @@ public class Parser {
                         return value;
                     }
                     ).toList();
-                    result = _result;
                 } else if (exprValue.equals("{")) {
                     // object constructor - process each pair
                     //throw new Error("processAST {} unimpl");
@@ -1500,7 +1506,7 @@ public class Parser {
                     // if unary minus on a number, then pre-process
                     if (exprValue.equals("-") && result.expression.type.equals("number")) {
                         result = result.expression;
-                        result.value = -(double)result.value;
+                        result.value = Utils.convertNumber( -((Number)result.value).doubleValue() );
                         System.out.println("unary - value="+result.value);
                     } else {
                         pushAncestry(result, result.expression);
@@ -2235,7 +2241,7 @@ public class Parser {
         String s4 = "(Account)";
         String s5 = "(in.(-3+and*or-5))";
         String s6 = "{'v':(-or-(-and)*in in b)}";
-        String s7 = "[1..1e5]";
+        String s7 = "[-1,-2]";
 
         String s = args.length>0 ? args[0] : s7;
 System.out.println("Parsing "+s);
