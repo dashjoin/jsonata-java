@@ -183,17 +183,16 @@ public class Jsonata {
 
         
         // mangle result (list of 1 element -> 1 element, empty list -> null)
-         if(result!=null && (result instanceof List) /* && !result.tupleStream */ ) {
-            List _result = (List)result;
-            boolean result_keepSingleton = false;
-             if(expr.keepArray) {
-                 result_keepSingleton = true;
-             }
-             if(_result.isEmpty()) {
-                 result = null;
-             } else if(_result.size() == 1) {
-                 result =  result_keepSingleton ? result : _result.get(0);
-             }
+         if(result!=null && Utils.isSequence(result) && !((JList)result).tupleStream) {
+            JList _result = (JList)result;
+            if(expr.keepArray) {
+                _result.keepSingleton = true;
+            }
+            if(_result.isEmpty()) {
+                result = null;
+            } else if(_result.size() == 1) {
+                result =  _result.keepSingleton ? _result : _result.get(0);
+            }
          }
  
          return result;
@@ -212,7 +211,7 @@ public class Jsonata {
          // expr is an array of steps
          // if the first step is a variable reference ($...), including root reference ($$),
          //   then the path is absolute rather than relative
-         if (input instanceof List && expr.steps.get(0).type != "variable") {
+         if (input instanceof List && !expr.steps.get(0).type.equals("variable")) {
              inputSequence = input;
          } else {
              // if input is not an array, make it so
@@ -246,9 +245,9 @@ public class Jsonata {
                  break;
              }
  
-            //  if(step.focus == null) {
+            if(step.focus == null) {
                   inputSequence = resultSequence;
-            //  }
+            }
  
          }
  
@@ -264,13 +263,13 @@ public class Jsonata {
         //      }
         //  }
  
-        //  if(expr.keepSingletonArray) {
-        //      // if the array is explicitly constructed in the expression and marked to promote singleton sequences to array
-        //      if(Array.isArray(resultSequence) && resultSequence.cons && !resultSequence.sequence) {
-        //          resultSequence = createSequence(resultSequence);
-        //      }
-        //      resultSequence.keepSingleton = true;
-        //  }
+        if(expr.keepSingletonArray) {
+            // if the array is explicitly constructed in the expression and marked to promote singleton sequences to array
+            if((resultSequence instanceof JList) && ((JList)resultSequence).cons && !((JList)resultSequence).sequence) {
+                resultSequence = Utils.createSequence(resultSequence);
+            }
+            ((JList)resultSequence).keepSingleton = true;
+        }
  
         //  if (expr.hasOwnProperty("group")) {
         //      resultSequence = /* await */ evaluateGroupExpression(expr.group, isTupleStream ? tupleBindings : resultSequence, environment)
@@ -299,7 +298,7 @@ public class Jsonata {
       */
      /* async */ Object evaluateStep(Symbol expr, Object input, Frame environment, boolean lastStep) throws JException {
          Object result;
-         if(expr.type == "sort") {
+         if(expr.type.equals("sort")) {
               result = /* await */ evaluateSortExpression(expr, input, environment);
               if(expr.stages!=null) {
                   result = /* await */ evaluateStages(expr.stages, result, environment);
@@ -322,16 +321,19 @@ public class Jsonata {
          }
  
          var resultSequence = Utils.createSequence();
-         if(lastStep && ((List)result).size()==1 && (((List)result).get(0) instanceof List) /*&& !isSequence(result[0])*/) {
+         if(lastStep && ((List)result).size()==1 && (((List)result).get(0) instanceof List) && !Utils.isSequence(((List)result).get(0))) {
              resultSequence = (List) ((List) result).get(0);
          } else {
             // flatten the sequence
-            if (!(result instanceof List))
-            // it"s not an array - just push into the result sequence
-                resultSequence.add(result);
-            else
-            // res is a sequence - flatten it into the parent sequence
-                resultSequence.addAll((List)result);
+            for (Object res : (List)result) {
+                if (!(res instanceof List) || (res instanceof JList && ((JList)res).cons)) {
+                    // it's not an array - just push into the result sequence
+                    resultSequence.add(res);
+                } else {
+                    // res is a sequence - flatten it into the parent sequence
+                    resultSequence.addAll((List)res);
+                }
+            }
          }
  
          return resultSequence;
@@ -602,9 +604,9 @@ public class Jsonata {
                  }
                  break;
              case "[":
-                 // array constructor - evaluate each item
-                 result = new ArrayList<>(); // [];
-                for (var item : ((Infix)expr).expressions) {
+                // array constructor - evaluate each item
+                result = new ArrayList<>(); // [];
+                for (var item : expr.expressions) {
                     Object value = evaluate(item, input, environment);
                     if (value!=null) {
                         if ((""+item.value).equals("["))
@@ -1492,8 +1494,16 @@ public class Jsonata {
          return defineFunction(transformer, "<(oa):o>");
      }
  
-    Symbol chainAST = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
+    Symbol chainAST; // = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
  
+    Symbol chainAST() throws JException {
+        if (chainAST==null) {
+            // only create on demand
+            chainAST = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
+        }
+        return chainAST;
+    }
+
      /**
       * Apply the Object on the RHS using the sequence on the LHS as the first argument
       * @param {Object} expr - JSONata expression
@@ -1525,7 +1535,7 @@ public class Jsonata {
              if(Utils.isFunction(lhs)) {
                  // this is Object chaining (func1 ~> func2)
                  // λ($f, $g) { λ($x){ $g($f($x)) } }
-                 var chain = /* await */ evaluate(chainAST, null, environment);
+                 var chain = /* await */ evaluate(chainAST(), null, environment);
                  List args = new ArrayList<>(); args.add(lhs); args.add(func); // == [lhs, func]
                  result = /* await */ apply(chain, args, null, environment);
              } else {
@@ -2041,6 +2051,7 @@ public class Jsonata {
 
     void registerFunctions0() {
         staticFrame.bind("count", defineFunction(Functions::count, "<a:n>"));
+        staticFrame.bind("string", defineFunction(Functions::string, "<x-b?:s>"));
         staticFrame.bind("not", defineFunction(Functions::not, "<x-:b>"));
         staticFrame.bind("join", defineFunction(Functions::join, "<a<s>s?:s>"));
         staticFrame.bind("lowercase", defineFunction(Functions::lowercase, "<s-:s>"));
@@ -2050,6 +2061,7 @@ public class Jsonata {
 
      // Function registration
     void registerFunctions() {
+    /*
      staticFrame.bind("sum", defineFunction(Functions::sum, "<a<n>:n>"));
      staticFrame.bind("count", defineFunction(Functions::count, "<a:n>"));
      staticFrame.bind("max", defineFunction(Functions::max, "<a<n>:n>"));
@@ -2113,6 +2125,7 @@ public class Jsonata {
      staticFrame.bind("toMillis", defineFunction(Functions::dataTimeToMillis, "<s-s?:n>"));
      staticFrame.bind("fromMillis", defineFunction(Functions::dateTimeFromMillis, "<n-s?s?:s>"));
      staticFrame.bind("clone", defineFunction(Functions::functionClone, "<(oa)-:o>"));
+     */
     }
 
      /**
@@ -2380,9 +2393,10 @@ public class Jsonata {
 
         String s = "$join(['a','b','c'], '#')";
         s = "$count([1..(1e4-1)])";
-        s = "{ 'number': [1..10].$string() }";
+        //s = "{ 'number': [1..10].$string() }"; // FIXME
+        s = "[1].$[]";
         Jsonata jsonata = new Jsonata(s, false);
         Object result = jsonata.evaluate(null, null);
-        System.out.println("Result = "+result);
+        System.out.println("Result = "+new ObjectMapper().writeValueAsString(result));
     }
 }
