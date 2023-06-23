@@ -8,10 +8,10 @@ import java.util.concurrent.Callable;
 public class Utils {
     public static boolean isNumeric(Object v) throws JException {
         boolean isNum = false;
-        if (v instanceof Double) {
-            double d = (Double)v;
+        if (v instanceof Number) {
+            double d = ((Number)v).doubleValue();
             isNum = !Double.isNaN(d);
-            if (isNum && !Double.isFinite((Double)v)) {
+            if (isNum && !Double.isFinite(d)) {
                 throw new JException("D1001", 0, v);
             }
         }
@@ -90,4 +90,13 @@ public class Utils {
         // isDeepEqual,
         // stringToArray,
         // isPromise
+
+     
+    public static Number convertNumber(Number n) {
+        // Use int if the number is not fractional
+        if (n.intValue()==n.doubleValue())
+            return n.intValue();
+        return n.doubleValue();
+    }
+
 }
