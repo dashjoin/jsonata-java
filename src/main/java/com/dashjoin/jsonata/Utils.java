@@ -71,6 +71,14 @@ public class Utils {
         public boolean outerWrapper;
 
         public boolean tupleStream;
+
+        public boolean keepSingleton;
+
+        public boolean cons;
+    }
+
+    public static boolean isSequence(Object result) {
+        return result instanceof JList && ((JList)result).sequence;
     }
 
         // createSequence,
