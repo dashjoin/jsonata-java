@@ -1255,12 +1255,12 @@ public class Parser {
                         }
                         // if first step is a path constructor, flag it for special handling
                         var firststep = result.steps.get(0);
-                        if (firststep.type.equals("unary") && firststep.value.equals("[")) {
+                        if (firststep.type.equals("unary") && (""+firststep.value).equals("[")) {
                             firststep.consarray = true;
                         }
                         // if the last step is an array constructor, flag it so it doesn't flatten
                         var laststep = result.steps.get(result.steps.size() - 1);
-                        if (laststep.type.equals("unary") && laststep.value.equals("[")) {
+                        if (laststep.type.equals("unary") && (""+laststep.value).equals("[")) {
                             laststep.consarray = true;
                         }
                         resolveAncestry(result);
@@ -1449,14 +1449,15 @@ public class Parser {
 
             case "unary": {
                 //System.out.println("case unary "+expr.value.getClass());
-                // {type: expr.type, value: expr.value, position: expr.position};
+                // result = {type: expr.type, value: expr.value, position: expr.position};
+                result = new Symbol();
+                result.type = expr.type; result.value = expr.value; result.position = expr.position;
                 // expr.value might be Character!
                 String exprValue = ""+expr.id; // FIXME: id why not value ???
                 if (exprValue.equals("[")) {
-                    final Infix _result = new Infix(null);
-                    _result.type = expr.type; _result.value = expr.value; _result.position = expr.position;
                     System.out.println("unary [ "+result);
                     // array constructor - process each item
+                    final Symbol _result = result;
                     _result.expressions = ((Infix)expr).expressions.stream().map(item -> {
                         Symbol value = null;
                         try {
@@ -1645,9 +1646,10 @@ public class Parser {
                     //err.stack = (new Error()).stack;
                     throw err;
                 }
-
         }
-
+        if (expr.keepArray) {
+            result.keepArray = true;
+        }
         return result;
     }
 
