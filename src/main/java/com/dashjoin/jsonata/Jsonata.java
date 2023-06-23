@@ -16,6 +16,7 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import javax.swing.JEditorPane;
 
@@ -1246,7 +1247,7 @@ public class Jsonata {
       * @returns {Function} Higher order Object representing prepared regex
       */
      Object evaluateRegex(Symbol expr) {
-        throw new Error("not impl");
+        return expr.value;
 
         //  var re = new jsonata.RegexEngine(expr.value);
         //  var closure = function(str, fromIndex) {
@@ -2130,7 +2131,7 @@ public class Jsonata {
         staticFrame.bind("sqrt", defineFunction("sqrt", "<n-:n>"));
         staticFrame.bind("power", defineFunction("power", "<n-n:n>"));
         staticFrame.bind("random", defineFunction("random", "<:n>"));
-        staticFrame.bind("boolean", defineFunction("booleanFn", "<x-:b>"));
+        staticFrame.bind("boolean", defineFunction("toBoolean", "<x-:b>"));
         staticFrame.bind("not", defineFunction("not", "<x-:b>"));
         staticFrame.bind("map", defineFunction("map", "<af>"));
         staticFrame.bind("zip", defineFunction("zip", "<a+>"));
@@ -2435,8 +2436,8 @@ public class Jsonata {
         s = "$substringBefore(\"Alalala\", \"la\")";
         s = "$substring(\"Alalala\", 1,4)";
         s = "$pad('xxx', -5, 'abrac')";
-        //s = "$contains(\"Alalala\", /l(a|b)/)";
-        s = "[-1,-2]";
+        s = "$contains(\"Alalala\", /l(a|b)/)";
+        //s = "$string({'a':[1,2]}, true)";
         Jsonata jsonata = new Jsonata(s, false);
         Object result = jsonata.evaluate(null, null);
         System.out.println("Result = "+new ObjectMapper().writeValueAsString(result));

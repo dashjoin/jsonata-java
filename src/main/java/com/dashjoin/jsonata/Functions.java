@@ -5,9 +5,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -292,6 +295,40 @@ public class Functions {
         return result;
     }
 
+    static class RegexpMatch {
+        String match;
+        int index;
+        List<String> groups;
+    }
+    /**
+     * Evaluate the matcher function against the str arg
+     *
+     * @param {*} matcher - matching function (native or lambda)
+     * @param {string} str - the string to match against
+     * @returns {object} - structure that represents the match(es)
+     */
+    public static List<RegexpMatch> evaluateMatcher(Pattern matcher, String str) {
+        List<RegexpMatch> res = new ArrayList<>();
+        Matcher m = matcher.matcher(str);
+        while (m.find()) {
+            RegexpMatch rm = new RegexpMatch();
+
+            System.out.println("grc="+m.groupCount()+" "+m.group(1));
+
+            rm.index = m.start();
+            rm.match = m.group();
+
+            List<String> groups = new ArrayList<>();
+            // Collect the groups
+            for (int g=1; g<=m.groupCount(); g++)
+                groups.add(m.group(g));
+
+            rm.groups = groups;
+            res.add(rm);
+        }
+        return res;
+    }
+
     /**
      * Tests if the str contains the token
      * @param {String} str - string to test
@@ -308,14 +345,59 @@ public class Functions {
 
         if (token instanceof String) {
             result = (str.indexOf((String)token) != -1);
-        } else {
-            //var matches = await evaluateMatcher(token, str);
+        } else if (token instanceof Pattern) {
+            var matches = evaluateMatcher((Pattern)token, str);
+            System.out.println("match = "+matches);
             //result = (typeof matches !== 'undefined');
-            throw new Error("regexp not impl"); //result = false;
+            //throw new Error("regexp not impl"); //result = false;
+            result = !matches.isEmpty();
+        } else {
+            throw new Error("unknown type to match: "+token);
         }
 
         return result;
     }
+
+    /**
+     * Match a string with a regex returning an array of object containing details of each match
+     * @param {String} str - string
+     * @param {String} regex - the regex applied to the string
+     * @param {Integer} [limit] - max number of matches to return
+     * @throws JException
+     * @returns {Array} The array of match objects
+     */
+    public static List<RegexpMatch> match(String str, Pattern regex, Integer limit) throws JException {
+        // undefined inputs always return undefined
+        if (str == null) {
+            return null;
+        }
+
+        // limit, if specified, must be a non-negative number
+        if (limit!=null && limit < 0) {
+            throw new JException("D3040", -1, limit
+            );
+        }
+
+        var result = Utils.createSequence();
+        var matches = evaluateMatcher(regex, str);
+        int max = Integer.MAX_VALUE;
+        if (limit!=null)
+            max = limit;
+
+        for (int i=0; i < matches.size(); i++) {
+            Map m = new LinkedHashMap<>();
+            RegexpMatch rm = matches.get(i);
+            // Convert to JSON map:
+            m.put("match", rm.match);
+            m.put("index", rm.index);
+            m.put("groups", rm.groups);
+            result.add(m);
+            if (i>=max)
+                break;
+        }
+        return (List)result;
+    }
+
 
     ///////
     ///////
