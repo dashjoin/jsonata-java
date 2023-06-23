@@ -102,6 +102,25 @@ public class Functions {
     }
 
     /**
+     * Stringify arguments
+     * @param {Object} arg - Arguments
+     * @param {boolean} [prettify] - Pretty print the result
+     * @returns {String} String from arguments
+     */
+    public static String string(Object arg, Boolean prettify) {
+        try {
+            if (prettify!=null && prettify)
+                return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(arg);
+            else
+                return new ObjectMapper().writeValueAsString(arg);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return arg.toString();
+        }
+    }
+
+    /**
      * Create substring based on character number and length
      * @param {String} str - String to evaluate
      * @param {Integer} start - Character number to start substring
@@ -566,7 +585,7 @@ public class Functions {
 
                 // Special handling of one arg if function requires list:
                 // Wrap the single arg in a list with one element
-                if (m.getParameterTypes()[0].isAssignableFrom(List.class) && !(callArgs.get(0) instanceof List)) {
+                if (List.class.isAssignableFrom(m.getParameterTypes()[0]) && !(callArgs.get(0) instanceof List)) {
                     Object arg1 = callArgs.get(0);
                     List wrap = new ArrayList<>(); wrap.add(arg1);
                     callArgs.set(0, wrap);
