@@ -3,6 +3,8 @@ package com.dashjoin.jsonata;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -398,11 +400,193 @@ public class Functions {
         return (List)result;
     }
 
+    /**
+     * Join an array of strings
+     * @param {Array} strs - array of string
+     * @param {String} [separator] - the token that splits the string
+     * @returns {String} The concatenated string
+     */
+    public static String join(List<String> strs, String separator) {
+        // undefined inputs always return undefined
+        if (strs == null) {
+            return null;
+        }
 
-    ///////
-    ///////
-    ///////
-    ///////
+        // if separator is not specified, default to empty string
+        if (separator == null) {
+            separator = "";
+        }
+
+        return String.join(separator, strs);
+    }
+
+    public static String replace(String str, Object pattern, String replacement, Integer limit) {
+        // FIXME: limit
+        if (pattern instanceof String) {
+            return str.replace((String)pattern, replacement);
+        } else {
+            return str.replaceAll(((Pattern)pattern).pattern(), replacement);
+        }
+    }
+
+    public static List<String> split(String str, Object pattern, Integer limit) {
+        // FIXME: limit
+        if (pattern instanceof String) {
+            // FIXME: must escape pattern to regexp!
+            return Arrays.asList( str.split((String)pattern) );
+        } else {
+            return Arrays.asList( str.split(((Pattern)pattern).pattern() ) );
+        }
+    }
+
+    /**
+     * Cast argument to number
+     * @param {Object} arg - Argument
+     * @returns {Number} numeric value of argument
+     */
+    public static Number number(Object arg) {
+        Number result = null;
+
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        if (arg instanceof Number)
+            result = (Number)arg;
+        else if (arg instanceof String) {
+            result = Utils.convertNumber( Double.valueOf((String)arg) );
+        } else if (arg instanceof Boolean) {
+            result = ((boolean)arg) ? 1:0;
+        }
+        return result;
+    }
+
+    /**
+     * Absolute value of a number
+     * @param {Number} arg - Argument
+     * @returns {Number} absolute value of argument
+     */
+    public static Number abs(Number arg) {
+
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        return arg instanceof Double ?
+            Math.abs((double)arg) :
+            Math.abs((int)arg);
+    }
+
+    /**
+     * Rounds a number down to integer
+     * @param {Number} arg - Argument
+     * @returns {Number} rounded integer
+     */
+    public static Number floor(Number arg) {
+
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        return Math.floor(arg.doubleValue());
+    }
+
+    /**
+     * Rounds a number up to integer
+     * @param {Number} arg - Argument
+     * @returns {Number} rounded integer
+     */
+    public static Number ceil(Number arg) {
+
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        return Math.ceil(arg.doubleValue());
+    }
+
+    /**
+     * Round to half even
+     * @param {Number} arg - Argument
+     * @param {Number} [precision] - number of decimal places
+     * @returns {Number} rounded integer
+     */
+    public static Number round(Number arg, Number precision) {
+
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        BigDecimal b = new BigDecimal(arg.doubleValue());
+        if (precision==null)
+            precision = 0;
+        b.setScale(precision.intValue(), RoundingMode.HALF_EVEN);
+        
+        return Utils.convertNumber( b.doubleValue() );
+    }
+
+    /**
+     * Square root of number
+     * @param {Number} arg - Argument
+     * @throws JException
+     * @returns {Number} square root
+     */
+    public static Number sqrt(Number arg) throws JException {
+
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        if (arg.doubleValue() < 0) {
+            throw new JException("D3060",
+                1,
+                arg
+            );
+        }
+
+        return Utils.convertNumber( Math.sqrt(arg.doubleValue()) );
+    }
+
+    /**
+     * Raises number to the power of the second number
+     * @param {Number} arg - the base
+     * @param {Number} exp - the exponent
+     * @throws JException
+     * @returns {Number} rounded integer
+     */
+    public static Number power(Number arg, Number exp) throws JException {
+
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        double result = Math.pow(arg.doubleValue(), exp.doubleValue());
+
+        if (!Double.isFinite(result)) {
+            throw new JException("D3061",
+                1,
+                arg,
+                exp
+            );
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns a random number 0 <= n < 1
+     * @returns {number} random number
+     */
+    public static Number random() {
+        return Math.random();
+    }
 
     /**
      * Evaluate an input and return a boolean
@@ -458,7 +642,7 @@ public class Functions {
      * @param {*} arg - argument
      * @returns {boolean} - NOT arg
      */
-    public static Boolean _not(Object input, Object arg) {
+    public static Boolean not(Object arg) {
         // undefined inputs always return undefined
         if (arg == null) {
             return null;
@@ -466,6 +650,15 @@ public class Functions {
 
         return !toBoolean(arg);
     }
+
+
+
+    ///////
+    ///////
+    ///////
+    ///////
+
+
 
     public static Object _count(Object input, Object arg) {
         Object el = ((List)arg).get(0);
@@ -484,26 +677,6 @@ public class Functions {
             return input.toString();
         }
         //return input.toString();
-    }
-
-    /**
-     * Join an array of strings
-     * @param {Array} strs - array of string
-     * @param {String} [separator] - the token that splits the string
-     * @returns {String} The concatenated string
-     */
-    public static String join(List<String> strs, String separator) {
-        // undefined inputs always return undefined
-        if (strs == null) {
-            return null;
-        }
-
-        // if separator is not specified, default to empty string
-        if (separator == null) {
-            separator = "";
-        }
-
-        return String.join(separator, strs);
     }
 
     public static Object _join(Object input, Object arg) {
@@ -650,6 +823,20 @@ public class Functions {
         return a+b;
     }
 
+    public static Method getFunction(String name) {
+        Method[] methods = Functions.class.getMethods();
+        for (Method m : methods) {
+            // if (m.getModifiers() == (Modifier.STATIC | Modifier.PUBLIC) ) {
+            //     System.out.println(m.getName());
+            //     System.out.println(m.getParameterTypes());
+            // }
+            if (m.getName().equals(name)) {
+                return m;
+            }
+        }
+        return null;
+    }
+
     public static Object call(String name, List<Object> args) throws Throwable {
         Method[] methods = Functions.class.getMethods();
         for (Method m : methods) {
@@ -658,6 +845,7 @@ public class Functions {
             //     System.out.println(m.getParameterTypes());
             // }
             if (m.getName().equals(name)) {
+                Class<?>[] types = m.getParameterTypes();
                 int nargs = m.getParameterTypes().length;
                 List<Object> callArgs = new ArrayList<>(args);
                 while (callArgs.size()<nargs) {
@@ -667,7 +855,7 @@ public class Functions {
 
                 // Special handling of one arg if function requires list:
                 // Wrap the single arg in a list with one element
-                if (List.class.isAssignableFrom(m.getParameterTypes()[0]) && !(callArgs.get(0) instanceof List)) {
+                if (nargs>0 && List.class.isAssignableFrom(types[0]) && !(callArgs.get(0) instanceof List)) {
                     Object arg1 = callArgs.get(0);
                     List wrap = new ArrayList<>(); wrap.add(arg1);
                     callArgs.set(0, wrap);
