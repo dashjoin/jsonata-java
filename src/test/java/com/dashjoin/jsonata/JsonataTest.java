@@ -74,7 +74,9 @@ public class JsonataTest {
         return res;
     }
 
-    void testExpr(String expr, Object data, Map<String,Object> bindings, String expected) throws JException {
+    boolean testExpr(String expr, Object data, Map<String,Object> bindings,
+        String expected, String code) throws JException {
+        boolean success = true;
         try {
 
         if (debug) System.out.println("Expr="+expr+" Expected="+expected);
@@ -91,19 +93,30 @@ public class JsonataTest {
 
         Jsonata jsonata = new Jsonata(expr, false);
         Object result = jsonata.evaluate(data, bindingFrame);
-        result = convertNumbers(result);
+        //result = convertNumbers(result);
         System.out.println("Result = "+result);
         System.out.println("Expect = "+expected);
-        if (!expected.equals(""+result))
+        if (!expected.equals(""+result)) {
             System.out.println("WRONG RESULT");
+            success = false;
+        }
 
         //assertEquals("Must be equal", expected, ""+result);
         } catch (Throwable t) {
-            //System.err.println(t);
+            if (t instanceof JException) {
+                JException je = (JException)t;
+                System.out.println("Exception = "+je.error+"  --> "+je);
+            } else
+                System.out.println("Exception = "+t);
+            System.out.println("Expected  = "+code);
+            if (code==null) {
+                System.out.println("WRONG RESULT (exception)");
+                success = false;
+            }
             t.printStackTrace();
             //if (true) System.exit(-1);
         }
-
+        return success;
     }
 
     Object toJson(String jsonStr) throws JsonMappingException, JsonProcessingException {
@@ -120,15 +133,15 @@ public class JsonataTest {
 
     @Test
     public void testSimple() throws JException {
-        testExpr("42", null, null, "42.0");
-        testExpr("(3*(4-2)+1.01e2)/-2", null, null, "-53.5");
+        testExpr("42", null, null, "42.0",null);
+        testExpr("(3*(4-2)+1.01e2)/-2", null, null, "-53.5",null);
     }
 
     @Test
     public void testPath() throws Exception {
         Object data = readJson("test/test-suite/datasets/dataset0.json");
         System.out.println(data);
-        testExpr("foo.bar", data, null, "42");
+        testExpr("foo.bar", data, null, "42",null);
     }
 
     static class TestDef {
@@ -141,10 +154,12 @@ public class JsonataTest {
     int testFiles = 0;
     int testCases = 0;
 
-    void runTestSuite(String name) throws Exception {
+    boolean runTestSuite(String name) throws Exception {
 
         //System.out.println("Running test "+name);
         testFiles++;
+
+        boolean success = true;
 
         Object testCase = readJson(name);
         if (testCase instanceof List) {
@@ -152,14 +167,15 @@ public class JsonataTest {
             // loop over the case definitions
             for (Object testDef : ((List)testCase)) {
                 System.out.println("Running sub-test");
-                runTestCase(name, (Map<String, Object>) testDef);
+                success &= runTestCase(name, (Map<String, Object>) testDef);
             }
         } else {
-            runTestCase(name, (Map<String, Object>) testCase);
+            success &= runTestCase(name, (Map<String, Object>) testCase);
         }
+        return success;
     }
 
-    void runTestCase(String name, Map<String, Object> testDef) throws Exception {
+    boolean runTestCase(String name, Map<String, Object> testDef) throws Exception {
         testCases++;
         System.out.println("\nRunning test "+name);
 
@@ -174,6 +190,7 @@ public class JsonataTest {
         String dataset = (String)testDef.get("dataset");
         Map<String,Object> bindings = (Map)testDef.get("bindings");
         Object result = testDef.get("result");
+        String code = (String)testDef.get("code");
 
         //System.out.println(""+bindings);
 
@@ -181,22 +198,34 @@ public class JsonataTest {
         if (data==null && dataset!=null)
             data = readJson("test/test-suite/datasets/"+dataset+".json");
 
-        testExpr(expr, data, bindings, ""+result);
+        return testExpr(expr, data, bindings, ""+result, code);
     }
 
     String groupDir = "test/test-suite/groups/";
 
-    void runTestGroup(String group) throws Exception {
+    boolean runTestGroup(String group) throws Exception {
         
         File dir = new File(groupDir, group);
         System.out.println("Run group "+dir);
         File[] files = dir.listFiles();
         Arrays.sort(files);
+        boolean success = true;
+        int count = 0, good = 0;
         for (File f : files) {
             String name = f.getName();
-            if (name.endsWith(".json"))
-                runTestSuite(groupDir+group+"/"+name);
+            if (name.endsWith(".json")) {
+                boolean res = runTestSuite(groupDir+group+"/"+name);
+                success &= res;
+
+                count++;
+                if (res)
+                    good++;
+            }
         }
+        int successPercentage = 100*good/count;
+        System.out.println("Success: "+good+" / "+count+" = "+(100*good/count)+"%");
+        assertEquals("100% test runs must succeed", 100, successPercentage);
+        return success;
     }
 
     boolean debug = true;
@@ -210,7 +239,7 @@ public class JsonataTest {
         //runTestGroup("comments");
         //runTestGroup("comparison-operators");
         //runTestGroup("boolean-expresssions");
-        runTestGroup("array-constructor");
+        //runTestGroup("array-constructor");
         //runTestGroup("transform");
         //runTestGroup("function-substring");
         //runTestGroup("wildcards");
@@ -220,9 +249,30 @@ public class JsonataTest {
         // Filter:
         //runTestSuite("test/test-suite/groups/array-constructor/case017.json");
         String s = "test/test-suite/groups/wildcards/case003.json";
-        //runTestSuite(s);
-        String g = "variables";
+        s = "test/test-suite/groups/flattening/large.json";
+        s = "test/test-suite/groups/function-sum/case006.json";
+        runTestSuite(s);
+        //String g = "function-applications"; // partly
+        //String g = "higher-order-functions"; // works!
+        String g = "hof-map";
+        //String g = "joins"; // TODO
+        //String g = "function-join"; // looks good
+        //String g = "descendent-operator"; // nearly
+        //String g = "object-constructor";
+        //String g = "flattening";
+        //String g = "parent-operator";
+        //String g = "function-substring"; // nearly - unicode encoding issues
+        //String g = "function-substringBefore"; // works!
+        //String g = "function-substringAfter"; // works!
+        //String g = "function-sum"; // works! rounding error delta
+        //String g = "function-max"; // nearly - [-1,-5] second unary wrong!!!
+        //String g = "function-average"; // nearly - [-1,-5] second unary wrong!!!
+        //String g = "function-pad"; // nearly - unicode
+        //String g = "function-trim"; // works!
+        //String g = "function-contains"; // works NO regexp
+        //String g = "function-join"; // works NO regexp
         //runTestGroup(g);
+
         //runAllTestGroups();
     }
 
@@ -232,7 +282,11 @@ public class JsonataTest {
         Arrays.sort(groups);
         for (File g : groups) {
             String name = g.getName();
-            runTestGroup(name);
+            System.out.println("@Test");
+            System.out.println("public void runTestGroup_"+name.replaceAll("-","_")+"() {");
+            System.out.println("\trunTestGroup(\""+name+"\");");
+            System.out.println("}");
+            //runTestGroup(name);
         }
 
         System.out.println("Total test files="+testFiles+" cases="+testCases);
