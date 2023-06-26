@@ -1462,7 +1462,7 @@ public class Parser {
                 // expr.value might be Character!
                 String exprValue = ""+expr.value;
                 if (exprValue.equals("[")) {
-                    System.out.println("unary [ "+result);
+                    if (dbg) System.out.println("unary [ "+result);
                     // array constructor - process each item
                     final Symbol _result = result;
                     result.expressions = expr.expressions.stream().map(item -> {
@@ -1507,7 +1507,7 @@ public class Parser {
                     if (exprValue.equals("-") && result.expression.type.equals("number")) {
                         result = result.expression;
                         result.value = Utils.convertNumber( -((Number)result.value).doubleValue() );
-                        System.out.println("unary - value="+result.value);
+                        if (dbg) System.out.println("unary - value="+result.value);
                     } else {
                         pushAncestry(result, result.expression);
                     }
@@ -1616,7 +1616,7 @@ public class Parser {
                 if (expr.value.equals("and") || expr.value.equals("or") || expr.value.equals("in")) {
                     expr.type = "name";
                     result = processAST(expr);
-                } else /* istanbul ignore else */ if (expr.value.equals("?")) {
+                } else /* istanbul ignore else */ if ((""+expr.value).equals("?")) {
                     // partial application
                     result = expr;
                 } else {
