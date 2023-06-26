@@ -16,6 +16,7 @@ public class Signature implements JFunctionSignatureValidation {
 
     String argTypes;
     boolean argFromContext;
+    int minArgs;
 
     void parseSignature() {
         // FIXME: quick + dirty version here...
@@ -30,6 +31,17 @@ public class Signature implements JFunctionSignatureValidation {
 
         argTypes = s.substring(0, colon).replace("<a>", "").replace("<f>", "");
         argFromContext = argTypes.contains("-");
+
+        // Calculate min number of function args
+        // All args minus optional (?), and ignore context arg (-)
+        int minArgs = argTypes.length();
+        for (char c : argTypes.toCharArray()) {
+            switch (c) {
+                case '-': minArgs-=2; break;
+                case '?': minArgs-=1; break;
+            }
+        }
+        this.minArgs = minArgs;
     }
 
     @Override
@@ -42,5 +54,9 @@ public class Signature implements JFunctionSignatureValidation {
         }
 
         return res;
+    }
+
+    public int getMinArgs() {
+        return minArgs;
     }
 }
