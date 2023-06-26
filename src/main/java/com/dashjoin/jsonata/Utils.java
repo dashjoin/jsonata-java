@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.dashjoin.jsonata.Jsonata.JFunction;
+
 public class Utils {
     public static boolean isNumeric(Object v) throws JException {
         boolean isNum = false;
@@ -40,19 +42,21 @@ public class Utils {
     }
 
     public static boolean isFunction(Object o) {
-        return o instanceof Callable;
+        return o instanceof JFunction;
     }
+
+    static Object NONE = new Object();
 
     /**
      * Create an empty sequence to contain query results
      * @returns {Array} - empty sequence
      */
-    public static List<Object> createSequence() { return createSequence(null); }
+    public static List<Object> createSequence() { return createSequence(NONE); }
 
     public static List<Object> createSequence(Object el) {
         JList<Object> sequence = new JList<>();
         sequence.sequence = true;
-        if (el!=null) {
+        if (el!=NONE) {
             sequence.add(el);
         }
         return sequence;
