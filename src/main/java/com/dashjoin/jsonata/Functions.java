@@ -14,6 +14,7 @@ import java.util.OptionalDouble;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -652,6 +653,73 @@ public class Functions {
     }
 
 
+    public static int getFunctionArity(Object func) {
+        return 1; // FIXME!
+    }
+
+    /**
+     * Helper function to build the arguments to be supplied to the function arg of the
+     * HOFs map, filter, each, sift and single
+     * @param {function} func - the function to be invoked
+     * @param {*} arg1 - the first (required) arg - the value
+     * @param {*} arg2 - the second (optional) arg - the position (index or key)
+     * @param {*} arg3 - the third (optional) arg - the whole structure (array or object)
+     * @returns {*[]} the argument list
+     */
+    public static List hofFuncArgs(Object func, Object arg1, Object arg2, Object arg3) {
+        List func_args = new ArrayList<>(); func_args.add(arg1); // the first arg (the value) is required
+        // the other two are optional - only supply it if the function can take it
+        var length = getFunctionArity(func);
+        if (length >= 2) {
+            func_args.add(arg2);
+        }
+        if (length >= 3) {
+            func_args.add(arg3);
+        }
+        return func_args;
+    }
+
+    /**
+     * Call helper for Java
+     * 
+     * @param func
+     * @param funcArgs
+     * @return
+     * @throws Throwable
+     */
+    public static Object funcApply(Object func, List funcArgs) throws Throwable {
+        Object res;
+        if (isLambda(func))
+            res = Jsonata.current.get().applyProcedure(func, funcArgs);
+        else
+            res = call(((JFunction)func).functionName, funcArgs);
+        return res;
+    }
+
+    /**
+     * Create a map from an array of arguments
+     * @param {Array} [arr] - array to map over
+     * @param {Function} func - function to apply
+     * @returns {Array} Map array
+     */
+    public static List map(List arr, Object func) throws Throwable {
+
+        // undefined inputs always return undefined
+        if (arr == null) {
+            return null;
+        }
+
+        List result = Utils.createSequence();
+        for (int i=0; i<arr.size(); i++) {
+            Object arg = arr.get(i);
+            List funcArgs = hofFuncArgs(func, arr.get(i), i, arr);
+
+            Object res = funcApply(func, funcArgs);
+            if (res!=null)
+                result.add(res);
+        }
+        return result;
+    }
 
     ///////
     ///////
