@@ -90,7 +90,7 @@ public class Jsonata {
      Object evaluate(Symbol expr, Object input, Frame environment) throws JException {
         Object result = null;
  
-        System.out.println("eval expr="+expr);//+" input="+input);
+        if (parser.dbg) System.out.println("eval expr="+expr);//+" input="+input);
 
         //  var entryCallback = environment.lookup("__evaluate_entry");
         //  if(entryCallback) {
@@ -881,7 +881,7 @@ public class Jsonata {
          // type checks
          var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
          var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
-        System.out.println("evalComparison "+ltype+","+rtype);
+        if (parser.dbg) System.out.println("evalComparison "+ltype+","+rtype);
          var lcomparable = (ltype == null || ltype.equals("String") || ltype.equals("Double"));
          var rcomparable = (rtype == null || rtype.equals("String") || rtype.equals("Double"));
  
@@ -1306,7 +1306,7 @@ public class Jsonata {
             result = input instanceof JList && ((JList)input).outerWrapper ? ((JList)input).get(0) : input;
          } else  {
             result = environment.lookup((String)expr.value);
-            System.out.println("variable name="+expr.value+" val="+result);
+            if (parser.dbg) System.out.println("variable name="+expr.value+" val="+result);
          }
          return result;
      }
@@ -1549,6 +1549,8 @@ public class Jsonata {
          return result;
      }
  
+     static ThreadLocal<Jsonata> current = new ThreadLocal<>();
+
      /**
       * Evaluate Object against input data
       * @param {Object} expr - JSONata expression
@@ -1558,6 +1560,8 @@ public class Jsonata {
       */
      /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Object applytoContext) throws JException {
          Object result = null;
+
+         current.set(this);
  
          // create the procedure
          // can"t assume that expr.procedure is a lambda type directly
@@ -1584,13 +1588,14 @@ public class Jsonata {
          for (int jj = 0; jj < expr.arguments.size(); jj++) {
              Object arg = /* await */ evaluate(expr.arguments.get(jj), input, environment);
              if(Utils.isFunction(arg)) {
-                 // wrap this in a closure
+                // wrap this in a closure
+                // Java: not required, already a JFunction
                 //  const closure = /* async */ Object (...params) {
                 //      // invoke func
                 //      return /* await */ apply(arg, params, null, environment);
                 //  };
                 //  closure.arity = getFunctionArity(arg);
-                // evaluatedArgs.push(closure);
+                evaluatedArgs.add(arg);
              } else {
                  evaluatedArgs.add(arg);
              }
@@ -2059,6 +2064,9 @@ public class Jsonata {
         public JFunction(String functionName, String signature) {
             this.functionName = functionName;
             this.signature = new Signature(signature);
+            if (Functions.getFunction(functionName)==null) {
+                System.err.println("Function not implemented: "+functionName);
+            }
         }
 
 
