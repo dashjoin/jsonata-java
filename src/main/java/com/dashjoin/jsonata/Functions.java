@@ -146,11 +146,14 @@ public class Functions {
      * @param {Integer} [length] - Number of characters in substring
      * @returns {string|*} Substring
      */
-    public static String substring(String str, Integer start, Integer length) {
+    public static String substring(String str, Number _start, Number _length) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
         }
+
+        Integer start = _start!=null ? _start.intValue() : null;
+        Integer length = _length!=null ? _length.intValue() : null;
 
         // not used: var strArray = stringToArray(str);
         var strLength = str.length();
@@ -657,7 +660,7 @@ public class Functions {
             return null;
         }
 
-        return Math.floor(arg.doubleValue());
+        return Utils.convertNumber( Math.floor(arg.doubleValue()) );
     }
 
     /**
@@ -672,7 +675,7 @@ public class Functions {
             return null;
         }
 
-        return Math.ceil(arg.doubleValue());
+        return Utils.convertNumber( Math.ceil(arg.doubleValue()) );
     }
 
     /**
@@ -743,7 +746,7 @@ public class Functions {
             );
         }
 
-        return result;
+        return Utils.convertNumber(result);
     }
 
     /**
@@ -792,11 +795,9 @@ public class Functions {
             if (((Number)arg).doubleValue() != 0) {
                 result = true;
             }
-        // FIXME what is the semantic in Java?
-        // } else if (arg !== null && typeof arg === 'object') {
-        //     if (Object.keys(arg).length > 0) {
-        //         result = true;
-        //     }
+        } else if (arg instanceof Map) {
+            if (!((Map)arg).isEmpty())
+                result = true;
         } else if (arg instanceof Boolean) {
             result = (boolean)arg;
         }
@@ -819,7 +820,12 @@ public class Functions {
 
 
     public static int getFunctionArity(Object func) {
-        return 1; // FIXME!
+        if (func instanceof JFunction) {
+            return ((JFunction)func).signature.getMinArgs();
+        } else {
+            // Lambda
+            return ((Symbol)func).arguments.size();
+        }
     }
 
     /**
@@ -881,7 +887,7 @@ public class Functions {
             List funcArgs = hofFuncArgs(func, arr.get(i), i, arr);
 
             Object res = funcApply(func, funcArgs);
-            if (res!=null)
+            //if (res!=null)
                 result.add(res);
         }
         return result;
@@ -928,7 +934,7 @@ public class Functions {
         }
 
         var hasFoundMatch = false;
-        Object result;
+        Object result = null;
 
         for (var i = 0; i < arr.size(); i++) {
             var entry = arr.get(i);
@@ -1244,7 +1250,13 @@ public class Functions {
 
                 @Override
                 public int compare(Object o1, Object o2) {
-                    return (int) funcApply(comparator, Arrays.asList(o1, o2));
+                    try {
+                        return (int) funcApply(comparator, Arrays.asList(o1, o2));
+                    } catch (Throwable e) {
+                        // TODO Auto-generated catch block
+                        //e.printStackTrace();
+                        throw new RuntimeException(e);
+                    }
                 }
                 
             };
@@ -1346,99 +1358,6 @@ public class Functions {
     ///////
     ///////
 
-
-
-    public static Object _count(Object input, Object arg) {
-        Object el = ((List)arg).get(0);
-        if (el instanceof List) {
-            return ((List)el).size();
-        } else
-            return 1;
-    }
-
-    public static Object _string(Object input, Object arg) { 
-        try {
-            return new ObjectMapper().writeValueAsString(((List)arg).get(0));
-        } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return input.toString();
-        }
-        //return input.toString();
-    }
-
-    public static Object _join(Object input, Object arg) {
-        //System.out.println(((List)arg).get(0)+" "+arg.getClass());
-        List l = (List)arg;
-        if (l.isEmpty()) return null;
-        String sep = l.size()==1 ? "": (String)l.get(1);
-        String[] strs;
-        if (l.get(0) instanceof String) {
-            // single string
-            strs = new String[]{(String)l.get(0)};
-        } else {
-            // list of strings
-            List<String> lstr = (List)l.get(0);
-            strs = lstr.toArray(new String[lstr.size()]);
-        }
-        String res = String.join(sep, strs);
-        //System.out.println("joined = "+res);
-        return res;
-        //return null;
-    }
-
-    public static Object _lowercase(Object input, Object arg) {
-        List l = (List)arg;
-        return ((String)l.get(0)).toLowerCase();
-    }
-
-    public static Object _uppercase(Object input, Object arg) {
-        List l = (List)arg;
-        return ((String)l.get(0)).toUpperCase();
-    }
-
-    public static Object _substring(Object input, Object arg) {
-        List l = (List)arg;
-        Object o = l.get(0);
-
-        // Handle list case
-        if (o instanceof List) {
-            List res = Utils.createSequence();
-            for (Object s : (List)o) {
-                List args = Utils.createSequence(s);
-                args.add(l.get(1));
-                args.add(l.get(2));
-                res.add(substring(input, args));
-            }
-            return res;
-        }
-        else if (o instanceof Map) {
-            System.err.println("substring Map TODO");
-            return null;
-        }
-
-        String s = (String)o;
-        if (s==null)
-            return null;
-        int i1 = ((Number)l.get(1)).intValue();
-        if (i1<0) {
-            i1 = s.length()+i1;
-            if (i1<0)
-                i1 = 0;
-        }
-        int i2 = l.size()>2 ? ((Number)l.get(2)).intValue() : s.length()-i1;
-        if (i2<0)
-            i2 = 0;
-        String t = null;
-        try {
-            t = s.substring(i1, i1+i2);
-            //System.out.println("substring "+s+" "+i1+" "+i2+" = "+t+" l1="+s.length()+" l2="+t.length());
-        } catch (Exception ignore) {
-            //
-        }            
-        return t;
-    }
-
     /**
      * Append second argument to first
      * @param {Array|Object} arg1 - First argument
@@ -1526,44 +1445,37 @@ public class Functions {
     }
 
     public static Object call(String name, List<Object> args) throws Throwable {
-        Method[] methods = Functions.class.getMethods();
-        for (Method m : methods) {
-            // if (m.getModifiers() == (Modifier.STATIC | Modifier.PUBLIC) ) {
-            //     System.out.println(m.getName());
-            //     System.out.println(m.getParameterTypes());
-            // }
-            if (m.getName().equals(name)) {
-                Class<?>[] types = m.getParameterTypes();
-                int nargs = m.getParameterTypes().length;
-                List<Object> callArgs = new ArrayList<>(args);
-                while (callArgs.size()<nargs) {
-                    // Add default arg null if not enough args were provided
-                    callArgs.add(null);
-                }
+        return call(getFunction(name), args);
+    }
 
-                // Special handling of one arg if function requires list:
-                // Wrap the single arg in a list with one element
-                if (nargs>0 && List.class.isAssignableFrom(types[0]) && !(callArgs.get(0) instanceof List)) {
-                    Object arg1 = callArgs.get(0);
-                    List wrap = new ArrayList<>(); wrap.add(arg1);
-                    callArgs.set(0, wrap);
-                    //System.err.println("wrapped "+arg1+" as "+wrap);
-                }
-
-                try {
-                    return m.invoke(null, callArgs.toArray());
-                } catch (IllegalAccessException e) {
-                    throw new Exception("Access error calling function "+name, e);
-                } catch (IllegalArgumentException e) {
-                    throw new Exception("Argument error calling function "+name, e);
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                    throw e.getTargetException();
-                }
-            }
+    public static Object call(Method m, List<Object> args) throws Throwable {
+        Class<?>[] types = m.getParameterTypes();
+        int nargs = m.getParameterTypes().length;
+        List<Object> callArgs = new ArrayList<>(args);
+        while (callArgs.size()<nargs) {
+            // Add default arg null if not enough args were provided
+            callArgs.add(null);
         }
 
-        throw new Error("Function not found: "+name);
+        // Special handling of one arg if function requires list:
+        // Wrap the single arg in a list with one element
+        if (nargs>0 && List.class.isAssignableFrom(types[0]) && !(callArgs.get(0) instanceof List)) {
+            Object arg1 = callArgs.get(0);
+            List wrap = new ArrayList<>(); wrap.add(arg1);
+            callArgs.set(0, wrap);
+            //System.err.println("wrapped "+arg1+" as "+wrap);
+        }
+
+        try {
+            return m.invoke(null, callArgs.toArray());
+        } catch (IllegalAccessException e) {
+            throw new Exception("Access error calling function "+m.getName(), e);
+        } catch (IllegalArgumentException e) {
+            throw new Exception("Argument error calling function "+m.getName(), e);
+        } catch (InvocationTargetException e) {
+            //e.printStackTrace();
+            throw e.getTargetException();
+        }
     }
 
 
