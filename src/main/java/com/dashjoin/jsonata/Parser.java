@@ -1192,7 +1192,7 @@ public class Parser {
     Symbol processAST(Symbol expr) throws JException {
         Symbol result = expr;
         if (expr==null) return null;
-        System.out.println(" > processAST type="+expr.type+" value='"+expr.value+"'");
+        if (dbg) System.out.println(" > processAST type="+expr.type+" value='"+expr.value+"'");
         switch (expr.type) {
             case "binary": {
                 switch (""+expr.value) {
