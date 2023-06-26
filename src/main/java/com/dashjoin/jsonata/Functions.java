@@ -1,21 +1,34 @@
 package com.dashjoin.jsonata;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Parser.Symbol;
+import com.dashjoin.jsonata.Utils.JList;
+import com.dashjoin.jsonata.utils.DateTimeUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -430,6 +443,108 @@ public class Functions {
         }
     }
 
+
+
+    /**
+     * Base64 encode a string
+     * @param {String} str - string
+     * @returns {String} Base 64 encoding of the binary data
+     */
+    public static String base64encode(String str) {
+        // undefined inputs always return undefined
+        if (str == null) {
+            return null;
+        }
+        try {
+            return Base64.getEncoder().encodeToString(str.getBytes("utf-8"));
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Base64 decode a string
+     * @param {String} str - string
+     * @returns {String} Base 64 encoding of the binary data
+     */
+    public static String base64decode(String str) {
+        // undefined inputs always return undefined
+        if (str == null) {
+            return null;
+        }
+        try {
+            return new String(Base64.getDecoder().decode(str), "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Encode a string into a component for a url
+     * @param {String} str - String to encode
+     * @returns {string} Encoded string
+     */
+    public static String encodeUrlComponent(String str) {
+        // undefined inputs always return undefined
+        if (str == null) {
+            return null;
+        }
+
+        return URLEncoder.encode(str, StandardCharsets.UTF_8)
+                            .replaceAll("\\+", "%20")
+                            .replaceAll("\\%21", "!")
+                            .replaceAll("\\%27", "'")
+                            .replaceAll("\\%28", "(")
+                            .replaceAll("\\%29", ")")
+                            .replaceAll("\\%7E", "~");
+    }
+
+    /**
+     * Encode a string into a url
+     * @param {String} str - String to encode
+     * @returns {string} Encoded string
+     */
+    public static String encodeUrl(String str) {
+        // undefined inputs always return undefined
+        if (str == null) {
+            return null;
+        }
+
+        return URLEncoder.encode(str, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Decode a string from a component for a url
+     * @param {String} str - String to decode
+     * @returns {string} Decoded string
+     */
+    public static String decodeUrlComponent(String str) {
+        // undefined inputs always return undefined
+        if (str == null) {
+            return null;
+        }
+
+        return URLDecoder.decode(str, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Decode a string from a url
+     * @param {String} str - String to decode
+     * @returns {string} Decoded string
+     */
+    public static String decodeUrl(String str) {
+        // undefined inputs always return undefined
+        if (str == null) {
+            return null;
+        }
+
+        return URLDecoder.decode(str, StandardCharsets.UTF_8);
+    }
+
     public static List<String> split(String str, Object pattern, Integer limit) {
         // FIXME: limit
         if (pattern instanceof String) {
@@ -438,6 +553,56 @@ public class Functions {
         } else {
             return Arrays.asList( str.split(((Pattern)pattern).pattern() ) );
         }
+    }
+
+    /**
+     * Formats a number into a decimal string representation using XPath 3.1 F&O fn:format-number spec
+     * @param {number} value - number to format
+     * @param {String} picture - picture string definition
+     * @param {Object} [options] - override locale defaults
+     * @returns {String} The formatted string
+     */
+    public static String formatNumber(Number value, String picture, Map options) {
+        // undefined inputs always return undefined
+        if (value == null) {
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * Converts a number to a string using a specified number base
+     * @param {number} value - the number to convert
+     * @param {number} [radix] - the number base; must be between 2 and 36. Defaults to 10
+     * @throws JException
+     * @returns {string} - the converted string
+     */
+    public static String formatBase(Number value, Number _radix) throws JException {
+        // undefined inputs always return undefined
+        if (value == null) {
+            return null;
+        }
+
+        value = round(value, 0);
+
+        int radix;
+        if (_radix == null) {
+            radix = 10;
+        } else {
+            radix = _radix.intValue();
+        }
+
+        if (radix < 2 || radix > 36) {
+            throw new JException("D3100",
+                //stack: (new Error()).stack,
+                radix
+            );
+
+        }
+
+        var result = Long.toString(value.longValue(), radix);
+
+        return result;
     }
 
     /**
@@ -526,7 +691,7 @@ public class Functions {
         BigDecimal b = new BigDecimal(arg.doubleValue());
         if (precision==null)
             precision = 0;
-        b.setScale(precision.intValue(), RoundingMode.HALF_EVEN);
+        b = b.setScale(precision.intValue(), RoundingMode.HALF_EVEN);
         
         return Utils.convertNumber( b.doubleValue() );
     }
@@ -710,6 +875,7 @@ public class Functions {
         }
 
         List result = Utils.createSequence();
+        // do the map - iterate over the arrays, and invoke func
         for (int i=0; i<arr.size(); i++) {
             Object arg = arr.get(i);
             List funcArgs = hofFuncArgs(func, arr.get(i), i, arr);
@@ -718,6 +884,460 @@ public class Functions {
             if (res!=null)
                 result.add(res);
         }
+        return result;
+    }
+
+    /**
+     * Create a map from an array of arguments
+     * @param {Array} [arr] - array to filter
+     * @param {Function} func - predicate function
+     * @returns {Array} Map array
+     */
+    public static List filter(List arr, Object func) throws Throwable {
+        // undefined inputs always return undefined
+        if (arr == null) {
+            return null;
+        }
+
+        var result = Utils.createSequence();
+
+        for (var i = 0; i < arr.size(); i++) {
+            var entry = arr.get(i);
+            var func_args = hofFuncArgs(func, entry, i, arr);
+            // invoke func
+            var res = funcApply(func, func_args);
+            if (toBoolean(res)) {
+                result.add(entry);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Given an array, find the single element matching a specified condition
+     * Throws an exception if the number of matching elements is not exactly one
+     * @param {Array} [arr] - array to filter
+     * @param {Function} [func] - predicate function
+     * @returns {*} Matching element
+     */
+    public static Object single(List arr, Object func) throws Throwable {
+        // undefined inputs always return undefined
+        if (arr == null) {
+            return null;
+        }
+
+        var hasFoundMatch = false;
+        Object result;
+
+        for (var i = 0; i < arr.size(); i++) {
+            var entry = arr.get(i);
+            var positiveResult = true;
+            if (func != null) {
+                var func_args = hofFuncArgs(func, entry, i, arr);
+                // invoke func
+                var res = funcApply(func, func_args);
+                positiveResult = toBoolean(res);
+            }
+            if (positiveResult) {
+                if(!hasFoundMatch) {
+                    result = entry;
+                    hasFoundMatch = true;
+                } else {
+                    throw new JException("D3138",
+                        i
+                    );
+                }
+            }
+        }
+
+        if(!hasFoundMatch) {
+            throw new JException("D3139", -1
+            );
+        }
+
+        return result;
+    }
+
+    /**
+     * Convolves (zips) each value from a set of arrays
+     * @param {Array} [args] - arrays to zip
+     * @returns {Array} Zipped array
+     */
+    public static List zip(List a1, List a2, List a3, List a4, List a5, List a6, List a7, List a8) {
+        // this can take a variable number of arguments
+        var result = new ArrayList<>();
+        var args = Arrays.asList(a1,a2,a3,a4,a5,a6,a7,a8);
+        // length of the shortest array
+        int length = Integer.MAX_VALUE;
+        int nargs = 0;
+        // nargs : the real size of args!=null
+        while (nargs < args.size()) {
+            if (args.get(nargs)==null) break;
+
+            length = Math.min(length, args.get(nargs).size());
+            nargs++;
+        }
+
+        for (var i = 0; i < length; i++) {
+            List tuple = new ArrayList<>();
+            for (var k=0; k<nargs; k++)
+                tuple.add( args.get(k).get(i) );
+            result.add(tuple);
+        }
+        return result;
+    }
+
+    /**
+     * Fold left function
+     * @param {Array} sequence - Sequence
+     * @param {Function} func - Function
+     * @param {Object} init - Initial value
+     * @returns {*} Result
+     */
+    public static Object foldLeft(List sequence, Object func, Object init) throws Throwable {
+        // undefined inputs always return undefined
+        if (sequence == null) {
+            return null;
+        }
+        Object result = null;
+
+        var arity = getFunctionArity(func);
+        if (arity < 2) {
+            throw new JException("D3050",
+                1
+            );
+        }
+
+        int index;
+        if (init == null && sequence.size() > 0) {
+            result = sequence.get(0);
+            index = 1;
+        } else {
+            result = init;
+            index = 0;
+        }
+
+        while (index < sequence.size()) {
+            List args = new ArrayList<>(); args.add(result); args.add(sequence.get(index));
+            if (arity >= 3) {
+                args.add(index);
+            }
+            if (arity >= 4) {
+                args.add(sequence);
+            }
+            result = funcApply(func, args);
+            index++;
+        }
+
+        return result;
+    }
+
+    /**
+     * Return keys for an object
+     * @param {Object} arg - Object
+     * @returns {Array} Array of keys
+     */
+    public static List keys(Object arg) {
+        var result = Utils.createSequence();
+
+        if (arg instanceof List) {
+            Set keys = new LinkedHashSet();
+            // merge the keys of all of the items in the array
+            for (Object el : ((List)arg)) {
+                keys.addAll( keys(el) );
+            }
+
+            result.addAll(keys);
+        } else if (arg instanceof Map) {
+            result.addAll( ((Map)arg).keySet() );
+        }
+        return result;
+    }
+
+    // here: append, lookup
+
+    /**
+     * Determines if the argument is undefined
+     * @param {*} arg - argument
+     * @returns {boolean} False if argument undefined, otherwise true
+     */
+    public static boolean exists(Object arg) {
+        if (arg == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Splits an object into an array of object with one property each
+     * @param {*} arg - the object to split
+     * @returns {*} - the array
+     */
+    public static List spread(Object arg) {
+        var result = Utils.createSequence();
+
+        if (arg instanceof List) {
+            // spread all of the items in the array
+            for (Object item : ((List)arg))
+                append(result, spread(item));
+        } else if (arg instanceof Map) {
+            for (Entry entry : ((Map<Object,Object>)arg).entrySet()) {
+                var obj = new LinkedHashMap<>();
+                obj.put(entry.getKey(), entry.getValue());
+                result.add(obj);
+            }
+        } else {
+            return result; // result = arg;
+        }
+        return result;
+    }
+
+    /**
+     * Merges an array of objects into a single object.  Duplicate properties are
+     * overridden by entries later in the array
+     * @param {*} arg - the objects to merge
+     * @returns {*} - the object
+     */
+    public static Object merge(List arg) {
+        // undefined inputs always return undefined
+        if (arg == null) {
+            return null;
+        }
+
+        var result = new LinkedHashMap<>();
+
+        for (Object obj : arg) {
+            for (Entry entry : ((Map<Object,Object>)obj).entrySet()) {
+                result.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Reverses the order of items in an array
+     * @param {Array} arr - the array to reverse
+     * @returns {Array} - the reversed array
+     */
+    public static List reverse(List arr) {
+        // undefined inputs always return undefined
+        if (arr == null) {
+            return null;
+        }
+
+        if (arr.size() <= 1) {
+            return arr;
+        }
+
+        var result = new ArrayList<>(arr);
+        Collections.reverse(result);
+        return result;
+    }
+
+    /**
+     *
+     * @param {*} obj - the input object to iterate over
+     * @param {*} func - the function to apply to each key/value pair
+     * @throws Throwable
+     * @returns {Array} - the resultant array
+     */
+    public static List each(Map obj, Object func) throws Throwable {
+        var result = Utils.createSequence();
+
+        for (var key : obj.keySet()) {
+            var func_args = hofFuncArgs(func, obj.get(key), key, obj);
+            // invoke func
+            var val = funcApply(func, func_args);
+            if(val != null) {
+                result.add(val);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     *
+     * @param {string} [message] - the message to attach to the error
+     * @throws custom error with code 'D3137'
+     */
+    public static void error(String message) throws Throwable {
+        throw new JException("D3137", -1 // FIXME: message
+        //             message: message || "$error() function evaluated"
+        );
+    }
+
+    /**
+     *
+     * @param {boolean} condition - the condition to evaluate
+     * @param {string} [message] - the message to attach to the error
+     * @throws custom error with code 'D3137'
+     * @returns {undefined}
+     */
+    public static void assertFn(boolean condition, String message) throws Throwable {
+        if(!condition) {
+            throw new JException("D3141", -1);
+//                message: message || "$assert() statement failed"
+        }
+    }
+
+    /**
+     *
+     * @param {*} [value] - the input to which the type will be checked
+     * @returns {string} - the type of the input
+     */
+    public static String type(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value == null) {
+            return "null";
+        }
+
+        if (value instanceof Number) {
+            return "number";
+        }
+
+        if (value instanceof String) {
+            return "string";
+        }
+
+        if (value instanceof Boolean) {
+            return "boolean";
+        }
+
+        if(value instanceof List) {
+            return "array";
+        }
+
+        if(Utils.isFunction(value) || isLambda(value)) {
+            return "function";
+        }
+
+        return "object";
+    }
+
+    /**
+     * Implements the merge sort (stable) with optional comparator function
+     *
+     * @param {Array} arr - the array to sort
+     * @param {*} comparator - comparator function
+     * @returns {Array} - sorted array
+     */
+    public static List sort(List arr, Object comparator) {
+        // undefined inputs always return undefined
+        if (arr == null) {
+            return null;
+        }
+
+        if (arr.size() <= 1) {
+            return arr;
+        }
+
+        List result = new ArrayList<>(arr);
+
+        if (comparator != null) {
+            Comparator comp = new Comparator() {
+
+                @Override
+                public int compare(Object o1, Object o2) {
+                    return (int) funcApply(comparator, Arrays.asList(o1, o2));
+                }
+                
+            };
+            result.sort(comp);
+        } else {
+            result.sort(null);
+        }
+
+        return result;
+    }
+
+    /**
+     * Randomly shuffles the contents of an array
+     * @param {Array} arr - the input array
+     * @returns {Array} the shuffled array
+     */
+    public static List shuffle(List arr) {
+        // undefined inputs always return undefined
+        if (arr == null) {
+            return null;
+        }
+
+        if (arr.size() <= 1) {
+            return arr;
+        }
+
+        List result = new ArrayList<>(arr);
+        Collections.shuffle(arr);
+        return result;
+    }
+
+    /**
+     * Returns the values that appear in a sequence, with duplicates eliminated.
+     * @param {Array} arr - An array or sequence of values
+     * @returns {Array} - sequence of distinct values
+     */
+    public static Object distinct(Object _arr) {
+        // undefined inputs always return undefined
+        if (_arr == null) {
+            return null;
+        }
+
+        if(!(_arr instanceof List) || ((List)_arr).size() <= 1) {
+            return _arr;
+        }
+        List arr = (List)_arr;
+
+        var results = (arr instanceof JList/*sequence*/) ? Utils.createSequence() : new ArrayList<>();
+
+        for(var ii = 0; ii < arr.size(); ii++) {
+            var value = arr.get(ii);
+            // is this value already in the result sequence?
+            var includes = false;
+            for(var jj = 0; jj < results.size(); jj++) {
+                if (value.equals(results.get(jj))) {
+                    includes = true;
+                    break;
+                }
+            }
+            if(!includes) {
+                results.add(value);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Applies a predicate function to each key/value pair in an object, and returns an object containing
+     * only the key/value pairs that passed the predicate
+     *
+     * @param {object} arg - the object to be sifted
+     * @param {object} func - the predicate function (lambda or native)
+     * @throws Throwable
+     * @returns {object} - sifted object
+     */
+    public static Object sift(Map<Object,Object> arg, Object func) throws Throwable {
+        var result = new LinkedHashMap<>();
+
+        for (var item : arg.keySet()) {
+            var entry = arg.get(item);
+            var func_args = hofFuncArgs(func, entry, item, arg);
+            // invoke func
+            var res = funcApply(func, func_args);
+            if (toBoolean(res)) {
+                result.put(item, entry);
+            }
+        }
+
+        // empty objects should be changed to undefined
+        if (result.isEmpty()) {
+            result = null;
+        }
+
         return result;
     }
 
@@ -945,6 +1565,152 @@ public class Functions {
 
         throw new Error("Function not found: "+name);
     }
+
+
+    //
+    // DateTime
+    //
+
+    /**
+     * Converts an ISO 8601 timestamp to milliseconds since the epoch
+     *
+     * @param {string} timestamp - the timestamp to be converted
+     * @param {string} [picture] - the picture string defining the format of the timestamp (defaults to ISO 8601)
+     * @returns {Number} - milliseconds since the epoch
+     */
+    public static Long dateTimeToMillis(String timestamp, String picture) {
+        // undefined inputs always return undefined
+        if(timestamp == null) {
+            return null;
+        }
+
+        if(picture == null) {
+            return OffsetDateTime.parse(timestamp).toInstant().toEpochMilli();
+        } else {
+            return DateTimeUtils.parseDateTime(timestamp, picture);
+        }
+    }
+
+    /**
+     * Converts milliseconds since the epoch to an ISO 8601 timestamp
+     * @param {Number} millis - milliseconds since the epoch to be converted
+     * @param {string} [picture] - the picture string defining the format of the timestamp (defaults to ISO 8601)
+     * @param {string} [timezone] - the timezone to format the timestamp in (defaults to UTC)
+     * @returns {String} - the formatted timestamp
+     */
+    public static String dateTimeFromMillis(Number millis, String picture, String timezone) {
+        // undefined inputs always return undefined
+        if(millis == null) {
+            return null;
+        }
+
+        return DateTimeUtils.formatDateTime(millis.longValue(), picture, timezone);
+    }
+
+    /**
+     * Formats an integer as specified by the XPath fn:format-integer function
+     * See https://www.w3.org/TR/xpath-functions-31/#func-format-integer
+     * @param {number} value - the number to be formatted
+     * @param {string} picture - the picture string that specifies the format
+     * @returns {string} - the formatted number
+     */
+    public static String formatInteger(Number value, String picture) {
+        if (value == null) {
+            return null;
+        }
+
+        // value = Math.floor(value);
+
+        // const format = analyseIntegerPicture(picture);
+        // return _formatInteger(value, format);
+        throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * parse a string containing an integer as specified by the picture string
+     * @param {string} value - the string to parse
+     * @param {string} picture - the picture string
+     * @returns {number} - the parsed number
+     */
+    public static String parseInteger(String value, String picture) {
+        if (value == null) {
+            return null;
+        }
+
+        // const formatSpec = analyseIntegerPicture(picture);
+        // const matchSpec = generateRegex(formatSpec);
+        // //const fullRegex = '^' + matchSpec.regex + '$';
+        // //const matcher = new RegExp(fullRegex);
+        // // TODO validate input based on the matcher regex
+        // const result = matchSpec.parse(value);
+        // return result;
+        throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Clones an object
+     * @param {Object} arg - object to clone (deep copy)
+     * @returns {*} - the cloned object
+     */
+    public static Object functionClone(Object arg) {
+        // undefined inputs always return undefined
+        if(arg == null) {
+            return null;
+        }
+
+        try {
+            return new ObjectMapper().readValue(string(arg, false), Object.class);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+        //return JSON.parse(fn.string(arg));
+    }
+
+    /**
+     * parses and evaluates the supplied expression
+     * @param {string} expr - expression to evaluate
+     * @throws JException
+     * @returns {*} - result of evaluating the expression
+     */
+    public static Object functionEval(String expr, Object focus) throws JException {
+        // undefined inputs always return undefined
+        if(expr == null) {
+            return null;
+        }
+        Object input = null; // =  this.input;
+        if(focus != null) {
+            input = focus;
+            // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
+            if((input instanceof List) && !Utils.isSequence(input)) {
+                input = Utils.createSequence(input);
+                ((JList)input).outerWrapper = true;
+            }
+        }
+
+        Jsonata ast;
+        try {
+            ast = new Jsonata(expr, false);
+        } catch(Throwable err) {
+            // error parsing the expression passed to $eval
+            //populateMessage(err);
+            throw new JException("D3120", -1
+            );
+        }
+        Object result = null;
+        try {
+            result = ast.evaluate(input, Jsonata.current.get().environment);
+        } catch(Throwable err) {
+            // error evaluating the expression passed to $eval
+            //populateMessage(err);
+            throw new JException("D3121", -1
+            );
+        }
+
+        return result;
+    }
+
 
     public static void main(String[] _args) throws Throwable {
         List args = new ArrayList();
