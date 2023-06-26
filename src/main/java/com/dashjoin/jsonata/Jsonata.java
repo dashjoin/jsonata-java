@@ -2129,8 +2129,8 @@ public class Jsonata {
         staticFrame.bind("join", defineFunction("join", "<a<s>s?:s>"));
         staticFrame.bind("formatNumber", defineFunction("formatNumber", "<n-so?:s>"));
         staticFrame.bind("formatBase", defineFunction("formatBase", "<n-n?:s>"));
-        staticFrame.bind("formatInteger", defineFunction("dateTimeFormatInteger", "<n-s:s>"));
-        staticFrame.bind("parseInteger", defineFunction("dateTimeParseInteger", "<s-s:n>"));
+        staticFrame.bind("formatInteger", defineFunction("formatInteger", "<n-s:s>"));
+        staticFrame.bind("parseInteger", defineFunction("parseInteger", "<s-s:n>"));
         staticFrame.bind("number", defineFunction("number", "<(nsb)-:n>"));
         staticFrame.bind("floor", defineFunction("floor", "<n-:n>"));
         staticFrame.bind("ceil", defineFunction("ceil", "<n-:n>"));
@@ -2168,7 +2168,7 @@ public class Jsonata {
         staticFrame.bind("decodeUrlComponent", defineFunction("decodeUrlComponent", "<s-:s>"));
         staticFrame.bind("decodeUrl", defineFunction("decodeUrl", "<s-:s>"));
         staticFrame.bind("eval", defineFunction("functionEval", "<sx?:x>"));
-        staticFrame.bind("toMillis", defineFunction("dataTimeToMillis", "<s-s?:n>"));
+        staticFrame.bind("toMillis", defineFunction("dateTimeToMillis", "<s-s?:n>"));
         staticFrame.bind("fromMillis", defineFunction("dateTimeFromMillis", "<n-s?s?:s>"));
         staticFrame.bind("clone", defineFunction("functionClone", "<(oa)-:o>"));
     }
