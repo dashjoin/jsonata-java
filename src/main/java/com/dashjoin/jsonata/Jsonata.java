@@ -7,6 +7,7 @@
 package com.dashjoin.jsonata;
 
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -77,7 +78,7 @@ public class Jsonata {
         }
      }
 
-    Frame staticFrame;// = createFrame(null);
+    static Frame staticFrame;// = createFrame(null);
  
      /**
       * Evaluate expression against input data
@@ -110,7 +111,7 @@ public class Jsonata {
                  break;
              case "name":
                  result = evaluateName(expr, input, environment);
-                 System.out.println("evalName "+result);
+                 if (parser.dbg) System.out.println("evalName "+result);
                  break;
              case "string":
              case "number":
@@ -801,10 +802,10 @@ public class Jsonata {
         //      };
         //  }
  
-        //  if (typeof lhs === "undefined" || typeof rhs === "undefined") {
-        //      // if either side is undefined, the result is undefined
-        //      return result;
-        //  }
+        if (_lhs == null || _rhs == null) {
+            // if either side is undefined, the result is undefined
+            return null;
+        }
  
         //System.out.println("op22 "+op+" "+_lhs+" "+_rhs);
         double lhs = ((Number)_lhs).doubleValue();
@@ -1754,43 +1755,40 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluatePartialApplication(Symbol expr, Object input, Object environment) {
+     /* async */ Object evaluatePartialApplication(Symbol expr, Object input, Frame environment) throws JException {
          // partially apply a function
-         var result;
+         Object result = null;
          // evaluate the arguments
-         var evaluatedArgs = [];
-         for(var ii = 0; ii < expr.arguments.length; ii++) {
-             var arg = expr.arguments[ii];
-             if (arg.type === "operator" && arg.value === "?") {
-                 evaluatedArgs.push(arg);
+         var evaluatedArgs = new ArrayList<>();
+         for(var ii = 0; ii < expr.arguments.size(); ii++) {
+             var arg = expr.arguments.get(ii);
+             if (arg.type.equals("operator") && (arg.value.equals("?"))) {
+                 evaluatedArgs.add(arg);
              } else {
-                 evaluatedArgs.push(/* await */ evaluate(arg, input, environment));
+                 evaluatedArgs.add(/* await */ evaluate(arg, input, environment));
              }
          }
          // lookup the procedure
          var proc = /* await */ evaluate(expr.procedure, input, environment);
-         if (typeof proc === "undefined" && expr.procedure.type === "path" && environment.lookup(expr.procedure.steps[0].value)) {
+         if (proc != null && expr.procedure.type.equals("path") && environment.lookup((String)expr.procedure.steps.get(0).value)!=null) {
              // help the user out here if they simply forgot the leading $
-             throw {
-                 code: "T1007",
-                 stack: (new Error()).stack,
-                 position: expr.position,
-                 token: expr.procedure.steps[0].value
-             };
+             throw new JException("T1007",
+                 expr.position,
+                 expr.procedure.steps.get(0).value
+             );
          }
-         if (isLambda(proc)) {
+         if (Functions.isLambda(proc)) {
              result = partialApplyProcedure(proc, evaluatedArgs);
-         } else if (proc && proc._jsonata_Object === true) {
-             result = partialApplyNativeFunction(proc.implementation, evaluatedArgs);
-         } else if (typeof proc === "function") {
-             result = partialApplyNativeFunction(proc, evaluatedArgs);
+         } else if (Utils.isFunction(proc)) {
+             result = partialApplyNativeFunction(proc /*.implementation*/, evaluatedArgs);
+        //  } else if (typeof proc === "function") {
+        //      result = partialApplyNativeFunction(proc, evaluatedArgs);
          } else {
-             throw {
-                 code: "T1008",
-                 stack: (new Error()).stack,
-                 position: expr.position,
-                 token: expr.procedure.type === "path" ? expr.procedure.steps[0].value : expr.procedure.value
-             };
+             throw new JException("T1008",
+                 //stack: (new Error()).stack,
+                 expr.position,
+                 expr.procedure.type.equals("path") ? expr.procedure.steps.get(0).value : expr.procedure.value
+             );
          }
          return result;
      }
@@ -1824,6 +1822,7 @@ public class Jsonata {
         Object result = null;
         var env = createFrame(proc.environment);
         for (int i=0; i<proc.arguments.size(); i++) {
+            if (i>=args.size()) break;
             env.bind(""+proc.arguments.get(i).value, args.get(i));
         }
         if (proc.body instanceof Symbol) {
@@ -1869,7 +1868,7 @@ public class Jsonata {
       * @param {Array} args - Arguments
       * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applying native function
       */
-     Object partialApplyNativeFunction(Function _native, Object args) {
+     Object partialApplyNativeFunction(JFunction _native, Object args) {
          // create a lambda Object that wraps and invokes the native function
          // get the list of declared arguments from the native function
          // this has to be picked out from the toString() value
@@ -1939,7 +1938,7 @@ public class Jsonata {
         //  }
         //  return definition;
      }
-    JFunction defineFunction(String func, String signature) {
+    static JFunction defineFunction(String func, String signature) {
         return new JFunction(func, signature);
     }
  
@@ -2041,7 +2040,7 @@ public class Jsonata {
      * JFunction callable Lambda interface
      */
     public static interface JFunctionCallable {
-        Object call(Object input, Object args);
+        Object call(Object input, Object args) throws Throwable;
     }
 
     public static interface JFunctionSignatureValidation {
@@ -2055,6 +2054,7 @@ public class Jsonata {
         JFunctionCallable function;
         String functionName;
         Signature signature;
+        Method method;
 
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
@@ -2064,31 +2064,36 @@ public class Jsonata {
         public JFunction(String functionName, String signature) {
             this.functionName = functionName;
             this.signature = new Signature(signature);
-            if (Functions.getFunction(functionName)==null) {
+            this.method = Functions.getFunction(functionName);
+            if (method==null) {
                 System.err.println("Function not implemented: "+functionName);
             }
         }
 
-
         @Override
-        public Object call(Object input, Object args) {
-            if (function!=null) {
-                return function.call(input, args);
-            } else {
-                // call by name
-                try {
-                    return Functions.call(functionName, (List)args);
-                } catch (Throwable e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    return null;
+        public Object call(Object input, Object args) throws JException {
+            try {
+                if (function!=null) {
+                    return function.call(input, args);
+                } else {
+                    return Functions.call(method, (List)args);
                 }
+            } catch (JException e) {
+                throw e;
+            } catch (Throwable e) {
+                // TODO Auto-generated catch block
+                //e.printStackTrace();
+                throw new JException("T0410", -1, e);
             }
         }
 
         @Override
         public Object validate(Object args, Object context) {
             return signature.validate(args, context);
+        }
+
+        public int getNumberOfArgs() {
+            return method.getParameterTypes().length;
         }
     }
 
@@ -2107,7 +2112,7 @@ public class Jsonata {
     }
 
      // Function registration
-    void registerFunctions() {
+    static void registerFunctions() {
         staticFrame.bind("sum", defineFunction("sum", "<a<n>:n>"));
         staticFrame.bind("count", defineFunction("count", "<a:n>"));
         staticFrame.bind("max", defineFunction("max", "<a<n>:n>"));
@@ -2315,6 +2320,11 @@ public class Jsonata {
     Frame environment;
     Symbol ast;
 
+    static {
+        staticFrame = new Frame(null);
+        registerFunctions();
+    }
+
      /**
       * JSONata
       * @param {Object} expr - JSONata expression
@@ -2325,8 +2335,6 @@ public class Jsonata {
       */
      public Jsonata(String expr, boolean optionsRecover) throws JException {
          try {
-            staticFrame = createFrame(null);
-            registerFunctions();
              ast = parser.parse(expr);//, optionsRecover);
              errors = ast.errors;
              ast.errors = null; //delete ast.errors;
