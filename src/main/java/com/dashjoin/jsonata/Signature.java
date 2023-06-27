@@ -17,6 +17,7 @@ public class Signature implements JFunctionSignatureValidation {
     String argTypes;
     boolean argFromContext;
     int minArgs;
+    int optArgs;
 
     void parseSignature() {
         // FIXME: quick + dirty version here...
@@ -34,23 +35,30 @@ public class Signature implements JFunctionSignatureValidation {
 
         // Calculate min number of function args
         // All args minus optional (?), and ignore context arg (-)
-        int minArgs = argTypes.length();
-        for (char c : argTypes.toCharArray()) {
+        String args = argTypes.replaceAll("\\(.*\\)", "(")
+            .replaceAll("<.>", "");
+        int minArgs = args.length();
+        int optArgs = 0;
+        for (char c : args.toCharArray()) {
             switch (c) {
                 case '-': minArgs-=2; break;
-                case '?': minArgs-=1; break;
+                case '?': optArgs++; minArgs-=2; break;
             }
         }
         this.minArgs = minArgs;
+        this.optArgs = optArgs;
     }
 
     @Override
     public Object validate(Object args, Object context) {
 
+        if (!argFromContext)
+            return args;
+
         List res = new ArrayList((List)args);
-        if (res.isEmpty() && argFromContext) {
+        if (res.size()<=(minArgs+optArgs)) {
             // If the signature contains "-" take arg from context
-            res.add(context);
+            res.add(0, context);
         }
 
         return res;
