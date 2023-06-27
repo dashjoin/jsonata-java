@@ -1281,7 +1281,7 @@ public class Parser {
                         resolveAncestry(result);
                         break;
                     case "[":
-                    System.out.println("binary [");
+                            if (dbg) System.out.println("binary [");
                             // predicated step
                             // LHS is a step or a predicated step
                             // RHS is the predicate expr
