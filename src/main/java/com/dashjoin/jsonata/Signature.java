@@ -52,7 +52,7 @@ public class Signature implements JFunctionSignatureValidation {
     @Override
     public Object validate(Object args, Object context) {
 
-        if (!argFromContext)
+        if (!argFromContext || context==null)
             return args;
 
         List res = new ArrayList((List)args);
