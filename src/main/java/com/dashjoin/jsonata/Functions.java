@@ -37,9 +37,10 @@ public class Functions {
     /**
      * Sum function
      * @param {Object} args - Arguments
+     * @throws JException
      * @returns {number} Total value of arguments
      */
-    public static Number sum(List<Number> args) {
+    public static Number sum(List<Number> args) throws JException {
         // undefined inputs always return undefined
         if (args == null) {
             return null;
@@ -69,9 +70,10 @@ public class Functions {
     /**
      * Max function
      * @param {Object} args - Arguments
+     * @throws JException
      * @returns {number} Max element in the array
      */
-    public static Number max(List<Number> args) {
+    public static Number max(List<Number> args) throws JException {
         // undefined inputs always return undefined
         if (args == null || args.size() == 0) {
             return null;
@@ -87,9 +89,10 @@ public class Functions {
     /**
      * Min function
      * @param {Object} args - Arguments
+     * @throws JException
      * @returns {number} Min element in the array
      */
-    public static Number min(List<Number> args) {
+    public static Number min(List<Number> args) throws JException {
         // undefined inputs always return undefined
         if (args == null || args.size() == 0) {
             return null;
@@ -105,9 +108,10 @@ public class Functions {
     /**
      * Average function
      * @param {Object} args - Arguments
+     * @throws JException
      * @returns {number} Average element in the array
      */
-    public static Number average(List<Number> args) {
+    public static Number average(List<Number> args) throws JException {
         // undefined inputs always return undefined
         if (args == null || args.size() == 0) {
             return null;
@@ -614,9 +618,11 @@ public class Functions {
     /**
      * Cast argument to number
      * @param {Object} arg - Argument
+     * @throws JException
+     * @throws NumberFormatException
      * @returns {Number} numeric value of argument
      */
-    public static Number number(Object arg) {
+    public static Number number(Object arg) throws NumberFormatException, JException {
         Number result = null;
 
         // undefined inputs always return undefined
@@ -637,9 +643,10 @@ public class Functions {
     /**
      * Absolute value of a number
      * @param {Number} arg - Argument
+     * @throws JException
      * @returns {Number} absolute value of argument
      */
-    public static Number abs(Number arg) {
+    public static Number abs(Number arg) throws JException {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -654,9 +661,10 @@ public class Functions {
     /**
      * Rounds a number down to integer
      * @param {Number} arg - Argument
+     * @throws JException
      * @returns {Number} rounded integer
      */
-    public static Number floor(Number arg) {
+    public static Number floor(Number arg) throws JException {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -669,9 +677,10 @@ public class Functions {
     /**
      * Rounds a number up to integer
      * @param {Number} arg - Argument
+     * @throws JException
      * @returns {Number} rounded integer
      */
-    public static Number ceil(Number arg) {
+    public static Number ceil(Number arg) throws JException {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -685,9 +694,10 @@ public class Functions {
      * Round to half even
      * @param {Number} arg - Argument
      * @param {Number} [precision] - number of decimal places
+     * @throws JException
      * @returns {Number} rounded integer
      */
-    public static Number round(Number arg, Number precision) {
+    public static Number round(Number arg, Number precision) throws JException {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -890,7 +900,7 @@ public class Functions {
             List funcArgs = hofFuncArgs(func, arr.get(i), i, arr);
 
             Object res = funcApply(func, funcArgs);
-            //if (res!=null)
+            if (res!=null)
                 result.add(res);
         }
         return result;
@@ -1454,6 +1464,12 @@ public class Functions {
     public static Object call(Method m, List<Object> args) throws Throwable {
         Class<?>[] types = m.getParameterTypes();
         int nargs = m.getParameterTypes().length;
+
+        // If function needs args, but none were provided
+        // TODO: better check with all signature metadata
+        if (nargs>0 && args.size()==0)
+            throw new JException("T0410", -1);
+
         List<Object> callArgs = new ArrayList<>(args);
         while (callArgs.size()<nargs) {
             // Add default arg null if not enough args were provided

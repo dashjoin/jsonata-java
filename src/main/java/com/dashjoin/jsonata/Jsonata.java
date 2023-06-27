@@ -788,25 +788,22 @@ public class Jsonata {
       * @param {Object} lhs - LHS value
       * @param {Object} rhs - RHS value
       * @param {Object} op - opcode
+     * @throws JException
       * @returns {*} Result
       */
-     Object evaluateNumericExpression(Object _lhs, Object _rhs, String op) {
+     Object evaluateNumericExpression(Object _lhs, Object _rhs, String op) throws JException {
         double result = 0;
  
-        //  if (typeof lhs !== "undefined" && !isNumeric(lhs)) {
-        //      throw {
-        //          code: "T2001",
-        //          stack: (new Error()).stack,
-        //          value: lhs
-        //      };
-        //  }
-        //  if (typeof rhs !== "undefined" && !isNumeric(rhs)) {
-        //      throw {
-        //          code: "T2002",
-        //          stack: (new Error()).stack,
-        //          value: rhs
-        //      };
-        //  }
+         if (_lhs!=null && !Utils.isNumeric(_lhs)) {
+             throw new JException("T2001", -1,
+                _lhs
+             );
+         }
+         if (_rhs!=null && !Utils.isNumeric(_rhs)) {
+             throw new JException("T2002", -1,
+                _rhs
+             );
+         }
  
         if (_lhs == null || _rhs == null) {
             // if either side is undefined, the result is undefined
@@ -1631,7 +1628,7 @@ public class Jsonata {
             //      // and the Object identifier
             //      err.token = procName;
             //  }
-            err.printStackTrace();
+            if (parser.dbg) err.printStackTrace();
             throw new JException("Error calling function "+procName, expr.position); //err;
          }
          return result;
