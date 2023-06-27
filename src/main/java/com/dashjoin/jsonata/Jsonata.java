@@ -237,7 +237,7 @@ public class Jsonata {
                  resultSequence = /* await */ evaluate(step, inputSequence, environment);
              } else {
                  if(isTupleStream) {
-                     tupleBindings = /* await */ evaluateTupleStep(step, inputSequence, tupleBindings, environment);
+                     tupleBindings = /* await */ evaluateTupleStep(step, (List)inputSequence, (List)tupleBindings, environment);
                  } else {
                      resultSequence = /* await */ evaluateStep(step, inputSequence, environment, ii == expr.steps.size() - 1);
                  }
@@ -367,70 +367,75 @@ public class Jsonata {
       * @param {Object} input - Input data to evaluate against
       * @param {Object} tupleBindings - The tuple stream
       * @param {Object} environment - Environment
+     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateTupleStep(Symbol expr, Object input, Object tupleBindings, Frame environment) {
-         Object result = null;
+     /* async */ Object evaluateTupleStep(Symbol expr, List input, List<Map> tupleBindings, Frame environment) throws JException {
+         List result = null;
          if(expr.type.equals("sort")) {
              if(tupleBindings!=null) {
-                 result = /* await */ evaluateSortExpression(expr, tupleBindings, environment);
+                 result = (List) /* await */ evaluateSortExpression(expr, tupleBindings, environment);
              } else {
-                 var sorted = /* await */ evaluateSortExpression(expr, input, environment);
+                 List sorted = (List) /* await */ evaluateSortExpression(expr, input, environment);
                  result = Utils.createSequence();
                  ((JList)result).tupleStream = true;
                  for(var ss = 0; ss < ((List)sorted).size(); ss++) {
-                     var tuple = {"@": sorted[ss]};
-                     tuple[expr.index] = ss;
-                     result.push(tuple);
+                     var tuple = Map.of("@", sorted.get(ss),
+                        expr.index, ss);
+                    result.add(tuple);
                  }
              }
-             if(expr.stages) {
-                 result = /* await */ evaluateStages(expr.stages, result, environment);
+             if(expr.stages!=null) {
+                 result = /* await */ (List)evaluateStages(expr.stages, result, environment);
              }
              return result;
          }
  
          result = Utils.createSequence();
-         result.tupleStream = true;
+         ((JList)result).tupleStream = true;
          var stepEnv = environment;
          if(tupleBindings == null) {
-             tupleBindings = input.map(item => { return {"@": item} });
+             tupleBindings = input.stream().map(item -> Map.of("@", item)).toList();
          }
  
-         for(var ee = 0; ee < tupleBindings.length; ee++) {
-             stepEnv = createFrameFromTuple(environment, tupleBindings[ee]);
-             var res = /* await */ evaluate(expr, tupleBindings[ee]["@"], stepEnv);
+         for(var ee = 0; ee < tupleBindings.size(); ee++) {
+             stepEnv = createFrameFromTuple(environment, tupleBindings.get(ee));
+             Object _res = /* await */ evaluate(expr, tupleBindings.get(ee).get("@"), stepEnv);
              // res is the binding sequence for the output tuple stream
-             if (res!=null) { //(typeof res !== "undefined") {
-                 if (!Array.isArray(res)) {
-                     res = new Object[] {res};
+             if (_res!=null) { //(typeof res !== "undefined") {
+                 List res;
+                 if (!(_res instanceof List)) {
+                    res = new ArrayList<>(); res.add(_res);
+                 } else {
+                    res = (List)_res;
                  }
-                 for (var bb = 0; bb < res.length; bb++) {
-                     tuple = {};
-                     Object.assign(tuple, tupleBindings[ee]);
-                     if(res.tupleStream) {
-                         Object.assign(tuple, res[bb]);
+                 for (var bb = 0; bb < res.size(); bb++) {
+                     Map tuple = new LinkedHashMap<>();
+                     tuple.putAll(tupleBindings.get(ee));
+                     //Object.assign(tuple, tupleBindings[ee]);
+                     if((res instanceof JList) && ((JList)res).tupleStream) {
+                        tuple.putAll((Map)res.get(bb));
                      } else {
-                         if (expr.focus) {
-                             tuple[expr.focus] = res[bb];
-                             tuple["@"] = tupleBindings[ee]["@"];
+                         if (expr.focus!=null) {
+                             tuple.put(expr.focus, res.get(bb));
+                             tuple.put("@", tupleBindings.get(ee).get("@"));
                          } else {
-                             tuple["@"] = res[bb];
+                             tuple.put("@", res.get(bb));
                          }
-                         if (expr.index) {
-                             tuple[expr.index] = bb;
+                         if (expr.index!=null) {
+                             tuple.put(expr.index, bb);
                          }
-                         if (expr.ancestor) {
-                             tuple[expr.ancestor.label] = tupleBindings[ee]["@"];
+                         if (expr.ancestor!=null) {
+                             tuple.put(expr.ancestor.label, tupleBindings.get(ee).get("@"));
                          }
                      }
-                     result.push(tuple);
+                     result.add(tuple);
                  }
              }
          }
  
-         if(expr.stages) {
-             result = /* await */ evaluateStages(expr.stages, result, environment);
+         if(expr.stages!=null) {
+             result = (List) /* await */ evaluateStages(expr.stages, result, environment);
          }
  
          return result;
@@ -459,7 +464,7 @@ public class Jsonata {
                  // count in from end of array
                  index = ((List)input).size() + index;
              }
-             var item = ((List)input).get(index);
+             var item = index<((List)input).size() ? ((List)input).get(index) : null;
              if(item != null) {
                  if(item instanceof List) {
                      results = (List)item;
@@ -493,7 +498,7 @@ public class Jsonata {
                              results.add(item);
                          }
                      }
-                 } else if (Functions.toBoolean(res)) { // truthy
+                 } else if (boolize(res)) { // truthy
                      results.add(item);
                  }
              }
@@ -576,6 +581,7 @@ public class Jsonata {
      }
  
     final public static Object UNDEFINED = new Object();
+    final public static Object NULL_VALUE = new Object() { public String toString() { return "null"; }};
 
      /**
       * Evaluate unary expression against input data
@@ -592,7 +598,7 @@ public class Jsonata {
              case "-":
                  result = /* await */ evaluate(expr.expression, input, environment);
                  if (result==null) { //(typeof result === "undefined") {
-                     result = UNDEFINED;
+                     result = null;
                  } else if (Utils.isNumeric(result)) {
                      result = Utils.convertNumber( -((Number)result).doubleValue() );
                  } else {
@@ -670,7 +676,7 @@ public class Jsonata {
       * @returns {*} Evaluated input data
       */
      Object evaluateLiteral(Symbol expr) {
-         return expr.value;
+         return expr.value!=null ? expr.value : NULL_VALUE;
      }
  
      /**
@@ -892,7 +898,7 @@ public class Jsonata {
          }
 
          // if either aa or bb are not comparable (string or numeric) values, then throw an error
-         if (!(lhs instanceof Comparable) || !(rhs instanceof Comparable)) {
+         if (!(lhs instanceof String || lhs instanceof Number) || !(rhs instanceof String || rhs instanceof Number)) {
              throw new JException(
                 "T2010",
                 0, //position,
@@ -1211,7 +1217,7 @@ public class Jsonata {
      /* async */ Object evaluateCondition(Symbol expr, Object input, Frame environment) throws JException {
          Object result = null;
          var condition = /* await */ evaluate(expr.condition, input, environment);
-         if (Functions.toBoolean(condition)) {
+         if (boolize(condition)) {
              result = /* await */ evaluate(expr.then, input, environment);
          } else if (expr._else != null) {
              result = /* await */ evaluate(expr._else, input, environment);
@@ -1698,6 +1704,14 @@ public class Jsonata {
                  // the `input` is being passed in as the `this` for the invoked function
                  // this is so that functions that return objects containing functions can chain
                  // e.g. /* await */ (/* await */ $func())
+
+                // handling special case of Javascript:
+                // when calling a function with fn.apply(ctx, args) and args = [undefined]
+                // Javascript will convert to undefined (without array)
+                if (validatedArgs instanceof List && ((List)validatedArgs).size()==1 && ((List)validatedArgs).get(0)==null) {
+                    //validatedArgs = null;
+                }
+
                  result = ((JFunction)proc).call(input, validatedArgs);
                 //  if (isPromise(result)) {
                 //      result = /* await */ result;

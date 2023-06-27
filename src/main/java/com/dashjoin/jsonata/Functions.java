@@ -185,6 +185,9 @@ public class Functions {
             return null;
         }
 
+        if (chars==null)
+            return str;
+
         var pos = str.indexOf(chars);
         if (pos > -1) {
             return str.substring(0, pos);
@@ -643,9 +646,9 @@ public class Functions {
             return null;
         }
 
-        return arg instanceof Double ?
+        return Utils.convertNumber( arg instanceof Double ?
             Math.abs((double)arg) :
-            Math.abs((int)arg);
+            Math.abs((int)arg) );
     }
 
     /**
@@ -774,7 +777,7 @@ public class Functions {
 
         // undefined inputs always return undefined
         if (arg == null) {
-            return false; // null; // Uli: Null would need to be handled as false anyway
+            return null; // Uli: Null would need to be handled as false anyway
         }
 
         var result = false;
@@ -1199,7 +1202,7 @@ public class Functions {
             return null;
         }
 
-        if (value == null) {
+        if (value == Jsonata.NULL_VALUE) {
             return "null";
         }
 
@@ -1458,12 +1461,14 @@ public class Functions {
         }
 
         // Special handling of one arg if function requires list:
-        // Wrap the single arg in a list with one element
+        // Wrap the single arg (if != null) in a list with one element
         if (nargs>0 && List.class.isAssignableFrom(types[0]) && !(callArgs.get(0) instanceof List)) {
             Object arg1 = callArgs.get(0);
-            List wrap = new ArrayList<>(); wrap.add(arg1);
-            callArgs.set(0, wrap);
+            if (arg1!=null) {
+                List wrap = new ArrayList<>(); wrap.add(arg1);
+                callArgs.set(0, wrap);            
             //System.err.println("wrapped "+arg1+" as "+wrap);
+            }
         }
 
         try {
