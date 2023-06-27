@@ -136,8 +136,9 @@ public class Parser {
 
         // Ancestor attributes
         public String label;
-        public int index;
+        public Object index;
         public boolean _jsonata_lambda;
+        public Symbol ancestor;
 
 
         Symbol nud() throws JException {
@@ -1435,7 +1436,7 @@ public class Parser {
                             }
                         }
                         if (step.stages == null) {
-                            step.index = (int)(double)expr.rhs.value; // TODO: not sure what type value is here...
+                            step.index = expr.rhs.value; // name of index variable = String
                         } else {
                             Symbol _res = new Symbol();
                             _res.type = "index"; _res.value = expr.rhs.value; _res.position = expr.position;
