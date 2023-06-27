@@ -786,7 +786,7 @@ public class Functions {
             if (l.size() == 1) {
                 result = toBoolean(l.get(0));
             } else if (l.size() > 1) {
-                long truesLength = l.stream().filter(e -> toBoolean(e)).count();
+                long truesLength = l.stream().filter(e -> Jsonata.boolize(e)).count();
                 result = truesLength > 0;
             }
         } else if (arg instanceof String) {
@@ -1343,7 +1343,7 @@ public class Functions {
             var func_args = hofFuncArgs(func, entry, item, arg);
             // invoke func
             var res = funcApply(func, func_args);
-            if (toBoolean(res)) {
+            if (Jsonata.boolize(res)) {
                 result.put(item, entry);
             }
         }

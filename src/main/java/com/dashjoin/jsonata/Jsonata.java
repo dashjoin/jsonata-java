@@ -999,7 +999,7 @@ public class Jsonata {
          return result;
      }
  
-     boolean boolize(Object value) {
+     public static boolean boolize(Object value) {
          var booledValue = Functions.toBoolean(value);
          return booledValue == null ? false : booledValue;
      }
@@ -1532,7 +1532,7 @@ public class Jsonata {
          } else {
              var func = /* await */ evaluate(expr.rhs, input, environment);
  
-             if(!Utils.isFunction(func)) {
+             if(!Utils.isFunction(func) && !((Symbol)lhs)._jsonata_lambda) {
                  throw new JException("T2006",
                      //stack: (new Error()).stack,
                      expr.position,
