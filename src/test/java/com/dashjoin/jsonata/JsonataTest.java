@@ -75,11 +75,11 @@ public class JsonataTest {
     }
 
     boolean testExpr(String expr, Object data, Map<String,Object> bindings,
-        String expected, String code) throws JException {
+        Object expected, String code) throws JException {
         boolean success = true;
         try {
 
-        if (debug) System.out.println("Expr="+expr+" Expected="+expected);
+        if (debug) System.out.println("Expr="+expr+" Expected="+expected+" ErrorCode="+code);
         if (debug) System.out.println(data);
 
         Frame bindingFrame = null;
@@ -95,20 +95,28 @@ public class JsonataTest {
         Object result = jsonata.evaluate(data, bindingFrame);
         //result = convertNumbers(result);
         System.out.println("Result = "+result);
-        System.out.println("Expect = "+expected);
-        if (!expected.equals(""+result)) {
-            System.out.println("WRONG RESULT");
+        System.out.println("Expect = "+expected+" ExpectedError="+code);
+        if (code!=null)
             success = false;
+        
+        if (expected!=null && !expected.equals(result))
+            success = false;
+    
+        if (expected==null && result!=null)
+            success = false;
+
+        if (!success) {
+            System.out.println("WRONG RESULT");
         }
 
         //assertEquals("Must be equal", expected, ""+result);
         } catch (Throwable t) {
             if (t instanceof JException) {
                 JException je = (JException)t;
-                System.out.println("Exception = "+je.error+"  --> "+je);
+                System.out.println("Exception     = "+je.error+"  --> "+je);
             } else
-                System.out.println("Exception = "+t);
-            System.out.println("Expected  = "+code);
+                System.out.println("Exception     = "+t);
+                System.out.println("ExpectedError = "+code+" Expected="+expected);
             if (code==null) {
                 System.out.println("WRONG RESULT (exception)");
                 success = false;
@@ -198,7 +206,7 @@ public class JsonataTest {
         if (data==null && dataset!=null)
             data = readJson("test/test-suite/datasets/"+dataset+".json");
 
-        return testExpr(expr, data, bindings, ""+result, code);
+        return testExpr(expr, data, bindings, result, code);
     }
 
     String groupDir = "test/test-suite/groups/";
@@ -251,6 +259,9 @@ public class JsonataTest {
         String s = "test/test-suite/groups/wildcards/case003.json";
         s = "test/test-suite/groups/flattening/large.json";
         s = "test/test-suite/groups/function-sum/case006.json";
+        s = "test/test-suite/groups/function-substring/case016.json";
+        s = "test/test-suite/groups/null/case001.json";
+        s = "test/test-suite/groups/context/case003.json";
         runTestSuite(s);
         //String g = "function-applications"; // partly
         //String g = "higher-order-functions"; // works!
