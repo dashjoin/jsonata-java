@@ -1231,6 +1231,13 @@ public class Parser {
                         }
                         // any steps within a path that are string literals, should be changed to 'name'
                         for (var step : result.steps) {
+                            if (step.type.equals("number") || step.type.equals("value")) {
+                                // don't allow steps to be numbers or the values true/false/null
+                                throw new JException("S0213",
+                                    step.position,
+                                    step.value
+                                );
+                            }
                             //System.out.println("step "+step+" type="+step.type);
                             if (step.type.equals("string"))
                                 step.type = "name";
