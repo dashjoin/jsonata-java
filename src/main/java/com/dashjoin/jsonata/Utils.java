@@ -96,8 +96,9 @@ public class Utils {
         // isPromise
 
      
-    public static Number convertNumber(Number n) {
+    public static Number convertNumber(Number n) throws JException {
         // Use int if the number is not fractional
+        if (!isNumeric(n)) return null;
         if (n.intValue()==n.doubleValue())
             return n.intValue();
         return n.doubleValue();
