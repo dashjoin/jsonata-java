@@ -273,9 +273,9 @@ public class Jsonata {
             ((JList)resultSequence).keepSingleton = true;
         }
  
-        //  if (expr.hasOwnProperty("group")) {
-        //      resultSequence = /* await */ evaluateGroupExpression(expr.group, isTupleStream ? tupleBindings : resultSequence, environment)
-        //  }
+        if (expr.group != null) {
+            resultSequence = /* await */ evaluateGroupExpression(expr.group, isTupleStream ? tupleBindings : resultSequence, environment);
+        }
  
          return resultSequence;
      }
@@ -1103,7 +1103,8 @@ public class Jsonata {
             // currently not used in Java: environment.isParallelCall = idx > 0
             //return [key, /* await */ evaluate(expr.lhs[entry.exprIndex][1], context, env)];
             Object res = evaluate(expr.lhsObject.get(entry.exprIndex)[1], context, env);
-            result.put(e.getKey(), res);
+            if (res!=null)
+                result.put(e.getKey(), res);
          }
  
         //  for (let generator of generators) {
