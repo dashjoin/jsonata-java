@@ -555,14 +555,26 @@ public class Functions {
         return URLDecoder.decode(str, StandardCharsets.UTF_8);
     }
 
-    public static List<String> split(String str, Object pattern, Integer limit) {
-        // FIXME: limit
+    public static List<String> split(String str, Object pattern, Number limit) throws JException {
+        if (str==null )
+            return null;
+
+        if (limit!=null && limit.intValue()<0)
+            throw new JException("D3020", -1, str);
+
+        List<String> result = new ArrayList<>();
+        if (limit!=null && limit.intValue()==0)
+            return result;
+
         if (pattern instanceof String) {
-            // FIXME: must escape pattern to regexp!
-            return Arrays.asList( str.split((String)pattern) );
+            result = Arrays.asList( str.split((String)pattern) );
         } else {
-            return Arrays.asList( str.split(((Pattern)pattern).pattern() ) );
+            result = Arrays.asList( str.split(((Pattern)pattern).pattern() ) );
         }
+        if (limit!=null && limit.intValue()<result.size()) {
+            result = result.subList(0, limit.intValue());
+        }
+        return result;
     }
 
     /**
@@ -834,7 +846,7 @@ public class Functions {
 
     public static int getFunctionArity(Object func) {
         if (func instanceof JFunction) {
-            return ((JFunction)func).signature.getMinArgs();
+            return ((JFunction)func).signature.getNumberOfArgs();
         } else {
             // Lambda
             return ((Symbol)func).arguments.size();
@@ -1094,21 +1106,21 @@ public class Functions {
      * @param {*} arg - the object to split
      * @returns {*} - the array
      */
-    public static List spread(Object arg) {
-        var result = Utils.createSequence();
+    public static Object spread(Object arg) {
+        Object result = Utils.createSequence();
 
         if (arg instanceof List) {
             // spread all of the items in the array
             for (Object item : ((List)arg))
-                append(result, spread(item));
+                result = append(result, spread(item));
         } else if (arg instanceof Map) {
             for (Entry entry : ((Map<Object,Object>)arg).entrySet()) {
                 var obj = new LinkedHashMap<>();
                 obj.put(entry.getKey(), entry.getValue());
-                result.add(obj);
+                ((List)result).add(obj);
             }
         } else {
-            return result; // result = arg;
+            return arg; // result = arg;
         }
         return result;
     }
