@@ -396,6 +396,10 @@ public class Signature implements Serializable {
         throwValidationError(args, suppliedSig, functionName);
         return null; // dead code -> compiler happy
     }
+
+    public int getNumberOfArgs() {
+        return _params.size();
+    }
 /*
     ArrayNode validate(String functionName, ExprListContext args, ExpressionsVisitor expressionVisitor) {
         ArrayNode result = JsonNodeFactory.instance.arrayNode();
