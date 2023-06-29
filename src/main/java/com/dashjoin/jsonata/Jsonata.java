@@ -25,6 +25,7 @@ import com.dashjoin.jsonata.Parser.Infix;
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.dashjoin.jsonata.Utils.JList;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dashjoin.jsonata.utils.Signature;
 
 /**
  * @module JSONata
@@ -1810,9 +1811,10 @@ public class Jsonata {
       * @param {Function} signature - validator function
       * @param {Array} args - Object arguments
       * @param {*} context - context value
+     * @throws JException
       * @returns {Array} - validated arguments
       */
-     Object validateArguments(Object signature, Object args, Object context) {
+     Object validateArguments(Object signature, Object args, Object context) throws JException {
          if(!(signature instanceof JFunction)) { //typeof signature === "undefined") {
              // nothing to validate
              return args;
@@ -2056,7 +2058,7 @@ public class Jsonata {
     }
 
     public static interface JFunctionSignatureValidation {
-        Object validate(Object args, Object context);
+        Object validate(Object args, Object context) throws JException;
     }
 
     /**
@@ -2075,7 +2077,7 @@ public class Jsonata {
 
         public JFunction(String functionName, String signature) {
             this.functionName = functionName;
-            this.signature = new Signature(signature);
+            this.signature = new Signature(signature, functionName);
             this.method = Functions.getFunction(functionName);
             if (method==null) {
                 System.err.println("Function not implemented: "+functionName);
@@ -2100,7 +2102,7 @@ public class Jsonata {
         }
 
         @Override
-        public Object validate(Object args, Object context) {
+        public Object validate(Object args, Object context) throws JException {
             return signature.validate(args, context);
         }
 
