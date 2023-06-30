@@ -267,6 +267,11 @@ public class Jsonata {
         //  }
  
         if(expr.keepSingletonArray) {
+
+            // If we only got an ArrayList, convert it so we can set the keepSingleton flag
+            if (!(resultSequence instanceof JList))
+                resultSequence = new JList<>((List)resultSequence);
+
             // if the array is explicitly constructed in the expression and marked to promote singleton sequences to array
             if((resultSequence instanceof JList) && ((JList)resultSequence).cons && !((JList)resultSequence).sequence) {
                 resultSequence = Utils.createSequence(resultSequence);
@@ -614,7 +619,7 @@ public class Jsonata {
                  break;
              case "[":
                 // array constructor - evaluate each item
-                result = new ArrayList<>(); // [];
+                result = new JList<>(); // [];
                 for (var item : expr.expressions) {
                     Object value = evaluate(item, input, environment);
                     if (value!=null) {
@@ -624,30 +629,11 @@ public class Jsonata {
                             result = Functions.append(result, value);
                     }
                 }
-                // FIXME array constructor
-                //  let generators = /* await */ Promise.all(expr.expressions
-                //      .map(/* async */ (item, idx) => {
-                //          environment.isParallelCall = idx > 0
-                //          return [item, /* await */ evaluate(item, input, environment)]
-                //      }));
-                //  for (let generator of generators) {
-                //      var [item, value] = generator;
-                //      if (typeof value !== "undefined") {
-                //          if(item.value === "[") {
-                //              result.push(value);
-                //          } else {
-                //              result = fn.append(result, value);
-                //          }
-                //      }
-                //  }
-                //  if(expr.consarray) {
-                //      Object.defineProperty(result, "cons", {
-                //          enumerable: false,
-                //          configurable: false,
-                //          value: true
-                //      });
-                //  }
-                 break;
+                if(expr.consarray) {
+                    //System.out.println("const "+result);
+                    ((JList)result).cons = true; 
+                }
+                break;
              case "{":
                  // object constructor - apply grouping
                  result = /* await */ evaluateGroupExpression(expr, input, environment);
