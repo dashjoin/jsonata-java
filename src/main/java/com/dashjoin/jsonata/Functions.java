@@ -3,7 +3,6 @@ package com.dashjoin.jsonata;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -11,15 +10,19 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
@@ -31,6 +34,7 @@ import java.util.regex.Pattern;
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.dashjoin.jsonata.Utils.JList;
+import com.dashjoin.jsonata.utils.Constants;
 import com.dashjoin.jsonata.utils.DateTimeUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -718,7 +722,138 @@ public class Functions {
         if (value == null) {
             return null;
         }
-        return null;
+        DecimalFormatSymbols symbols = options==null ? new DecimalFormatSymbols(Locale.US) :
+            processOptionsArg(options);
+
+        // Create the formatter and format the number
+        DecimalFormat formatter = new DecimalFormat();
+        formatter.setDecimalFormatSymbols(symbols);
+        String fixedPicture = picture.replaceAll("9", "0");
+        formatter.applyLocalizedPattern(fixedPicture);
+        String result = formatter.format(value);
+
+        return result;
+    }
+
+    // From JSONata4Java FormatNumberFunction
+    private static DecimalFormatSymbols processOptionsArg(Map argOptions) {
+        // Create the variable return
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US); // (DecimalFormatSymbols) Constants.DEFAULT_DECIMAL_FORMAT_SYMBOLS.clone();
+
+        // Iterate over the formatting character overrides
+        Iterator<String> fieldNames = argOptions.keySet().iterator();
+        while (fieldNames.hasNext()) {
+            var fieldName = fieldNames.next();
+            var valueNode = (String)argOptions.get(fieldName);
+            // String value = getFormattingCharacter(valueNode);
+            switch (fieldName) {
+                case Constants.SYMBOL_DECIMAL_SEPARATOR: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_DECIMAL_SEPARATOR, true);
+                    symbols.setDecimalSeparator(value.charAt(0));
+                    break;
+                }
+
+                case Constants.SYMBOL_GROUPING_SEPARATOR: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_GROUPING_SEPARATOR, true);
+                    symbols.setGroupingSeparator(value.charAt(0));
+                    break;
+                }
+
+                case Constants.SYMBOL_INFINITY: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_INFINITY, false);
+                    symbols.setInfinity(value);
+                    break;
+                }
+
+                case Constants.SYMBOL_MINUS_SIGN: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_MINUS_SIGN, true);
+                    symbols.setMinusSign(value.charAt(0));
+                    break;
+                }
+
+                case Constants.SYMBOL_NAN: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_NAN, false);
+                    symbols.setNaN(value);
+                    break;
+                }
+
+                case Constants.SYMBOL_PERCENT: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_PERCENT, true);
+                    symbols.setPercent(value.charAt(0));
+                    break;
+                }
+
+                case Constants.SYMBOL_PER_MILLE: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_PER_MILLE, true);
+                    symbols.setPerMill(value.charAt(0));
+                    break;
+                }
+
+                case Constants.SYMBOL_ZERO_DIGIT: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_ZERO_DIGIT, true);
+                    symbols.setZeroDigit(value.charAt(0));
+                    break;
+                }
+
+                case Constants.SYMBOL_DIGIT: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_DIGIT, true);
+                    symbols.setDigit(value.charAt(0));
+                    break;
+                }
+
+                case Constants.SYMBOL_PATTERN_SEPARATOR: {
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_PATTERN_SEPARATOR, true);
+                    symbols.setPatternSeparator(value.charAt(0));
+                    break;
+                }
+
+                default: {
+                    //final String msg = String.format(Constants.ERR_MSG_INVALID_OPTIONS_UNKNOWN_PROPERTY,
+                    //    Constants.FUNCTION_FORMAT_NUMBER, fieldName);
+                    throw new RuntimeException("Error parsing formatNumber format string");
+                }
+            } // SWITCH
+        } // WHILE
+
+        return symbols;
+    }
+
+    // From JSONata4Java FormatNumberFunction
+    private static String getFormattingCharacter(String value, String propertyName, boolean isChar) {
+        // Create the variable to return
+        String formattingChar = null;
+
+        // Make sure that we have a valid node and that its content is textual
+        //if (valueNode != null && valueNode.isTextual()) {
+            // Read the value
+            //String value = valueNode.textValue();
+            if (value != null && !value.isEmpty()) {
+
+                // If the target property requires a single char, check the length
+                if (isChar) {
+                    if (value.length() == 1) {
+                        formattingChar = value;
+                    } else {
+                        //final String msg = String.format(Constants.ERR_MSG_INVALID_OPTIONS_SINGLE_CHAR,
+                        //    Constants.FUNCTION_FORMAT_NUMBER, propertyName);
+                        throw new RuntimeException();
+                    }
+                } else {
+                    formattingChar = value;
+                }
+            } else {
+                final String msgTemplate;
+                if (isChar) {
+                    msgTemplate = Constants.ERR_MSG_INVALID_OPTIONS_SINGLE_CHAR;
+                } else {
+                    msgTemplate = Constants.ERR_MSG_INVALID_OPTIONS_STRING;
+                }
+                //final String msg = String.format(msgTemplate, Constants.FUNCTION_FORMAT_NUMBER, propertyName);
+                throw new RuntimeException(msgTemplate);
+            }
+        //} 
+        
+        return formattingChar;
     }
 
     /**
