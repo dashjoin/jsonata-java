@@ -478,7 +478,7 @@ public class Functions {
         String result;
         var padLength = Math.abs(width) - str.length();
         if (padLength > 0) {
-            var padding = _char; while (padding.length()<padLength+1) padding = padding + padding;
+            var padding = _char; while (padding.length()<padLength) padding = padding + _char;
             if (_char.length() > 1) {
                 padding = substring(padding, 0, padLength);
             }
