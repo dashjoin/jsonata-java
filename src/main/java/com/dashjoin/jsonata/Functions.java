@@ -670,12 +670,14 @@ public class Functions {
      * @param {String} str - String to encode
      * @returns {string} Encoded string
      */
-    public static String encodeUrlComponent(String str) {
+    public static String encodeUrlComponent(String str) throws JException {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
         }
 
+        Utils.checkUrl(str);
+        
         return URLEncoder.encode(str, StandardCharsets.UTF_8)
                             .replaceAll("\\+", "%20")
                             .replaceAll("\\%21", "!")
@@ -696,15 +698,7 @@ public class Functions {
             return null;
         }
 
-        boolean isHigh = false;
-        for ( int i=0; i<str.length(); i++) {
-          boolean wasHigh = isHigh;
-          isHigh = Character.isHighSurrogate(str.charAt(i));
-          if (wasHigh && isHigh)
-            throw new JException("Malformed URL", i);
-        }
-        if (isHigh)
-          throw new JException("Malformed URL", 0);
+        Utils.checkUrl(str);
         
         try {
           // only encode query part: https://docs.jsonata.org/string-functions#encodeurl

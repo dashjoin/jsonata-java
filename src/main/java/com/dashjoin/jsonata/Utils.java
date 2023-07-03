@@ -105,4 +105,15 @@ public class Utils {
         return n.doubleValue();
     }
 
+    public static void checkUrl(String str) throws JException {
+      boolean isHigh = false;
+      for ( int i=0; i<str.length(); i++) {
+        boolean wasHigh = isHigh;
+        isHigh = Character.isHighSurrogate(str.charAt(i));
+        if (wasHigh && isHigh)
+          throw new JException("Malformed URL", i);
+      }
+      if (isHigh)
+        throw new JException("Malformed URL", 0);
+    }
 }
