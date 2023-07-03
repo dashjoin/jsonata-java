@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1888,9 +1889,10 @@ public class Functions {
      * parse a string containing an integer as specified by the picture string
      * @param {string} value - the string to parse
      * @param {string} picture - the picture string
+     * @throws ParseException
      * @returns {number} - the parsed number
      */
-    public static String parseInteger(String value, String picture) {
+    public static Number parseInteger(String value, String picture) throws ParseException {
         if (value == null) {
             return null;
         }
@@ -1902,7 +1904,11 @@ public class Functions {
         // // TODO validate input based on the matcher regex
         // const result = matchSpec.parse(value);
         // return result;
-        throw new RuntimeException("not implemented");
+        DecimalFormat formatter = new DecimalFormat();
+        if (picture!=null)
+            formatter.applyPattern(picture);
+        return formatter.parse(value);
+        //throw new RuntimeException("not implemented");
     }
 
     /**
