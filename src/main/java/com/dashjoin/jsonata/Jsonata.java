@@ -1001,10 +1001,10 @@ public class Jsonata {
          var lstr = "";
          var rstr = "";
          if (lhs != null) {
-             lstr = ""+lhs; // was fn.string
+             lstr = Functions.string(lhs,null);
          }
          if (rhs != null) {
-             rstr = ""+rhs; // was fn.string
+             rstr = Functions.string(rhs,null);
          }
  
          result = lstr + rstr;

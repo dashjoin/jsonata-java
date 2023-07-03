@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -133,6 +134,16 @@ public class Functions {
      * @returns {String} String from arguments
      */
     public static String string(Object arg, Boolean prettify) {
+      
+        if (arg instanceof Double) {
+          // TODO: this really should be in the jackson serializer
+          BigDecimal bd = new BigDecimal((Double)arg, new MathContext(15));
+          return bd.stripTrailingZeros().toString();
+        }
+        
+        if (arg instanceof String)
+          return (String) arg;
+      
         try {
             if (prettify!=null && prettify)
                 return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(arg);
