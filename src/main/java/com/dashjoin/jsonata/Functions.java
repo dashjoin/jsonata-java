@@ -138,7 +138,12 @@ public class Functions {
         if (arg instanceof Double) {
           // TODO: this really should be in the jackson serializer
           BigDecimal bd = new BigDecimal((Double)arg, new MathContext(15));
-          return bd.stripTrailingZeros().toString();
+          String res = bd.stripTrailingZeros().toString();
+          if (res.indexOf("E+") > 0)
+            return res.replace("E+", "e+");
+          if (res.indexOf("E-") > 0)
+            return res.replace("E-", "e-");
+          return res;
         }
         
         if (arg instanceof String)
