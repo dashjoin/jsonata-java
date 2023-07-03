@@ -728,9 +728,22 @@ public class Functions {
         // Create the formatter and format the number
         DecimalFormat formatter = new DecimalFormat();
         formatter.setDecimalFormatSymbols(symbols);
-        String fixedPicture = picture.replaceAll("9", "0");
+        String fixedPicture = picture; //picture.replaceAll("9", "0");
+        for (char c='1'; c<='9'; c++)
+            fixedPicture = fixedPicture.replace(c, '0');
+
+        boolean littleE = false;
+        if (fixedPicture.contains("e")) {
+            fixedPicture = fixedPicture.replace("e", "E");
+            littleE = true;
+        }
+        System.out.println("picture "+fixedPicture);
         formatter.applyLocalizedPattern(fixedPicture);
         String result = formatter.format(value);
+
+        if (littleE)
+            result = result.replace("E", "e");
+
 
         return result;
     }
