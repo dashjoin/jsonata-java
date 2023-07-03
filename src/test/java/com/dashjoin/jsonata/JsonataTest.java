@@ -200,6 +200,27 @@ public class JsonataTest {
         return success;
     }
 
+    void replaceNulls(Object o) {
+      if (o instanceof List) {
+        int index = 0;
+        for (Object i : ((List) o)) {
+          if (i == null)
+            ((List) o).set(index, Jsonata.NULL_VALUE);
+          else
+            replaceNulls(i);
+          index++;
+        }
+      }
+      if (o instanceof Map) {
+        for (Entry<String, Object> e : ((Map<String, Object>) o).entrySet()) {
+          if (e.getValue() == null)
+            e.setValue(Jsonata.NULL_VALUE);
+          else
+            replaceNulls(e.getValue());
+        }
+      }
+    }
+    
     boolean runTestCase(String name, Map<String, Object> testDef) throws Exception {
         testCases++;
         System.out.println("\nRunning test "+name);
@@ -215,6 +236,13 @@ public class JsonataTest {
         String dataset = (String)testDef.get("dataset");
         Map<String,Object> bindings = (Map)testDef.get("bindings");
         Object result = testDef.get("result");
+        
+        if (result == null)
+          if (testDef.containsKey("result"))
+            result = Jsonata.NULL_VALUE;
+
+        replaceNulls(result);
+
         String code = (String)testDef.get("code");
 
         //System.out.println(""+bindings);
