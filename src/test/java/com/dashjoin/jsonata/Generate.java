@@ -23,7 +23,7 @@ public class Generate {
         String name = cas.getName().substring(0, cas.getName().length() - 5);
         name = name.replace('-', '_');
         b.append("@Test public void " + name.replace('.', '_') + "() throws Exception { \n");
-        b.append("  new JsonataTest().runTestSuite(\"test/test-suite/groups/" + suite.getName()
+        b.append("  new JsonataTest().runCase(\"test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\");\n");
         b.append("}\n");
       }

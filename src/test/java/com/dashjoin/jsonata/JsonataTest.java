@@ -162,6 +162,11 @@ public class JsonataTest {
     int testFiles = 0;
     int testCases = 0;
 
+    public void runCase(String name) throws Exception {
+      if (!runTestSuite(name))
+          throw new Exception();
+    }
+    
     boolean runTestSuite(String name) throws Exception {
 
         //System.out.println("Running test "+name);
