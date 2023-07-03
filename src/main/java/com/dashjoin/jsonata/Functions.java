@@ -1676,12 +1676,7 @@ public class Functions {
         if (value == null) {
             return null;
         }
-
-        // value = Math.floor(value);
-
-        // const format = analyseIntegerPicture(picture);
-        // return _formatInteger(value, format);
-        throw new RuntimeException("not implemented");
+        return DateTimeUtils.formatInteger(value.intValue(), picture);
     }
 
     /**

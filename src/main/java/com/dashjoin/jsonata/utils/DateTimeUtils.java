@@ -239,7 +239,7 @@ public class DateTimeUtils implements Serializable {
         return letters.stream().reduce("", (a, b) -> a + b);
     }
 
-    private static String formatInteger(int value, String picture) {
+    public static String formatInteger(int value, String picture) {
         Format format = analyseIntegerPicture(picture);
         return formatInteger(value, format);
     }
