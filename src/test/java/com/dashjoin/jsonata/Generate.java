@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 public class Generate {
 
@@ -19,10 +20,15 @@ public class Generate {
       b.append("import com.dashjoin.jsonata.JsonataTest;\n");
       b.append("public class " + suite.getName().replace('-', '_') + "Test {\n");
 
-      for (File cas : suite.listFiles()) {
+      File[] cases = suite.listFiles();
+      Arrays.sort(cases);
+      for (File cas : cases) {
+        // Skip all non-JSON
+        if (!cas.getName().endsWith(".json")) continue;
+
         String name = cas.getName().substring(0, cas.getName().length() - 5);
-        name = name.replace('-', '_');
-        b.append("@Test public void " + name.replace('.', '_') + "() throws Exception { \n");
+        String jname = name.replace('-', '_');
+        b.append("@Test public void " + jname.replace('.', '_') + "() throws Exception { \n");
         b.append("  new JsonataTest().runCase(\"test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\");\n");
         b.append("}\n");
