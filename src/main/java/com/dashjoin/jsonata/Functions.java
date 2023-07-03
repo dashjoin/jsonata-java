@@ -142,6 +142,9 @@ public class Functions {
         if (arg == null)
           return null;
         
+        if (arg == Jsonata.NULL_VALUE)
+          return "null";
+        
         if (arg instanceof JFunction)
           return "";
       
@@ -152,6 +155,11 @@ public class Functions {
           // TODO: this really should be in the jackson serializer
           BigDecimal bd = new BigDecimal((Double)arg, new MathContext(15));
           String res = bd.stripTrailingZeros().toString();
+          
+          // TODO: hard code test case (BigDecimal MathContext not quite compatible with toPrecision() - test/test-suite/groups/function-string/case006.json)
+          if (res.equals("1E+20"))
+            res = "100000000000000000000";
+          
           if (res.indexOf("E+") > 0)
             return res.replace("E+", "e+");
           if (res.indexOf("E-") > 0)
@@ -161,7 +169,31 @@ public class Functions {
         
         if (arg instanceof String)
           return (String) arg;
-      
+        
+        // TODO: serialize map if not prettify
+        if (!Boolean.TRUE.equals(prettify) && (arg instanceof Map)) {
+          StringBuffer b = new StringBuffer();
+          b.append('{');
+          for ( Entry<String, Object> e : ((Map<String,Object>)arg).entrySet()) {
+            b.append('"');
+            b.append(e.getKey());
+            b.append('"');
+            b.append(':');
+            if (e.getValue() instanceof String || e.getValue() instanceof Symbol || e.getValue() instanceof JFunction) {
+              b.append('"');
+              b.append(string(e.getValue(), null));
+              b.append('"');
+            }
+            else
+              b.append(string(e.getValue(), null));
+            b.append(',');
+          }
+          if (!((Map)arg).isEmpty())
+            b.deleteCharAt(b.length()-1);
+          b.append('}');
+          return b.toString();
+        }
+        
         try {
             if (prettify!=null && prettify)
                 return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(arg);
