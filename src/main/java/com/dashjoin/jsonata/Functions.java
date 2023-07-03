@@ -260,7 +260,7 @@ public class Functions {
             return null;
         }
 
-        return str.length();
+        return str.codePointCount(0, str.length());
     }
 
     /**
