@@ -139,7 +139,10 @@ public class Functions {
      * @returns {String} String from arguments
      */
     public static String string(Object arg, Boolean prettify) {
+      return string(arg, prettify, "");
+    }
       
+    static String string(Object arg, Boolean prettify, String indent) {
         if (arg == null)
           return null;
         
@@ -171,26 +174,39 @@ public class Functions {
         if (arg instanceof String)
           return (String) arg;
         
-        // TODO: serialize map if not prettify
-        if (!Boolean.TRUE.equals(prettify) && (arg instanceof Map)) {
+        if (arg instanceof Map) {
+          if (prettify == null)
+            prettify = false;
           StringBuffer b = new StringBuffer();
+          if (prettify)
+            b.append(indent);
           b.append('{');
+          if (prettify)
+            b.append('\n');
           for ( Entry<String, Object> e : ((Map<String,Object>)arg).entrySet()) {
+            if (prettify) {
+              b.append(indent);
+              b.append("  ");
+            }
             b.append('"');
             b.append(e.getKey());
             b.append('"');
             b.append(':');
+            if (prettify)
+              b.append(' ');
             if (e.getValue() instanceof String || e.getValue() instanceof Symbol || e.getValue() instanceof JFunction) {
               b.append('"');
-              b.append(string(e.getValue(), null));
+              b.append(string(e.getValue(), prettify, indent+"  "));
               b.append('"');
             }
             else
               b.append(string(e.getValue(), null));
             b.append(',');
+            if (prettify)
+              b.append('\n');
           }
           if (!((Map)arg).isEmpty())
-            b.deleteCharAt(b.length()-1);
+            b.deleteCharAt(b.length()-(prettify ? 2 : 1));
           b.append('}');
           return b.toString();
         }
