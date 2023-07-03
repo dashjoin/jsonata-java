@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 
 public class Generate {
 
@@ -28,10 +29,22 @@ public class Generate {
 
         String name = cas.getName().substring(0, cas.getName().length() - 5);
         String jname = name.replace('-', '_');
+
+        Object jsonCase = new JsonataTest().readJson(cas.getAbsolutePath());
+        if (jsonCase instanceof List) {
+          for (int i=0; i<((List)jsonCase).size(); i++) {
+        b.append("@Test public void " + jname.replace('.', '_') + "_case_"+i+ "() throws Exception { \n");
+        b.append("  new JsonataTest().runSubCase(\"test/test-suite/groups/" + suite.getName()
+            + "/" + name + ".json\", "+i+");\n");
+        b.append("}\n");
+          }
+        }
+        else {
         b.append("@Test public void " + jname.replace('.', '_') + "() throws Exception { \n");
         b.append("  new JsonataTest().runCase(\"test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\");\n");
         b.append("}\n");
+        }
       }
       b.append("}\n");
       Files.write(Path.of("src/test/java/com/dashjoin/jsonata/gen/"

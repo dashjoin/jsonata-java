@@ -178,6 +178,12 @@ public class JsonataTest {
       if (!runTestSuite(name))
           throw new Exception();
     }
+
+    public void runSubCase(String name, int subNr) throws Exception {
+        List cases = (List)readJson(name);
+        if (!runTestCase(name+"_"+subNr, (Map<String, Object>) cases.get(subNr)))
+            throw new Exception();
+    }
     
     boolean runTestSuite(String name) throws Exception {
 
