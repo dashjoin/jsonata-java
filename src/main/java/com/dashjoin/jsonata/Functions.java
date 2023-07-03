@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -524,8 +525,45 @@ public class Functions {
             return null;
         }
 
-        return URLEncoder.encode(str, StandardCharsets.UTF_8);
+        try {
+          // only encode query part: https://docs.jsonata.org/string-functions#encodeurl
+          URL url = new URL(str);
+          String query = url.getQuery();
+          if (query != null) {
+              int offset = str.indexOf(query);
+              String strResult = str.substring(0, offset);
+              return strResult + encodeURI(query);
+          }
+        } catch (Exception e) {
+          // ignore and return default
+        }
+        return  URLEncoder.encode(str, StandardCharsets.UTF_8);
     }
+
+    static String encodeURI(String uri) {
+      String result = null;
+      if (uri != null) {
+          try {
+              // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+              // Not encoded: A-Z a-z 0-9 ; , / ? : @ & = + $ - _ . ! ~ * ' ( ) #
+              result = URLEncoder.encode(uri, "UTF-8").replaceAll("\\+", "%20")
+                  .replaceAll("%20", " ").replaceAll("\\%21", "!")
+                  .replaceAll("\\%23", "#").replaceAll("\\%24", "$")
+                  .replaceAll("\\%26", "&").replaceAll("\\%27", "'")
+                  .replaceAll("\\%28", "(").replaceAll("\\%29", ")")
+                  .replaceAll("\\%2A", "*").replaceAll("\\%2B", "+")
+                  .replaceAll("\\%2C", ",").replaceAll("\\%2D", "-")
+                  .replaceAll("\\%2E", ".").replaceAll("\\%2F", "/")
+                  .replaceAll("\\%3A", ":").replaceAll("\\%3B", ";")
+                  .replaceAll("\\%3D", "=").replaceAll("\\%3F", "?")
+                  .replaceAll("\\%40", "@").replaceAll("\\%5F", "_")
+                  .replaceAll("\\%7E", "~");
+          } catch (UnsupportedEncodingException e) {
+              e.printStackTrace();
+          }
+      }
+      return result;
+  }
 
     /**
      * Decode a string from a component for a url
