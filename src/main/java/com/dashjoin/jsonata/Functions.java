@@ -176,8 +176,6 @@ public class Functions {
         
         if (arg instanceof Map) {
           StringBuffer b = new StringBuffer();
-          if (prettify)
-            b.append(indent);
           b.append('{');
           if (prettify)
             b.append('\n');
@@ -198,7 +196,7 @@ public class Functions {
               b.append('"');
             }
             else
-              b.append(string(e.getValue(), prettify));
+              b.append(string(e.getValue(), prettify, indent+"  "));
             b.append(',');
             if (prettify)
               b.append('\n');
