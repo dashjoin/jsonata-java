@@ -135,6 +135,9 @@ public class Functions {
      */
     public static String string(Object arg, Boolean prettify) {
       
+        if (arg == null)
+          return null;
+      
         if (arg instanceof Double) {
           // TODO: this really should be in the jackson serializer
           BigDecimal bd = new BigDecimal((Double)arg, new MathContext(15));
