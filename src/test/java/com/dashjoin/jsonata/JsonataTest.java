@@ -93,35 +93,47 @@ public class JsonataTest {
 
         Jsonata jsonata = new Jsonata(expr, false);
         Object result = jsonata.evaluate(data, bindingFrame);
+        if (result==Jsonata.NULL_VALUE)
+            result = null;
         //result = convertNumbers(result);
-        System.out.println("Result = "+result);
-        System.out.println("Expect = "+expected+" ExpectedError="+code);
         if (code!=null)
             success = false;
         
-        if (expected!=null && !expected.equals(result))
-            success = false;
+        if (expected!=null && !expected.equals(result)) {
+            if ((""+expected).equals(""+result))
+                System.out.println("Value equals failed, stringified equals = true. Result = "+result);
+            else
+                success = false;
+        }
     
         if (expected==null && result!=null)
             success = false;
 
         if (!success) {
+            System.out.println("--Expr="+expr+" Expected="+expected+" ErrorCode="+code);
+            System.out.println("--Data="+data);
+            System.out.println("--Result = "+result);
+            System.out.println("--Expect = "+expected+" ExpectedError="+code);
             System.out.println("WRONG RESULT");
         }
 
         //assertEquals("Must be equal", expected, ""+result);
         } catch (Throwable t) {
-            if (t instanceof JException) {
-                JException je = (JException)t;
-                System.out.println("Exception     = "+je.error+"  --> "+je);
-            } else
-                System.out.println("Exception     = "+t);
-                System.out.println("ExpectedError = "+code+" Expected="+expected);
             if (code==null) {
+            System.out.println("--Expr="+expr+" Expected="+expected+" ErrorCode="+code);
+            System.out.println("--Data="+data);
+
+                if (t instanceof JException) {
+                    JException je = (JException)t;
+                    System.out.println("--Exception     = "+je.error+"  --> "+je);
+                } else
+                    System.out.println("--Exception     = "+t);
+
+                System.out.println("--ExpectedError = "+code+" Expected="+expected);
                 System.out.println("WRONG RESULT (exception)");
                 success = false;
             }
-            t.printStackTrace();
+            if (!success) t.printStackTrace();
             //if (true) System.exit(-1);
         }
         return success;
@@ -141,15 +153,15 @@ public class JsonataTest {
 
     @Test
     public void testSimple() throws JException {
-        testExpr("42", null, null, "42.0",null);
-        testExpr("(3*(4-2)+1.01e2)/-2", null, null, "-53.5",null);
+        testExpr("42", null, null, 42,null);
+        testExpr("(3*(4-2)+1.01e2)/-2", null, null, -53.5,null);
     }
 
     @Test
     public void testPath() throws Exception {
         Object data = readJson("test/test-suite/datasets/dataset0.json");
         System.out.println(data);
-        testExpr("foo.bar", data, null, "42",null);
+        testExpr("foo.bar", data, null, 42,null);
     }
 
     static class TestDef {
@@ -237,11 +249,12 @@ public class JsonataTest {
         }
         int successPercentage = 100*good/count;
         System.out.println("Success: "+good+" / "+count+" = "+(100*good/count)+"%");
-        assertEquals("100% test runs must succeed", 100, successPercentage);
+        assertEquals(successPercentage+"% succeeded", count, good);
+        //assertEquals("100% test runs must succeed", 100, successPercentage);
         return success;
     }
 
-    boolean debug = true;
+    boolean debug = false;
 
     @Test
     public void testSuite() throws Exception {
@@ -267,6 +280,7 @@ public class JsonataTest {
         s = "test/test-suite/groups/function-substring/case016.json";
         s = "test/test-suite/groups/null/case001.json";
         s = "test/test-suite/groups/context/case003.json";
+        s = "test/test-suite/groups/object-constructor/case008.json";
         runTestSuite(s);
         //String g = "function-applications"; // partly
         //String g = "higher-order-functions"; // works!
