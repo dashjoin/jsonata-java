@@ -139,10 +139,10 @@ public class Functions {
      * @returns {String} String from arguments
      */
     public static String string(Object arg, Boolean prettify) {
-      return string(arg, prettify, "");
+      return string(arg, prettify != null && prettify, "");
     }
       
-    static String string(Object arg, Boolean prettify, String indent) {
+    static String string(Object arg, boolean prettify, String indent) {
         if (arg == null)
           return null;
         
@@ -175,8 +175,6 @@ public class Functions {
           return (String) arg;
         
         if (arg instanceof Map) {
-          if (prettify == null)
-            prettify = false;
           StringBuffer b = new StringBuffer();
           if (prettify)
             b.append(indent);
@@ -200,19 +198,54 @@ public class Functions {
               b.append('"');
             }
             else
-              b.append(string(e.getValue(), null));
+              b.append(string(e.getValue(), prettify));
             b.append(',');
             if (prettify)
               b.append('\n');
           }
           if (!((Map)arg).isEmpty())
             b.deleteCharAt(b.length()-(prettify ? 2 : 1));
+          if (prettify)
+            b.append(indent);
           b.append('}');
           return b.toString();
         }
         
+        if ((arg instanceof JList) && prettify) {
+          if (((JList)arg).isEmpty())
+            return "[]";
+          StringBuffer b = new StringBuffer();
+          if (prettify)
+            b.append(indent);
+          b.append('[');
+          if (prettify)
+            b.append('\n');
+          for (Object v : (JList)arg) {
+            if (prettify) {
+              b.append(indent);
+              b.append("  ");
+            }
+            if (v instanceof String || v instanceof Symbol || v instanceof JFunction) {
+              b.append('"');
+              b.append(string(v, prettify, indent+"  "));
+              b.append('"');
+            }
+            else
+              b.append(string(v, prettify, indent+"  "));
+            b.append(',');
+            if (prettify)
+              b.append('\n');
+          }
+          if (!((JList)arg).isEmpty())
+            b.deleteCharAt(b.length()-(prettify ? 2 : 1));
+          if (prettify)
+            b.append(indent);
+          b.append(']');
+          return b.toString();
+        }
+        
         try {
-            if (prettify!=null && prettify)
+            if (prettify)
                 return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(arg);
             else
                 return new ObjectMapper().writeValueAsString(arg);
