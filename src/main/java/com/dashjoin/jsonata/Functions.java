@@ -141,7 +141,13 @@ public class Functions {
       
         if (arg == null)
           return null;
+        
+        if (arg instanceof JFunction)
+          return "";
       
+        if (arg instanceof Symbol)
+          return "";
+
         if (arg instanceof Double) {
           // TODO: this really should be in the jackson serializer
           BigDecimal bd = new BigDecimal((Double)arg, new MathContext(15));
