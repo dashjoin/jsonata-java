@@ -1285,7 +1285,7 @@ public class Functions {
                 }
                 
             };
-            result.sort(comp);
+            result.sort((Comparator)comparator);
         } else {
             result.sort(null);
         }

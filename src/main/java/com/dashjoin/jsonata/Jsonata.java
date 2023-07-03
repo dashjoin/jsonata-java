@@ -9,6 +9,7 @@ package com.dashjoin.jsonata;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1310,95 +1311,123 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Ordered sequence
       */
-     /* async */ Object evaluateSortExpression(Symbol expr, Object input, Object environment) {
-         var result;
+     /* async */ Object evaluateSortExpression(Symbol expr, Object input, Frame environment) {
+         Object result;
  
          // evaluate the lhs, then sort the results in order according to rhs expression
-         var lhs = input;
-         var isTupleSort = input.tupleStream ? true : false;
+         var lhs = (List)input;
+         var isTupleSort = (input instanceof JList && ((JList)input).tupleStream) ? true : false;
  
          // sort the lhs array
          // use comparator function
-         var comparator = /* async */ function(a, b) { 
+         var comparator = new Comparator() { 
+
+            @Override
+            public int compare(Object a, Object b) {
+
              // expr.terms is an array of order-by in priority order
              var comp = 0;
-             for(var index = 0; comp === 0 && index < expr.terms.length; index++) {
-                 var term = expr.terms[index];
+             for(var index = 0; comp == 0 && index < expr.terms.size(); index++) {
+                 var term = expr.terms.get(index);
                  //evaluate the sort term in the context of a
                  var context = a;
                  var env = environment;
                  if(isTupleSort) {
-                     context = a["@"];
+                     context = ((Map)a).get("@");
                      env = createFrameFromTuple(environment, a);
                  }
-                 var aa = /* await */ evaluate(term.expression, context, env);
+                Object aa;
+                try {
+                    aa = /* await */ evaluate(term.expression, context, env);
+                } catch (JException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
                  //evaluate the sort term in the context of b
                  context = b;
                  env = environment;
                  if(isTupleSort) {
-                     context = b["@"];
+                     context = ((Map)b).get("@");
                      env = createFrameFromTuple(environment, b);
                  }
-                 var bb = /* await */ evaluate(term.expression, context, env);
+                 Object bb;
+                try {
+                    bb = /* await */ evaluate(term.expression, context, env);
+                } catch (JException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
  
-                 // type checks
-                 var atype = typeof aa;
-                 var btype = typeof bb;
-                 // undefined should be last in sort order
-                 if(atype === "undefined") {
-                     // swap them, unless btype is also undefined
-                     comp = (btype === "undefined") ? 0 : 1;
-                     continue;
-                 }
-                 if(btype === "undefined") {
-                     comp = -1;
-                     continue;
-                 }
+                // type checks
+                //  var atype = typeof aa;
+                //  var btype = typeof bb;
+                // undefined should be last in sort order
+                if(aa == null) {
+                    // swap them, unless btype is also undefined
+                    comp = (bb == null) ? 0 : 1;
+                    continue;
+                }
+                if(bb == null) {
+                    comp = -1;
+                    continue;
+                }
  
                  // if aa or bb are not string or numeric values, then throw an error
-                 if(!(atype === "string" || atype === "number") || !(btype === "string" || btype === "number")) {
-                     throw {
-                         code: "T2008",
-                         stack: (new Error()).stack,
-                         position: expr.position,
-                         value: !(atype === "string" || atype === "number") ? aa : bb
-                     };
+                 if(!(aa instanceof Number || aa instanceof String) ||
+                 !(bb instanceof Number || bb instanceof String) 
+                 ) {
+                     throw new RuntimeException(new JException("T2008",
+                        expr.position,
+                        aa,
+                        bb
+                     ) );
                  }
  
                  //if aa and bb are not of the same type
-                 if(atype !== btype) {
-                     throw {
-                         code: "T2007",
-                         stack: (new Error()).stack,
-                         position: expr.position,
-                         value: aa,
-                         value2: bb
-                     };
+                 boolean sameType = false;
+                if (aa instanceof Number && bb instanceof Number)
+                    sameType = true;
+                else if (aa.getClass().isAssignableFrom(bb.getClass()) ||
+                    bb.getClass().isAssignableFrom(aa.getClass())) {
+                    sameType = true;
+                }
+
+                 if(!sameType) {
+                     throw new RuntimeException( new JException("T2007",
+                        expr.position,
+                        aa,
+                        bb
+                     ) );
                  }
-                 if(aa === bb) {
+                 if(aa.equals(bb)) {
                      // both the same - move on to next term
                      continue;
-                 } else if (aa < bb) {
+                 } else if (((Comparable)aa).compareTo(bb)<0) {
                      comp = -1;
                  } else {
                      comp = 1;
                  }
-                 if(term.descending === true) {
+                 if(term.descending == true) {
                      comp = -comp;
                  }
              }
              // only swap a & b if comp equals 1
-             return comp === 1;
-         };
+            // return comp == 1;
+            return comp;
+         }
+        };
  
-         var focus = {
-             environment: environment,
-             input: input
-         };
-         // the `focus` is passed in as the `this` for the invoked function
-         result = /* await */ fn.sort.apply(focus, [lhs, comparator]);
+        //  var focus = {
+        //      environment: environment,
+        //      input: input
+        //  };
+        //  // the `focus` is passed in as the `this` for the invoked function
+        //  result = /* await */ fn.sort.apply(focus, [lhs, comparator]);
  
-         return result;
+        result = Functions.sort(lhs, comparator);
+        return result;        
      }
  
      /**
