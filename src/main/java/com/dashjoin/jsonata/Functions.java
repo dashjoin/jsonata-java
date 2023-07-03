@@ -519,12 +519,22 @@ public class Functions {
      * @param {String} str - String to encode
      * @returns {string} Encoded string
      */
-    public static String encodeUrl(String str) {
+    public static String encodeUrl(String str) throws JException {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
         }
 
+        boolean isHigh = false;
+        for ( int i=0; i<str.length(); i++) {
+          boolean wasHigh = isHigh;
+          isHigh = Character.isHighSurrogate(str.charAt(i));
+          if (wasHigh && isHigh)
+            throw new JException("Malformed URL", i);
+        }
+        if (isHigh)
+          throw new JException("Malformed URL", 0);
+        
         try {
           // only encode query part: https://docs.jsonata.org/string-functions#encodeurl
           URL url = new URL(str);
