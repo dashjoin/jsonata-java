@@ -2,6 +2,7 @@ package com.dashjoin.jsonata;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -79,6 +80,22 @@ public class Utils {
         public boolean keepSingleton;
 
         public boolean cons;
+        
+        public String toString() {
+          Iterator<E> it = iterator();
+          if (! it.hasNext())
+              return "[]";
+
+          StringBuilder sb = new StringBuilder();
+          sb.append('[');
+          for (;;) {
+              E e = it.next();
+              sb.append(e == this ? "(this Collection)" : e);
+              if (! it.hasNext())
+                  return sb.append(']').toString();
+              sb.append(',') /* .append(' ') */;
+          }
+        }
     }
 
     public static boolean isSequence(Object result) {
