@@ -244,6 +244,9 @@ public class JsonataTest {
         replaceNulls(result);
 
         String code = (String)testDef.get("code");
+        
+        if (testDef.get("error") instanceof Map)
+          code = (String) ((Map)testDef.get("error")).get("code");
 
         //System.out.println(""+bindings);
 
