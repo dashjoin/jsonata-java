@@ -1546,7 +1546,8 @@ public class Jsonata {
          } else {
              var func = /* await */ evaluate(expr.rhs, input, environment);
  
-             if(!Utils.isFunction(func) && !((Symbol)lhs)._jsonata_lambda) {
+             if(!Utils.isFunction(func) && !Utils.isFunction(lhs) && 
+                !(lhs instanceof Symbol && ((Symbol)lhs)._jsonata_lambda)) {
                  throw new JException("T2006",
                      //stack: (new Error()).stack,
                      expr.position,
