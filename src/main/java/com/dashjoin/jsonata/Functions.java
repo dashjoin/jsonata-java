@@ -1934,7 +1934,7 @@ public class Functions {
         if (value == null) {
             return null;
         }
-        return DateTimeUtils.formatInteger(value.intValue(), picture);
+        return DateTimeUtils.formatInteger(value.longValue(), picture);
     }
 
     /**
