@@ -1138,6 +1138,52 @@ public class Parser {
     int ancestorIndex = 0;
     List<Symbol> ancestry = new ArrayList<>();
 
+    Symbol seekParent(Symbol node, Symbol slot) throws JException {
+        switch (node.type) {
+            case "name":
+            case "wildcard":
+                slot.level--;
+                if(slot.level == 0) {
+                    if (node.ancestor == null) {
+                        node.ancestor = slot;
+                    } else {
+                        // reuse the existing label
+                        ancestry.get((int)slot.index).slot.label = node.ancestor.label;
+                        node.ancestor = slot;
+                    }
+                    node.tuple = true;
+                }
+                break;
+            case "parent":
+                slot.level++;
+                break;
+            case "block":
+                // look in last expression in the block
+                if(node.expressions.size() > 0) {
+                    node.tuple = true;
+                    slot = seekParent(node.expressions.get(node.expressions.size() - 1), slot);
+                }
+                break;
+            case "path":
+                // last step in path
+                node.tuple = true;
+                var index = node.steps.size() - 1;
+                slot = seekParent(node.steps.get(index--), slot);
+                while (slot.level > 0 && index >= 0) {
+                    // check previous steps
+                    slot = seekParent(node.steps.get(index--), slot);
+                }
+                break;
+            default:
+                // error - can't derive ancestor
+                throw new JException("S0217",
+                    node.position,
+                    node.type
+                );
+        }
+        return slot;
+    };
+
 
     void pushAncestry(Symbol result, Symbol value) {
         if (value==null) return; // Added NPE check
@@ -1154,7 +1200,7 @@ public class Parser {
         }
     }
 
-    void resolveAncestry(Symbol path) {
+    void resolveAncestry(Symbol path) throws JException {
         var index = path.steps.size() - 1;
         var laststep = path.steps.get(index);
         var slots = (laststep.seekingParent != null) ? laststep.seekingParent : new ArrayList<Symbol>();
@@ -1179,7 +1225,7 @@ public class Parser {
                 while(index >= 0 && step.focus!=null && path.steps.get(index).focus!=null) {
                     step = path.steps.get(index--);
                 }
-                // FIXME slot = seekParent(step, slot);
+                slot = seekParent(step, slot);
             }
         }
     }
@@ -1308,16 +1354,22 @@ public class Parser {
                                 step.stages = new ArrayList<>();
 
                             var predicate = processAST(((Infix)expr).rhs);
-                            // if(predicate.seekingParent != null) {
-                            //     predicate.seekingParent.forEach(slot => {
-                            //         if(slot.level === 1) {
-                            //             seekParent(step, slot);
-                            //         } else {
-                            //             slot.level--;
-                            //         }
-                            //     });
-                            //     pushAncestry(step, predicate);
-                            // }
+                            if(predicate.seekingParent != null) {
+                                final var _step = step;
+                                predicate.seekingParent.forEach(slot -> {
+                                    if(slot.level == 1) {
+                                        try {
+                                            seekParent(_step, slot);
+                                        } catch (JException e) {
+                                            // TODO Auto-generated catch block
+                                            e.printStackTrace();
+                                        }
+                                    } else {
+                                        slot.level--;
+                                    }
+                                });
+                                pushAncestry(step, predicate);
+                            }
                             Symbol s = new Symbol();
                             s.type = "filter"; s.expr = predicate; s.position = expr.position;
                             if (step.type.equals("stages"))
