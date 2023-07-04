@@ -999,10 +999,21 @@ public class Functions {
             return null;
         }
 
+        if (arg==Jsonata.NULL_VALUE)
+            throw new JException("T0410", -1);
+
         if (arg instanceof Number)
             result = (Number)arg;
         else if (arg instanceof String) {
-            result = Utils.convertNumber( Double.valueOf((String)arg) );
+            String s = (String)arg;
+            if (s.startsWith("0x"))
+                result = Integer.parseInt(s.substring(2), 16);
+            else if (s.startsWith("0B"))
+                result = Integer.parseInt(s.substring(2), 2);
+            else if (s.startsWith("0O"))
+                result = Integer.parseInt(s.substring(2), 8);
+            else
+                result = Utils.convertNumber( Double.valueOf((String)arg) );
         } else if (arg instanceof Boolean) {
             result = ((boolean)arg) ? 1:0;
         }
