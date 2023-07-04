@@ -2465,11 +2465,10 @@ public class Jsonata {
                  //exec_env.timestamp = timestamp;
  
                  // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
-                // FIXME array handling
-                //  if(Array.isArray(input) && !isSequence(input)) {
-                //      input = createSequence(input);
-                //      input.outerWrapper = true;
-                //  }
+                 if((input instanceof List) && !Utils.isSequence(input)) {
+                     input = Utils.createSequence(input);
+                     ((JList)input).outerWrapper = true;
+                 }
  
                  Object it;
                  try {
