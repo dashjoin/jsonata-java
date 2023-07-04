@@ -1806,9 +1806,9 @@ public class Jsonata {
              );
          }
          if (Functions.isLambda(proc)) {
-             result = partialApplyProcedure(proc, evaluatedArgs);
+             result = partialApplyProcedure((Symbol)proc, (List)evaluatedArgs);
          } else if (Utils.isFunction(proc)) {
-             result = partialApplyNativeFunction(proc /*.implementation*/, evaluatedArgs);
+             result = partialApplyNativeFunction((JFunction)proc /*.implementation*/, evaluatedArgs);
         //  } else if (typeof proc === "function") {
         //      result = partialApplyNativeFunction(proc, evaluatedArgs);
          } else {
@@ -1869,25 +1869,28 @@ public class Jsonata {
       * @param {Array} args - Arguments
       * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applied procedure
       */
-     Object partialApplyProcedure(Object proc, Object args) {
+     Object partialApplyProcedure(Symbol proc, List<Symbol> args) {
          // create a closure, bind the supplied parameters and return a Object that takes the remaining (?) parameters
          var env = createFrame(proc.environment);
-         var unboundArgs = [];
-         proc.arguments.forEach(Object (param, index) {
-             var arg = args[index];
-             if (arg && arg.type === "operator" && arg.value === "?") {
-                 unboundArgs.push(param);
+         var unboundArgs = new ArrayList<Symbol>();
+         int index = 0;
+         for (var param : proc.arguments) {
+//         proc.arguments.forEach(Object (param, index) {
+             Object arg = args.get(index);
+             if ((arg==null) || (arg instanceof Symbol && ((Symbol)arg).type.equals("operator") && ((Symbol)arg).value.equals("?"))) {
+                 unboundArgs.add(param);
              } else {
-                 env.bind(param.value, arg);
+                 env.bind((String)param.value, arg);
              }
-         });
-         var procedure = {
-             _jsonata_lambda: true,
-             input: proc.input,
-             environment: env,
-             arguments: unboundArgs,
-             body: proc.body
-         };
+             index++;
+         }
+         var procedure = parser.new Symbol();
+         procedure._jsonata_lambda = true;
+         procedure.input = proc.input;
+         procedure.environment = env;
+         procedure.arguments = unboundArgs;
+         procedure.body = proc.body;
+
          return procedure;
      }
  
