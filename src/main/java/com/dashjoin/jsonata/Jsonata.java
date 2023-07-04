@@ -1871,7 +1871,8 @@ public class Jsonata {
       */
      Object partialApplyProcedure(Symbol proc, List<Symbol> args) {
          // create a closure, bind the supplied parameters and return a Object that takes the remaining (?) parameters
-         var env = createFrame(proc.environment);
+         // Note Uli: if no env, bind to default env so the native functions can be found
+         var env = createFrame(proc.environment!=null ? proc.environment : this.environment);
          var unboundArgs = new ArrayList<Symbol>();
          int index = 0;
          for (var param : proc.arguments) {
@@ -1898,22 +1899,43 @@ public class Jsonata {
       * Partially apply native function
       * @param {Function} native - Native function
       * @param {Array} args - Arguments
+     * @throws JException
       * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applying native function
       */
-     Object partialApplyNativeFunction(JFunction _native, Object args) {
+     Object partialApplyNativeFunction(JFunction _native, List args) throws JException {
          // create a lambda Object that wraps and invokes the native function
          // get the list of declared arguments from the native function
          // this has to be picked out from the toString() value
-         var sigArgs = getNativeFunctionArguments(_native);
-         sigArgs = sigArgs.map(Object (sigArg) {
-             return "$" + sigArg.trim();
-         });
-         var body = "function(" + sigArgs.join(", ") + "){ _ }";
+
+
+        //var body = "function($a,$c) { $substring($a,0,$c) }";
+
+        List sigArgs = new ArrayList<>();
+        List partArgs = new ArrayList<>();
+        for (int i=0; i<_native.getNumberOfArgs(); i++) {
+            String argName = "$" + (char)('a'+i);
+            sigArgs.add(argName);
+            if (args.get(i)==null)
+                partArgs.add(argName);
+            else
+                partArgs.add(args.get(i));
+        }
+
+        var body = "function(" + String.join(", ", sigArgs) + "){";
+        body += "$"+_native.functionName+"("+String.join(", ", sigArgs) + ") }";
+
+        if (parser.dbg) System.out.println("partial trampoline = "+body);
+
+        //  var sigArgs = getNativeFunctionArguments(_native);
+        //  sigArgs = sigArgs.stream().map(sigArg -> {
+        //      return "$" + sigArg;
+        //  }).toList();
+        //  var body = "function(" + String.join(", ", sigArgs) + "){ _ }";
  
-         var bodyAST = parser(body);
-         bodyAST.body = _native;
+         var bodyAST = parser.parse(body);
+         //bodyAST.body = _native;
  
-         var partial = partialApplyProcedure(bodyAST, args);
+         var partial = partialApplyProcedure(bodyAST, (List)args);
          return partial;
      }
  
@@ -1923,7 +1945,7 @@ public class Jsonata {
       * @param {Object} env - Environment
       * @returns {*} Result of applying native function
       */
-     /* async */ Object applyNativeFunction(Function proc, Environment env) {
+     /* async */ Object applyNativeFunction(JFunction proc, Frame env) {
          var sigArgs = getNativeFunctionArguments(proc);
          // generate the array of arguments for invoking the Object - look them up in the environment
          var args = sigArgs.map(Object (sigArg) {
@@ -1945,11 +1967,12 @@ public class Jsonata {
       * @param {Function} func - Function
       * @returns {*|Array} Native Object arguments
       */
-     Object getNativeFunctionArguments(Function func) {
-         var signature = func.toString();
-         var sigParens = /\(([^)]*)\)/.exec(signature)[1]; // the contents of the parens
-         var sigArgs = sigParens.split(",");
-         return sigArgs;
+     List getNativeFunctionArguments(JFunction func) {
+         //var signature = func.toString();
+         //var sigParens = /\(([^)]*)\)/.exec(signature)[1]; // the contents of the parens
+         //var sigArgs = sigParens.split(",");
+         //return sigArgs;
+         return null;
      }
  
      /**
