@@ -9,6 +9,7 @@ package com.dashjoin.jsonata;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -1451,72 +1452,88 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} tranformer function
       */
-     Object evaluateTransformExpression(Symbol expr, Object input, Object environment) {
+     Object evaluateTransformExpression(Symbol expr, Object input, Frame environment) {
          // create a Object to implement the transform definition
-         var transformer = /* async */ Object (obj) { // signature <(oa):o>
+         var transformer = // /* async */ Object (obj) { // signature <(oa):o>
+            new JFunctionCallable() {
+
+                @Override
+                public Object call(Object input, Object args) throws Throwable {
+
+                    var obj = ((List)args).get(0);
+
              // undefined inputs always return undefined
-             if(typeof obj === "undefined") {
-                 return undefined;
+             if(obj == null) {
+                 return null;
              }
  
              // this Object returns a copy of obj with changes specified by the pattern/operation
              var cloneFunction = environment.lookup("clone");
-             if(!isFunction(cloneFunction)) {
-                 // throw type error
-                 throw {
-                     code: "T2013",
-                     stack: (new Error()).stack,
-                     position: expr.position
-                 };
-             }
-             var result = /* await */ apply(cloneFunction, [obj], null, environment);
-             var matches = /* await */ evaluate(expr.pattern, result, environment);
-             if(typeof matches !== "undefined") {
-                 if(!Array.isArray(matches)) {
-                     matches = [matches];
+            //  if(!isFunction(cloneFunction)) {
+            //      // throw type error
+            //      throw {
+            //          code: "T2013",
+            //          stack: (new Error()).stack,
+            //          position: expr.position
+            //      };
+            //  }
+
+            // var result = /* await */ apply(cloneFunction, [obj], null, environment);
+            Object result = Functions.functionClone(args);
+
+             var _matches = /* await */ evaluate(expr.pattern, result, environment);
+             if(_matches != null) {
+                 if(!(_matches instanceof List)) {
+                     _matches = new ArrayList<>(List.of(_matches));
                  }
-                 for(var ii = 0; ii < matches.length; ii++) {
-                     var match = matches[ii];
+                 List matches = (List)_matches;
+                 for(var ii = 0; ii < matches.size(); ii++) {
+                     var match = matches.get(ii);
                      // evaluate the update value for each match
                      var update = /* await */ evaluate(expr.update, match, environment);
                      // update must be an object
-                     var updateType = typeof update;
-                     if(updateType !== "undefined") {
-                         if(updateType !== "object" || update === null || Array.isArray(update)) {
-                             // throw type error
-                             throw {
-                                 code: "T2011",
-                                 stack: (new Error()).stack,
-                                 position: expr.update.position,
-                                 value: update
-                             };
-                         }
+                     //var updateType = typeof update;
+                     //if(updateType != null) 
+                     {
+                        // FIXME
+                        // if(updateType !== "object" || update === null || Array.isArray(update)) {
+                        //      // throw type error
+                        //      throw {
+                        //          code: "T2011",
+                        //          stack: (new Error()).stack,
+                        //          position: expr.update.position,
+                        //          value: update
+                        //      };
+                        //  }
                          // merge the update
-                         for(var prop in update) {
-                             match[prop] = update[prop];
+                         for(var prop : ((Map)update).keySet()) {
+                            ((Map)match).put(prop, ((Map)update).get(prop));
                          }
                      }
  
                      // delete, if specified, must be an array of strings (or single string)
-                     if(typeof expr.delete !== "undefined") {
+                     if(expr.delete != null) {
                          var deletions = /* await */ evaluate(expr.delete, match, environment);
-                         if(typeof deletions !== "undefined") {
+                         if(deletions != null) {
                              var val = deletions;
-                             if (!Array.isArray(deletions)) {
-                                 deletions = [deletions];
+                             if (!(deletions instanceof List)) {
+                                 deletions = new ArrayList<>(List.of(deletions));
                              }
-                             if (!isArrayOfStrings(deletions)) {
-                                 // throw type error
-                                 throw {
-                                     code: "T2012",
-                                     stack: (new Error()).stack,
-                                     position: expr.delete.position,
-                                     value: val
-                                 };
-                             }
-                             for (var jj = 0; jj < deletions.length; jj++) {
-                                 if(typeof match === "object" && match !== null) {
-                                     delete match[deletions[jj]];
+                            // FIXME
+                            //  if (!isArrayOfStrings(deletions)) {
+                            //      // throw type error
+                            //      throw {
+                            //          code: "T2012",
+                            //          stack: (new Error()).stack,
+                            //          position: expr.delete.position,
+                            //          value: val
+                            //      };
+                            //  }
+                            List _deletions = (List)deletions;
+                             for (var jj = 0; jj < _deletions.size(); jj++) {
+                                 if(match instanceof Map) {
+                                    ((Map)match).remove(_deletions.get(jj));
+                                     //delete match[deletions[jj]];
                                  }
                              }
                          }
@@ -1525,6 +1542,8 @@ public class Jsonata {
              }
  
              return result;
+            }
+
          };
  
          return defineFunction(transformer, "<(oa):o>");
@@ -1961,6 +1980,7 @@ public class Jsonata {
       * @returns {*} Result of applying native function
       */
      /* async */ Object applyNativeFunction(JFunction proc, Frame env) {
+        /* FIXME
          var sigArgs = getNativeFunctionArguments(proc);
          // generate the array of arguments for invoking the Object - look them up in the environment
          var args = sigArgs.map(Object (sigArg) {
@@ -1972,9 +1992,11 @@ public class Jsonata {
          };
          var result = proc.apply(focus, args);
          if (isPromise(result)) {
-             result = /* await */ result;
+             result = / await / result;
          }
          return result;
+         */
+         return null;
      }
  
      /**
@@ -2017,62 +2039,19 @@ public class Jsonata {
       * @param {string} expr - expression to evaluate
       * @returns {*} - result of evaluating the expression
       */
-     /* async */ Object functionEval(String expr, Object focus) {
-         // undefined inputs always return undefined
-         if(typeof expr === "undefined") {
-             return undefined;
-         }
-         var input = this.input;
-         if(typeof focus !== "undefined") {
-             input = focus;
-             // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
-             if(Array.isArray(input) && !isSequence(input)) {
-                 input = createSequence(input);
-                 input.outerWrapper = true;
-             }
-         }
- 
-         try {
-             var ast = parser(expr, false);
-         } catch(err) {
-             // error parsing the expression passed to $eval
-             populateMessage(err);
-             throw {
-                 stack: (new Error()).stack,
-                 code: "D3120",
-                 value: err.message,
-                 error: err
-             };
-         }
-         try {
-             var result = /* await */ evaluate(ast, input, this.environment);
-         } catch(err) {
-             // error evaluating the expression passed to $eval
-             populateMessage(err);
-             throw {
-                 stack: (new Error()).stack,
-                 code: "D3121",
-                 value:err.message,
-                 error: err
-             };
-         }
- 
-         return result;
-     }
+     /* async */ 
+     //Object functionEval(String expr, Object focus) {
+        // moved to Functions !
+     //}
  
      /**
       * Clones an object
       * @param {Object} arg - object to clone (deep copy)
       * @returns {*} - the cloned object
       */
-     Object functionClone(Object arg) {
-         // undefined inputs always return undefined
-         if(typeof arg === "undefined") {
-             return undefined;
-         }
- 
-         return JSON.parse(fn.string(arg));
-     }
+     //Object functionClone(Object arg) {
+        // moved to Functions !
+     //}
  
      /**
       * Create frame
@@ -2128,7 +2107,7 @@ public class Jsonata {
 
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
-            this.signature = new Signature(signature);
+            this.signature = new Signature(signature, function.getClass().getName());
         }
 
         public JFunction(String functionName, String signature) {
@@ -2165,20 +2144,6 @@ public class Jsonata {
         public int getNumberOfArgs() {
             return method.getParameterTypes().length;
         }
-    }
-
-    void registerFunctions0() {
-        staticFrame.bind("sum", defineFunction("sum", "<a<n>:n>"));
-        staticFrame.bind("substringBefore", defineFunction("substringBefore", "<s-s:s>"));
-        staticFrame.bind("substringAfter", defineFunction("substringAfter", "<s-s:s>"));
-
-        staticFrame.bind("count", defineFunction(Functions::_count, "<a:n>"));
-        staticFrame.bind("string", defineFunction(Functions::_string, "<x-b?:s>"));
-        staticFrame.bind("not", defineFunction(Functions::_not, "<x-:b>"));
-        staticFrame.bind("join", defineFunction(Functions::_join, "<a<s>s?:s>"));
-        staticFrame.bind("lowercase", defineFunction(Functions::_lowercase, "<s-:s>"));
-        staticFrame.bind("uppercase", defineFunction(Functions::_uppercase, "<s-:s>"));
-        staticFrame.bind("substring", defineFunction(Functions::_substring, "<s-nn?:s>"));
     }
 
      // Function registration
