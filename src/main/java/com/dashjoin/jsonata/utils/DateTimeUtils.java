@@ -65,17 +65,17 @@ public class DateTimeUtils implements Serializable {
         "Thousand", "Million", "Billion", "Trillion"
     };
 
-    public static String numberToWords(int value, boolean ordinal) {
+    public static String numberToWords(long value, boolean ordinal) {
         return lookup(value, false, ordinal);
     }
 
-    private static String lookup(int num, boolean prev, boolean ord) {
+    private static String lookup(long num, boolean prev, boolean ord) {
         String words = "";
         if (num <= 19) {
-            words = (prev ? " and " : "") + (ord ? ordinals[num] : few[num]);
+            words = (prev ? " and " : "") + (ord ? ordinals[(int)num] : few[(int)num]);
         } else if (num < 100) {
-            int tens = num / 10;
-            int remainder = num % 10;
+            int tens = (int)num / 10;
+            int remainder = (int)num % 10;
             words = (prev ? " and " : "") + decades[tens - 2];
             if (remainder > 0) {
                 words += "-" + lookup(remainder, false, ord);
@@ -83,8 +83,8 @@ public class DateTimeUtils implements Serializable {
                 words = words.substring(0, words.length() - 1) + "ieth";
             }
         } else if (num < 1000) {
-            int hundreds = num / 100;
-            int remainder = num % 100;
+            int hundreds = (int)num / 100;
+            int remainder = (int)num % 100;
             words = (prev ? ", " : "") + few[hundreds] + " Hundred";
             if (remainder > 0) {
                 words += lookup(remainder, true, ord);
@@ -96,9 +96,9 @@ public class DateTimeUtils implements Serializable {
             if (mag > magnitudes.length) {
                 mag = magnitudes.length; // the largest word
             }
-            int factor = (int) Math.pow(10, mag * 3);
+            long factor = (long)Math.pow(10, mag * 3);
             int mant = (int) Math.floor(num / factor);
-            int remainder = num - mant * factor;
+            long remainder = num - mant * factor;
             words = (prev ? ", " : "") + lookup(mant, false, false) + " " + magnitudes[mag - 1];
             if (remainder > 0) {
                 words += lookup(remainder, true, ord);
@@ -239,7 +239,7 @@ public class DateTimeUtils implements Serializable {
         return letters.stream().reduce("", (a, b) -> a + b);
     }
 
-    public static String formatInteger(int value, String picture) {
+    public static String formatInteger(long value, String picture) {
         Format format = analyseIntegerPicture(picture);
         return formatInteger(value, format);
     }
@@ -302,16 +302,16 @@ public class DateTimeUtils implements Serializable {
         return suffix;
     }
 
-    private static String formatInteger(int value, Format format) {
+    private static String formatInteger(long value, Format format) {
         String formattedInteger = "";
         boolean negative = value < 0;
         value = Math.abs(value);
         switch (format.primary) {
             case LETTERS:
-                formattedInteger = decimalToLetters(value, format.case_type == tcase.UPPER ? "A" : "a");
+                formattedInteger = decimalToLetters((int)value, format.case_type == tcase.UPPER ? "A" : "a");
                 break;
             case ROMAN:
-                formattedInteger = decimalToRoman(value);
+                formattedInteger = decimalToRoman((int)value);
                 if (format.case_type == tcase.UPPER) {
                     formattedInteger = formattedInteger.toUpperCase();
                 }
