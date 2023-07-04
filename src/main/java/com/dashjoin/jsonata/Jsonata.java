@@ -127,7 +127,7 @@ public class Jsonata {
                  result = evaluateDescendants(expr, input); //, environment);
                  break;
              case "parent":
-                 result = null; // FIXME environment.lookup(expr.slot.label);
+                 result = environment.lookup(expr.slot.label);
                  break;
              case "condition":
                  result = /* await */ evaluateCondition(expr, input, environment);
@@ -1348,7 +1348,7 @@ public class Jsonata {
                  var env = environment;
                  if(isTupleSort) {
                      context = ((Map)a).get("@");
-                     env = createFrameFromTuple(environment, a);
+                     env = createFrameFromTuple(environment, (Map)a);
                  }
                 Object aa;
                 try {
@@ -1363,7 +1363,7 @@ public class Jsonata {
                  env = environment;
                  if(isTupleSort) {
                      context = ((Map)b).get("@");
-                     env = createFrameFromTuple(environment, b);
+                     env = createFrameFromTuple(environment, (Map)b);
                  }
                  Object bb;
                 try {
