@@ -287,8 +287,11 @@ public class Jsonata {
          return resultSequence;
      }
  
-     Frame createFrameFromTuple(Frame environment, Object tuple) {
+     Frame createFrameFromTuple(Frame environment, Map<String, Object> tuple) {
         var frame = createFrame(environment);
+        if (tuple!=null) for (var prop : tuple.keySet()) {
+            frame.bind(prop, tuple.get(prop));
+        }
         //  for(const prop in tuple) {
         //      frame.bind(prop, tuple[prop]);
         //  }
@@ -1039,7 +1042,7 @@ public class Jsonata {
  
          for(var itemIndex = 0; itemIndex < input.size(); itemIndex++) {
              var item = input.get(itemIndex);
-             var env = reduce ? createFrameFromTuple(environment, item) : environment;
+             var env = reduce ? createFrameFromTuple(environment, (Map)item) : environment;
              for(var pairIndex = 0; pairIndex < expr.lhsObject.size(); pairIndex++) {
                  var pair = expr.lhsObject.get(pairIndex);
                  var key = /* await */ evaluate(pair[0], reduce ? ((Map)item).get("@") : item, env);
@@ -1086,7 +1089,7 @@ public class Jsonata {
                  var tuple = reduceTupleStream(entry.data);
                  context = ((Map)tuple).get("@");
                  ((Map)tuple).remove("@");
-                 env = createFrameFromTuple(environment, tuple);
+                 env = createFrameFromTuple(environment, (Map)tuple);
              }
             // currently not used in Java: environment.isParallelCall = idx > 0
             //return [key, /* await */ evaluate(expr.lhs[entry.exprIndex][1], context, env)];
@@ -1105,15 +1108,26 @@ public class Jsonata {
          return result;
      }
  
-     Object reduceTupleStream(Object tupleStream) {
-         if(!Array.isArray(tupleStream)) {
-             return tupleStream;
+     Object reduceTupleStream(Object _tupleStream) {
+         if(!(_tupleStream instanceof List)) {
+             return _tupleStream;
          }
-         var result = {};
-         Object.assign(result, tupleStream[0]);
-         for(var ii = 1; ii < tupleStream.length; ii++) {
-             for(const prop in tupleStream[ii]) {
-                 result[prop] = fn.append(result[prop], tupleStream[ii][prop]);
+         List<Map> tupleStream = (List)_tupleStream;
+
+         var result = new LinkedHashMap<>();
+         result.putAll(tupleStream.get(0));
+
+         //Object.assign(result, tupleStream[0]);
+         for(var ii = 1; ii < tupleStream.size(); ii++) {
+
+            Map el = tupleStream.get(ii);
+            for (var prop : el.keySet()) {
+
+//             for(const prop in tupleStream[ii]) {
+
+                result.put(prop, Functions.append(result.get(prop), el.get(prop)));
+
+//               result[prop] = fn.append(result[prop], tupleStream[ii][prop]);
              }
          }
          return result;
