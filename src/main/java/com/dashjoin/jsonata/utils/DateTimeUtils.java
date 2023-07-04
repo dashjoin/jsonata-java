@@ -433,8 +433,8 @@ public class DateTimeUtils implements Serializable {
                             } else if (group != zeroCode) {
                                 throw new RuntimeException(Constants.ERR_MSG_DIFF_DECIMAL_GROUP);
                             }
+                            break;
                         }
-                        break;
                     }
                     if (!digit) {
                         if (codePoint == 0x23) {
