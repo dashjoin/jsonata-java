@@ -1256,7 +1256,7 @@ public class Functions {
         if (isLambda(func))
             res = Jsonata.current.get().applyProcedure(func, funcArgs);
         else
-            res = call(((JFunction)func).functionName, funcArgs);
+            res = ((JFunction)func).call(null, funcArgs);
         return res;
     }
 

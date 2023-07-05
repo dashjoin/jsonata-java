@@ -1546,7 +1546,7 @@ public class Jsonata {
 
          };
  
-         return defineFunction(transformer, "<(oa):o>");
+         return new JFunction(transformer, "<(oa):o>");
      }
  
     Symbol chainAST; // = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
@@ -1642,7 +1642,7 @@ public class Jsonata {
          // eager evaluation - evaluate the arguments
          for (int jj = 0; jj < expr.arguments.size(); jj++) {
              Object arg = /* await */ evaluate(expr.arguments.get(jj), input, environment);
-             if(Utils.isFunction(arg)) {
+             if(Utils.isFunction(arg) || Functions.isLambda(arg)) {
                 // wrap this in a closure
                 // Java: not required, already a JFunction
                 //  const closure = /* async */ Object (...params) {
@@ -1650,9 +1650,16 @@ public class Jsonata {
                 //      return /* await */ apply(arg, params, null, environment);
                 //  };
                 //  closure.arity = getFunctionArity(arg);
+
+                JFunctionCallable fc = (ctx,params) ->
+                    apply(arg, params, null, environment);
+
+                JFunction cl = new JFunction(fc, "<o:o>");
+
+                //Object cl = apply(arg, params, null, environment);
                 evaluatedArgs.add(arg);
              } else {
-                 evaluatedArgs.add(arg);
+                evaluatedArgs.add(arg);
              }
          }
          // apply the procedure
@@ -1679,7 +1686,8 @@ public class Jsonata {
             //      // and the Object identifier
             //      err.token = procName;
             //  }
-            if (parser.dbg) err.printStackTrace();
+            //if (parser.dbg) 
+            err.printStackTrace();
             throw new JException("Error calling function "+procName, expr.position); //err;
          }
          return result;
@@ -1911,8 +1919,8 @@ public class Jsonata {
          int index = 0;
          for (var param : proc.arguments) {
 //         proc.arguments.forEach(Object (param, index) {
-             Object arg = args.get(index);
-             if ((arg==null) || (arg instanceof Symbol && ((Symbol)arg).type.equals("operator") && ((Symbol)arg).value.equals("?"))) {
+             Object arg = index<args.size() ? args.get(index) : null;
+             if ((arg==null) || (arg instanceof Symbol && ("operator".equals(((Symbol)arg).type) && "?".equals(((Symbol)arg).value)))) {
                  unboundArgs.add(param);
              } else {
                  env.bind((String)param.value, arg);
@@ -1949,7 +1957,7 @@ public class Jsonata {
         for (int i=0; i<_native.getNumberOfArgs(); i++) {
             String argName = "$" + (char)('a'+i);
             sigArgs.add(argName);
-            if (args.get(i)==null)
+            if (i>=args.size() || args.get(i)==null)
                 partArgs.add(argName);
             else
                 partArgs.add(args.get(i));
@@ -2018,20 +2026,13 @@ public class Jsonata {
       * @param {string} signature - JSONata Object signature definition
       * @returns {{implementation: *, signature: *}} Object definition
       */
-     Object defineFunction(JFunctionCallable func, String signature) {
-
-        return new JFunction(func, signature);
-        //  var definition = {
-        //      _jsonata_function: true,
-        //      implementation: func
-        //  };
-        //  if(typeof signature !== "undefined") {
-        //      definition.signature = parseSignature(signature);
-        //  }
-        //  return definition;
-     }
     static JFunction defineFunction(String func, String signature) {
-        return new JFunction(func, signature);
+        return defineFunction(func, signature, func);
+    }
+    static JFunction defineFunction(String func, String signature, String funcImplMethod) {
+        JFunction fn = new JFunction(func, signature, funcImplMethod);
+        staticFrame.bind(func, fn);
+        return fn;
     }
  
      /**
@@ -2110,12 +2111,12 @@ public class Jsonata {
             this.signature = new Signature(signature, function.getClass().getName());
         }
 
-        public JFunction(String functionName, String signature) {
+        public JFunction(String functionName, String signature, String implMethodName) {
             this.functionName = functionName;
             this.signature = new Signature(signature, functionName);
-            this.method = Functions.getFunction(functionName);
+            this.method = Functions.getFunction(implMethodName);
             if (method==null) {
-                System.err.println("Function not implemented: "+functionName);
+                System.err.println("Function not implemented: "+functionName+" impl="+implMethodName);
             }
         }
 
@@ -2148,69 +2149,69 @@ public class Jsonata {
 
      // Function registration
     static void registerFunctions() {
-        staticFrame.bind("sum", defineFunction("sum", "<a<n>:n>"));
-        staticFrame.bind("count", defineFunction("count", "<a:n>"));
-        staticFrame.bind("max", defineFunction("max", "<a<n>:n>"));
-        staticFrame.bind("min", defineFunction("min", "<a<n>:n>"));
-        staticFrame.bind("average", defineFunction("average", "<a<n>:n>"));
-        staticFrame.bind("string", defineFunction("string", "<x-b?:s>"));
-        staticFrame.bind("substring", defineFunction("substring", "<s-nn?:s>"));
-        staticFrame.bind("substringBefore", defineFunction("substringBefore", "<s-s:s>"));
-        staticFrame.bind("substringAfter", defineFunction("substringAfter", "<s-s:s>"));
-        staticFrame.bind("lowercase", defineFunction("lowercase", "<s-:s>"));
-        staticFrame.bind("uppercase", defineFunction("uppercase", "<s-:s>"));
-        staticFrame.bind("length", defineFunction("length", "<s-:n>"));
-        staticFrame.bind("trim", defineFunction("trim", "<s-:s>"));
-        staticFrame.bind("pad", defineFunction("pad", "<s-ns?:s>"));
-        staticFrame.bind("match", defineFunction("match", "<s-f<s:o>n?:a<o>>"));
-        staticFrame.bind("contains", defineFunction("contains", "<s-(sf):b>")); // TODO <s-(sf<s:o>):b>
-        staticFrame.bind("replace", defineFunction("replace", "<s-(sf)(sf)n?:s>")); // TODO <s-(sf<s:o>)(sf<o:s>)n?:s>
-        staticFrame.bind("split", defineFunction("split", "<s-(sf)n?:a<s>>")); // TODO <s-(sf<s:o>)n?:a<s>>
-        staticFrame.bind("join", defineFunction("join", "<a<s>s?:s>"));
-        staticFrame.bind("formatNumber", defineFunction("formatNumber", "<n-so?:s>"));
-        staticFrame.bind("formatBase", defineFunction("formatBase", "<n-n?:s>"));
-        staticFrame.bind("formatInteger", defineFunction("formatInteger", "<n-s:s>"));
-        staticFrame.bind("parseInteger", defineFunction("parseInteger", "<s-s:n>"));
-        staticFrame.bind("number", defineFunction("number", "<(nsb)-:n>"));
-        staticFrame.bind("floor", defineFunction("floor", "<n-:n>"));
-        staticFrame.bind("ceil", defineFunction("ceil", "<n-:n>"));
-        staticFrame.bind("round", defineFunction("round", "<n-n?:n>"));
-        staticFrame.bind("abs", defineFunction("abs", "<n-:n>"));
-        staticFrame.bind("sqrt", defineFunction("sqrt", "<n-:n>"));
-        staticFrame.bind("power", defineFunction("power", "<n-n:n>"));
-        staticFrame.bind("random", defineFunction("random", "<:n>"));
-        staticFrame.bind("boolean", defineFunction("toBoolean", "<x-:b>"));
-        staticFrame.bind("not", defineFunction("not", "<x-:b>"));
-        staticFrame.bind("map", defineFunction("map", "<af>"));
-        staticFrame.bind("zip", defineFunction("zip", "<a+>"));
-        staticFrame.bind("filter", defineFunction("filter", "<af>"));
-        staticFrame.bind("single", defineFunction("single", "<af?>"));
-        staticFrame.bind("reduce", defineFunction("foldLeft", "<afj?:j>")); // TODO <f<jj:j>a<j>j?:j>
-        staticFrame.bind("sift", defineFunction("sift", "<o-f?:o>"));
-        staticFrame.bind("keys", defineFunction("keys", "<x-:a<s>>"));
-        staticFrame.bind("lookup", defineFunction("lookup", "<x-s:x>"));
-        staticFrame.bind("append", defineFunction("append", "<xx:a>"));
-        staticFrame.bind("exists", defineFunction("exists", "<x:b>"));
-        staticFrame.bind("spread", defineFunction("spread", "<x-:a<o>>"));
-        staticFrame.bind("merge", defineFunction("merge", "<a<o>:o>"));
-        staticFrame.bind("reverse", defineFunction("reverse", "<a:a>"));
-        staticFrame.bind("each", defineFunction("each", "<o-f:a>"));
-        staticFrame.bind("error", defineFunction("error", "<s?:x>"));
-        staticFrame.bind("assert", defineFunction("assertFn", "<bs?:x>"));
-        staticFrame.bind("type", defineFunction("type", "<x:s>"));
-        staticFrame.bind("sort", defineFunction("sort", "<af?:a>"));
-        staticFrame.bind("shuffle", defineFunction("shuffle", "<a:a>"));
-        staticFrame.bind("distinct", defineFunction("distinct", "<x:x>"));
-        staticFrame.bind("base64encode", defineFunction("base64encode", "<s-:s>"));
-        staticFrame.bind("base64decode", defineFunction("base64decode", "<s-:s>"));
-        staticFrame.bind("encodeUrlComponent", defineFunction("encodeUrlComponent", "<s-:s>"));
-        staticFrame.bind("encodeUrl", defineFunction("encodeUrl", "<s-:s>"));
-        staticFrame.bind("decodeUrlComponent", defineFunction("decodeUrlComponent", "<s-:s>"));
-        staticFrame.bind("decodeUrl", defineFunction("decodeUrl", "<s-:s>"));
-        staticFrame.bind("eval", defineFunction("functionEval", "<sx?:x>"));
-        staticFrame.bind("toMillis", defineFunction("dateTimeToMillis", "<s-s?:n>"));
-        staticFrame.bind("fromMillis", defineFunction("dateTimeFromMillis", "<n-s?s?:s>"));
-        staticFrame.bind("clone", defineFunction("functionClone", "<(oa)-:o>"));
+         defineFunction("sum", "<a<n>:n>");
+         defineFunction("count", "<a:n>");
+         defineFunction("max", "<a<n>:n>");
+         defineFunction("min", "<a<n>:n>");
+         defineFunction("average", "<a<n>:n>");
+         defineFunction("string", "<x-b?:s>");
+         defineFunction("substring", "<s-nn?:s>");
+         defineFunction("substringBefore", "<s-s:s>");
+         defineFunction("substringAfter", "<s-s:s>");
+         defineFunction("lowercase", "<s-:s>");
+         defineFunction("uppercase", "<s-:s>");
+         defineFunction("length", "<s-:n>");
+         defineFunction("trim", "<s-:s>");
+         defineFunction("pad", "<s-ns?:s>");
+         defineFunction("match", "<s-f<s:o>n?:a<o>>");
+         defineFunction("contains", "<s-(sf):b>"); // TODO <s-(sf<s:o>):b>
+         defineFunction("replace", "<s-(sf)(sf)n?:s>"); // TODO <s-(sf<s:o>)(sf<o:s>)n?:s>
+         defineFunction("split", "<s-(sf)n?:a<s>>"); // TODO <s-(sf<s:o>)n?:a<s>>
+         defineFunction("join", "<a<s>s?:s>");
+         defineFunction("formatNumber", "<n-so?:s>");
+         defineFunction("formatBase", "<n-n?:s>");
+         defineFunction("formatInteger", "<n-s:s>");
+         defineFunction("parseInteger", "<s-s:n>");
+         defineFunction("number", "<(nsb)-:n>");
+         defineFunction("floor", "<n-:n>");
+         defineFunction("ceil", "<n-:n>");
+         defineFunction("round", "<n-n?:n>");
+         defineFunction("abs", "<n-:n>");
+         defineFunction("sqrt", "<n-:n>");
+         defineFunction("power", "<n-n:n>");
+         defineFunction("random", "<:n>");
+         defineFunction("boolean", "<x-:b>", "toBoolean");
+         defineFunction("not", "<x-:b>");
+         defineFunction("map", "<af>");
+         defineFunction("zip", "<a+>");
+         defineFunction("filter", "<af>");
+         defineFunction("single", "<af?>");
+         defineFunction("reduce", "<afj?:j>", "foldLeft"); // TODO <f<jj:j>a<j>j?:j>
+         defineFunction("sift", "<o-f?:o>");
+         defineFunction("keys", "<x-:a<s>>");
+         defineFunction("lookup", "<x-s:x>");
+         defineFunction("append", "<xx:a>");
+         defineFunction("exists", "<x:b>");
+         defineFunction("spread", "<x-:a<o>>");
+         defineFunction("merge", "<a<o>:o>");
+         defineFunction("reverse", "<a:a>");
+         defineFunction("each", "<o-f:a>");
+         defineFunction("error", "<s?:x>");
+         defineFunction("assert", "<bs?:x>", "assertFn");
+         defineFunction("type", "<x:s>");
+         defineFunction("sort", "<af?:a>");
+         defineFunction("shuffle", "<a:a>");
+         defineFunction("distinct", "<x:x>");
+         defineFunction("base64encode", "<s-:s>");
+         defineFunction("base64decode", "<s-:s>");
+         defineFunction("encodeUrlComponent", "<s-:s>");
+         defineFunction("encodeUrl", "<s-:s>");
+         defineFunction("decodeUrlComponent", "<s-:s>");
+         defineFunction("decodeUrl", "<s-:s>");
+         defineFunction("eval", "<sx?:x>", "functionEval");
+         defineFunction("toMillis", "<s-s?:n>", "dateTimeToMillis");
+         defineFunction("fromMillis", "<n-s?s?:s>", "dateTimeFromMillis");
+         defineFunction("clone", "<(oa)-:o>", "functionClone");
     }
 
      /**
