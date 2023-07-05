@@ -804,6 +804,8 @@ public class DateTimeUtils implements Serializable {
                 break;
             case 'X':
                 //TODO work these out once others verified
+                componentValue = "" + date.getYear();
+                break;
             case 'x':
                 componentValue = "" + -1;
                 break;
