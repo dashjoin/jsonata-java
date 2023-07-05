@@ -94,7 +94,7 @@ public class Jsonata {
      Object evaluate(Symbol expr, Object input, Frame environment) throws JException {
         Object result = null;
  
-        if (parser.dbg) System.out.println("eval expr="+expr);//+" input="+input);
+        if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
         //  var entryCallback = environment.lookup("__evaluate_entry");
         //  if(entryCallback) {
@@ -1454,11 +1454,8 @@ public class Jsonata {
       */
      Object evaluateTransformExpression(Symbol expr, Object input, Frame environment) {
          // create a Object to implement the transform definition
-         var transformer = // /* async */ Object (obj) { // signature <(oa):o>
-            new JFunctionCallable() {
-
-                @Override
-                public Object call(Object input, Object args) throws Throwable {
+        JFunctionCallable transformer = (_input, args) -> {
+        // /* async */ Object (obj) { // signature <(oa):o>
 
                     var obj = ((List)args).get(0);
 
@@ -1468,7 +1465,7 @@ public class Jsonata {
              }
  
              // this Object returns a copy of obj with changes specified by the pattern/operation
-             var cloneFunction = environment.lookup("clone");
+            // var cloneFunction = environment.lookup("clone");
             //  if(!isFunction(cloneFunction)) {
             //      // throw type error
             //      throw {
@@ -1479,7 +1476,7 @@ public class Jsonata {
             //  }
 
             // var result = /* await */ apply(cloneFunction, [obj], null, environment);
-            Object result = Functions.functionClone(args);
+            Object result = Functions.functionClone(obj);
 
              var _matches = /* await */ evaluate(expr.pattern, result, environment);
              if(_matches != null) {
@@ -1542,9 +1539,7 @@ public class Jsonata {
              }
  
              return result;
-            }
-
-         };
+            };
  
          return new JFunction(transformer, "<(oa):o>");
      }
