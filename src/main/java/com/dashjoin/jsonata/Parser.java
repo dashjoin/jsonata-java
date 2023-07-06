@@ -1375,6 +1375,14 @@ public class Parser {
                             }
                             Symbol s = new Symbol();
                             s.type = "filter"; s.expr = predicate; s.position = expr.position;
+
+                            // FIXME:
+                            // this logic is required in Java to fix
+                            // for example test: flattening case 045
+                            // otherwise we lose the keepArray flag
+                            if (expr.keepArray)
+                                step.keepArray = true;
+
                             if (type.equals("stages"))
                                 step.stages.add(s);
                             else
