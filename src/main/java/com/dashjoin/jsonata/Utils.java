@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.dashjoin.jsonata.Jsonata.JFunction;
+import com.dashjoin.jsonata.Jsonata.JFunctionCallable;
 
 public class Utils {
     public static boolean isNumeric(Object v) throws JException {
@@ -43,7 +44,7 @@ public class Utils {
     }
 
     public static boolean isFunction(Object o) {
-        return o instanceof JFunction;
+        return o instanceof JFunction || o instanceof JFunctionCallable;
     }
 
     static Object NONE = new Object();
@@ -58,7 +59,11 @@ public class Utils {
         JList<Object> sequence = new JList<>();
         sequence.sequence = true;
         if (el!=NONE) {
-            sequence.add(el);
+            if (el instanceof List && ((List)el).size()==1)
+                sequence.add(((List)el).get(0));
+            else
+            // This case does NOT exist in Javascript! Why?
+                sequence.add(el);
         }
         return sequence;
     }
