@@ -1144,14 +1144,14 @@ public class Jsonata {
      Object evaluateRangeExpression(Object lhs, Object rhs) throws JException {
          Object result = null;
  
-         if (lhs != null && !(lhs instanceof Number)) {
+         if (lhs != null && !(lhs instanceof Integer)) {
              throw new JException("T2003",
                  //stack: (new Error()).stack,
                  -1,
                  lhs
              );
          }
-         if (rhs != null && !(rhs instanceof Number)) {
+         if (rhs != null && !(rhs instanceof Integer)) {
              throw new JException("T2004",
                 //stack: (new Error()).stack,
                 -1,
