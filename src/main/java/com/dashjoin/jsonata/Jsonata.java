@@ -212,12 +212,12 @@ public class Jsonata {
       * @returns {*} Evaluated input data
       */
      /* async */ Object evaluatePath(Symbol expr, Object input, Frame environment) throws JException {
-         Object inputSequence;
+         List inputSequence;
          // expr is an array of steps
          // if the first step is a variable reference ($...), including root reference ($$),
          //   then the path is absolute rather than relative
          if (input instanceof List && !expr.steps.get(0).type.equals("variable")) {
-             inputSequence = input;
+             inputSequence = (List)input;
          } else {
              // if input is not an array, make it so
             inputSequence = Utils.createSequence(input);
@@ -225,7 +225,7 @@ public class Jsonata {
  
          Object resultSequence = null;
          var isTupleStream = false;
-         Object tupleBindings = null;
+         List<Map> tupleBindings = null;
  
          // evaluate each step in turn
          for(var ii = 0; ii < expr.steps.size(); ii++) {
@@ -237,10 +237,10 @@ public class Jsonata {
  
              // if the first step is an explicit array constructor, then just evaluate that (i.e. don"t iterate over a context array)
              if(ii == 0 && step.consarray) {
-                 resultSequence = /* await */ evaluate(step, inputSequence, environment);
+                 resultSequence = (List)/* await */ evaluate(step, inputSequence, environment);
              } else {
                  if(isTupleStream) {
-                     tupleBindings = /* await */ evaluateTupleStep(step, (List)inputSequence, (List)tupleBindings, environment);
+                     tupleBindings = (List)/* await */ evaluateTupleStep(step, (List)inputSequence, (List)tupleBindings, environment);
                  } else {
                      resultSequence = /* await */ evaluateStep(step, inputSequence, environment, ii == expr.steps.size() - 1);
                  }
@@ -251,22 +251,22 @@ public class Jsonata {
              }
  
             if(step.focus == null) {
-                  inputSequence = resultSequence;
+                  inputSequence = (List)resultSequence;
             }
  
          }
  
-        //  if(isTupleStream) {
-        //      if(expr.tuple!=null) {
-        //          // tuple stream is carrying ancestry information - keep this
-        //          resultSequence = tupleBindings;
-        //      } else {
-        //          resultSequence = Utils.createSequence();
-        //          for (int ii = 0; ii < tupleBindings.size(); ii++) {
-        //              resultSequence.add(tupleBindings.get(ii)["@"]);
-        //          }
-        //      }
-        //  }
+         if(isTupleStream) {
+             if(expr.tuple!=null) {
+                 // tuple stream is carrying ancestry information - keep this
+                 resultSequence = tupleBindings;
+             } else {
+                 resultSequence = Utils.createSequence();
+                 for (int ii = 0; ii < tupleBindings.size(); ii++) {
+                     ((List)resultSequence).add(tupleBindings.get(ii).get("@"));
+                 }
+             }
+         }
  
         if(expr.keepSingletonArray) {
 
@@ -488,10 +488,10 @@ public class Jsonata {
                  var item = ((List)input).get(index);
                  var context = item;
                  var env = environment;
-                //  if(input) {
-                //      context = item["@"];
-                //      env = createFrameFromTuple(environment, item);
-                //  }
+                 if(input instanceof JList && ((JList)input).tupleStream) {
+                      context = ((Map)item).get("@");
+                      env = createFrameFromTuple(environment, (Map)item);
+                 }
                  var res = /* await */ evaluate(predicate, context, env);
                  if (Utils.isNumeric(res)) {
                      res = Utils.createSequence(res);
