@@ -1348,10 +1348,13 @@ public class Parser {
                             // if (typeof step[type] === 'undefined') {
                             //     step[type] = [];
                             // }
-                            if (step.predicate==null)
-                                step.predicate = new ArrayList<>();
-                            if (step.stages==null)
-                                step.stages = new ArrayList<>();
+                            if (type.equals("stages")) {
+                                if (step.stages==null)
+                                    step.stages = new ArrayList<>();
+                            } else {
+                                if (step.predicate==null)
+                                    step.predicate = new ArrayList<>();
+                            }
 
                             var predicate = processAST(((Infix)expr).rhs);
                             if(predicate.seekingParent != null) {
@@ -1372,7 +1375,7 @@ public class Parser {
                             }
                             Symbol s = new Symbol();
                             s.type = "filter"; s.expr = predicate; s.position = expr.position;
-                            if (step.type.equals("stages"))
+                            if (type.equals("stages"))
                                 step.stages.add(s);
                             else
                                 step.predicate.add(s);
