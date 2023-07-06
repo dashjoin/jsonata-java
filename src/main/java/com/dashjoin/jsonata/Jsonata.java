@@ -1491,17 +1491,15 @@ public class Jsonata {
                      // update must be an object
                      //var updateType = typeof update;
                      //if(updateType != null) 
-                     {
-                        // FIXME
-                        // if(updateType !== "object" || update === null || Array.isArray(update)) {
-                        //      // throw type error
-                        //      throw {
-                        //          code: "T2011",
-                        //          stack: (new Error()).stack,
-                        //          position: expr.update.position,
-                        //          value: update
-                        //      };
-                        //  }
+                     
+                     if (update!=null) {
+                        if(!(update instanceof Map)) {
+                             // throw type error
+                             throw new JException("T2011",
+                                 expr.update.position,
+                                 update
+                             );
+                         }
                          // merge the update
                          for(var prop : ((Map)update).keySet()) {
                             ((Map)match).put(prop, ((Map)update).get(prop));
@@ -1516,16 +1514,13 @@ public class Jsonata {
                              if (!(deletions instanceof List)) {
                                  deletions = new ArrayList<>(List.of(deletions));
                              }
-                            // FIXME
-                            //  if (!isArrayOfStrings(deletions)) {
-                            //      // throw type error
-                            //      throw {
-                            //          code: "T2012",
-                            //          stack: (new Error()).stack,
-                            //          position: expr.delete.position,
-                            //          value: val
-                            //      };
-                            //  }
+                             if (!Utils.isArrayOfStrings(deletions)) {
+                                 // throw type error
+                                 throw new JException("T2012",
+                                     expr.delete.position,
+                                     val
+                                 );
+                             }
                             List _deletions = (List)deletions;
                              for (var jj = 0; jj < _deletions.size(); jj++) {
                                  if(match instanceof Map) {
