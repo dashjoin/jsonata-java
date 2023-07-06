@@ -463,9 +463,9 @@ public class Jsonata {
      /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment) throws JException {
         Symbol predicate = (Symbol)_predicate;
          var results = Utils.createSequence();
-        //  if( input && input.tupleStream) {
-        //      results.tupleStream = true;
-        //  }
+         if( input instanceof JList && ((JList)input).tupleStream) {
+             ((JList)results).tupleStream = true;
+         }
          if (!(input instanceof List)) { // isArray
              input = Utils.createSequence(input);
          }
