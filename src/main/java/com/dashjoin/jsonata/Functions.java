@@ -1214,7 +1214,7 @@ public class Functions {
 
     public static int getFunctionArity(Object func) {
         if (func instanceof JFunction) {
-            return ((JFunction)func).signature.getNumberOfArgs();
+            return ((JFunction)func).signature.getMinNumberOfArgs();
         } else {
             // Lambda
             return ((Symbol)func).arguments.size();

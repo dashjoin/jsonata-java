@@ -400,6 +400,18 @@ public class Signature implements Serializable {
     public int getNumberOfArgs() {
         return _params.size();
     }
+
+    /**
+     * Returns the minimum # of arguments.
+     * I.e. the # of all non-optional arguments.
+     */
+    public int getMinNumberOfArgs() {
+        int res = 0;
+        for (Param p : _params)
+            if (!p.regex.contains("?"))
+                res++;
+        return res;
+    }
 /*
     ArrayNode validate(String functionName, ExprListContext args, ExpressionsVisitor expressionVisitor) {
         ArrayNode result = JsonNodeFactory.instance.arrayNode();
