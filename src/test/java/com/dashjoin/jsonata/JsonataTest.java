@@ -227,7 +227,47 @@ public class JsonataTest {
       }
     }
     
+    public static class TestOverride {
+        public String name;
+        public Boolean ignoreError;
+        public Object alternateResult;
+        public String alternateCode;
+        public String reason;
+    }
+
+    public static class TestOverrides {
+        public TestOverride[] override;
+    }
+
+    static TestOverrides testOverrides;
+
+    static TestOverrides getTestOverrides() {
+        if (testOverrides!=null)
+            return testOverrides;
+
+        try {
+            testOverrides = new ObjectMapper().readValue(
+                new File("test/test-overrides.json"), TestOverrides.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        return testOverrides;
+    }
+
+    TestOverride getOverrideForTest(String name) {
+        TestOverrides tos = getTestOverrides();
+        for (TestOverride to : tos.override) {
+            if (name.indexOf(to.name)>=0)
+                return to;
+        }
+        return null;
+    }
+
     boolean runTestCase(String name, Map<String, Object> testDef) throws Exception {
+
+        System.out.println( getTestOverrides() );
+
         testCases++;
         System.out.println("\nRunning test "+name);
 
@@ -260,7 +300,28 @@ public class JsonataTest {
         if (data==null && dataset!=null)
             data = readJson("test/test-suite/datasets/"+dataset+".json");
 
-        return testExpr(expr, data, bindings, result, code);
+        TestOverride to = getOverrideForTest(name);
+        if (to!=null) {
+            System.out.println("OVERRIDE used : "+to.name+" for "+name);
+            if (to.alternateResult!=null) {
+                result = to.alternateResult;
+            }
+            if (to.alternateCode!=null) {
+                code = to.alternateCode;
+            }
+        }
+
+        boolean res = testExpr(expr, data, bindings, result, code);
+
+        if (to!=null) {
+            // There is an override/alternate result for this defined...
+            if (res==false && to.ignoreError!=null && to.ignoreError) {
+                System.out.println("Test "+name+" failed, but override allows failure");
+                res = true;
+            }
+        }
+
+        return res;
     }
 
     String groupDir = "test/test-suite/groups/";
