@@ -160,10 +160,6 @@ public class Functions {
           BigDecimal bd = new BigDecimal((Double)arg, new MathContext(15));
           String res = bd.stripTrailingZeros().toString();
           
-          // TODO: hard code test case (BigDecimal MathContext not quite compatible with toPrecision() - test/test-suite/groups/function-string/case006.json)
-          if (res.equals("1E+20"))
-            res = "100000000000000000000";
-          
           if (res.indexOf("E+") > 0)
             return res.replace("E+", "e+");
           if (res.indexOf("E-") > 0)

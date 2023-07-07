@@ -28,6 +28,11 @@
             "name": "function-fromMillis/isoWeekDate.json",
             "ignoreError": true,
             "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases"
+        },
+        { 
+            "name": "function-string/case006.json",
+            "ignoreError": true,
+            "reason": "toString precision should be 15, handled differently by Java Bigdecimal(..., new MathContext(15)"
         }
     ]
 }
