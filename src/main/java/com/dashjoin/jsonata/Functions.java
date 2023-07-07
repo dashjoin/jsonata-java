@@ -139,6 +139,11 @@ public class Functions {
      * @returns {String} String from arguments
      */
     public static String string(Object arg, Boolean prettify) {
+      
+      if (arg instanceof JList)
+        if (((JList)arg).outerWrapper)
+          arg = ((JList)arg).get(0);
+      
       return string(arg, prettify != null && prettify, "");
     }
       
