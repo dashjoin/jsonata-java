@@ -1645,7 +1645,11 @@ public class Functions {
                 @Override
                 public int compare(Object o1, Object o2) {
                     try {
-                        return (int) funcApply(comparator, Arrays.asList(o1, o2));
+                        boolean swap = (boolean) funcApply(comparator, Arrays.asList(o1, o2));
+                        if (swap)
+                          return 1;
+                        else
+                          return -1;
                     } catch (Throwable e) {
                         // TODO Auto-generated catch block
                         //e.printStackTrace();
@@ -1654,7 +1658,10 @@ public class Functions {
                 }
                 
             };
-            result.sort((Comparator)comparator);
+            if (comparator instanceof Comparator)
+              result.sort((Comparator)comparator);
+            else
+              result.sort((Comparator)comp);
         } else {
             result.sort(null);
         }
