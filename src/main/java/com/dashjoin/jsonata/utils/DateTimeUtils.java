@@ -807,7 +807,7 @@ public class DateTimeUtils implements Serializable {
                 componentValue = "" + date.getYear();
                 break;
             case 'x':
-                componentValue = "" + -1;
+                componentValue = "" + date.getMonthValue();
                 break;
             case 'H': // hour in day (24 hours)
                 componentValue = "" + date.getHour();
