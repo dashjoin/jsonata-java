@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Generate {
 
@@ -33,6 +34,7 @@ public class Generate {
         Object jsonCase = new JsonataTest().readJson(cas.getAbsolutePath());
         if (jsonCase instanceof List) {
           for (int i=0; i<((List)jsonCase).size(); i++) {
+            b.append("// " + ((Map)((List) jsonCase).get(i)).get("expr")+"\n");
         b.append("@Test public void " + jname.replace('.', '_') + "_case_"+i+ "() throws Exception { \n");
         b.append("  new JsonataTest().runSubCase(\"test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\", "+i+");\n");
@@ -40,6 +42,7 @@ public class Generate {
           }
         }
         else {
+          b.append("// " + ((Map) jsonCase).get("expr")+"\n");
         b.append("@Test public void " + jname.replace('.', '_') + "() throws Exception { \n");
         b.append("  new JsonataTest().runCase(\"test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\");\n");
