@@ -1085,7 +1085,7 @@ public class Functions {
             return null;
         }
 
-        BigDecimal b = new BigDecimal(arg.doubleValue());
+        BigDecimal b = new BigDecimal(arg+"");
         if (precision==null)
             precision = 0;
         b = b.setScale(precision.intValue(), RoundingMode.HALF_EVEN);
