@@ -34,7 +34,7 @@ public class Generate {
         Object jsonCase = new JsonataTest().readJson(cas.getAbsolutePath());
         if (jsonCase instanceof List) {
           for (int i=0; i<((List)jsonCase).size(); i++) {
-            b.append("// " + ((Map)((List) jsonCase).get(i)).get("expr")+"\n");
+            b.append("// " + s(((Map)((List) jsonCase).get(i)).get("expr"))+"\n");
         b.append("@Test public void " + jname.replace('.', '_') + "_case_"+i+ "() throws Exception { \n");
         b.append("  new JsonataTest().runSubCase(\"test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\", "+i+");\n");
@@ -42,7 +42,7 @@ public class Generate {
           }
         }
         else {
-          b.append("// " + ((Map) jsonCase).get("expr")+"\n");
+          b.append("// " + s(((Map) jsonCase).get("expr"))+"\n");
         b.append("@Test public void " + jname.replace('.', '_') + "() throws Exception { \n");
         b.append("  new JsonataTest().runCase(\"test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\");\n");
@@ -54,5 +54,12 @@ public class Generate {
           + suite.getName().replace('-', '_') + "Test.java"), b.toString().getBytes());
       System.out.println(b);
     }
+  }
+  
+  static String s(Object o) {
+    if (o == null)
+      return null;
+    String s = (String)o;
+    return s.replace('\n', ' ');
   }
 }
