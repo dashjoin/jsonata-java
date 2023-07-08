@@ -30,7 +30,22 @@
             "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases"
         },
         { 
-            "name": "function-fromMillis/formatDateTime.json",
+            "name": "function-fromMillis/formatDateTime.json_61",
+            "ignoreError": true,
+            "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
+        },
+        { 
+            "name": "function-fromMillis/formatDateTime.json_63",
+            "ignoreError": true,
+            "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
+        },
+        { 
+            "name": "function-fromMillis/formatDateTime.json_64",
+            "ignoreError": true,
+            "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
+        },
+        { 
+            "name": "function-fromMillis/formatDateTime.json_65",
             "ignoreError": true,
             "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
         },
