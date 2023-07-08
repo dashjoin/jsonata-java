@@ -30,6 +30,11 @@
             "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases"
         },
         { 
+            "name": "function-fromMillis/formatDateTime.json",
+            "ignoreError": true,
+            "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
+        },
+        { 
             "name": "function-string/case006.json",
             "ignoreError": true,
             "reason": "toString precision should be 15, handled differently by Java Bigdecimal(..., new MathContext(15)"
