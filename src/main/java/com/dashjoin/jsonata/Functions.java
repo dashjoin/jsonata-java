@@ -622,12 +622,31 @@ public class Functions {
         return String.join(separator, strs);
     }
 
-    public static String replace(String str, Object pattern, String replacement, Integer limit) {
-        // FIXME: limit
-        if (pattern instanceof String) {
-            return str.replace((String)pattern, replacement);
+    public static String replace(String str, Object pattern, String replacement, Integer limit) throws JException {
+        if (str == null) {
+            return null;
+        }
+        if (pattern instanceof String)
+          if (((String)pattern).isEmpty())
+            throw new JException("Second argument of replace function cannot be an empty string", 0);
+        if (limit == null) {
+          if (pattern instanceof String) {
+              return str.replace((String)pattern, replacement);
+          } else {
+              return str.replaceAll(((Pattern)pattern).pattern(), replacement);
+          }
         } else {
-            return str.replaceAll(((Pattern)pattern).pattern(), replacement);
+          
+          if (limit<0)
+            throw new JException("Fourth argument of replace function must evaluate to a positive number", 0);
+          
+          for (int i=0; i<limit; i++)
+            if (pattern instanceof String) {
+                str = str.replaceFirst((String)pattern, replacement);
+            } else {
+                str = str.replaceFirst(((Pattern)pattern).pattern(), replacement);
+            }
+          return str;
         }
     }
 
