@@ -60,6 +60,6 @@ public class Generate {
     if (o == null)
       return null;
     String s = (String)o;
-    return s.replace('\n', ' ');
+    return s.replace('\n', ' ').replace("\\u", "u");
   }
 }
