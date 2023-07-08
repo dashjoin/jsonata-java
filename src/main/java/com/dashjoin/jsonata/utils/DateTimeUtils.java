@@ -533,7 +533,11 @@ public class DateTimeUtils implements Serializable {
         public void addLiteral(String picture, int start, int end) {
             if (end > start) {
                 String literal = picture.substring(start, end);
-                literal = String.join("]", literal.split("]]"));
+                if (literal.equals("]]"))
+                  // handle special case where picture ends with ]], split yields empty array
+                  literal = "]";
+                else
+                  literal = String.join("]", literal.split("]]"));
                 parts.add(new SpecPart("literal", literal));
             }
         }
