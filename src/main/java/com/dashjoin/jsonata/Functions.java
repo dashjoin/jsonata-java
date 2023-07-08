@@ -13,7 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -27,11 +31,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import org.apache.commons.lang3.StringUtils;
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.dashjoin.jsonata.Utils.JList;
@@ -1900,16 +1905,33 @@ public class Functions {
      *
      * @param {string} timestamp - the timestamp to be converted
      * @param {string} [picture] - the picture string defining the format of the timestamp (defaults to ISO 8601)
+     * @throws ParseException 
      * @returns {Number} - milliseconds since the epoch
      */
-    public static Long dateTimeToMillis(String timestamp, String picture) {
+    public static Long dateTimeToMillis(String timestamp, String picture) throws ParseException {
         // undefined inputs always return undefined
         if(timestamp == null) {
             return null;
         }
 
         if(picture == null) {
+          if (StringUtils.isNumeric(timestamp)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return sdf.parse(timestamp).getTime();
+          }
+          try {
+            int len = timestamp.length();
+            if (len > 5)
+              if (timestamp.charAt(len-5) == '+' || timestamp.charAt(len-5) == '-')
+                if (Character.isDigit(timestamp.charAt(len-4)) && Character.isDigit(timestamp.charAt(len-3)) && Character.isDigit(timestamp.charAt(len-2)) && Character.isDigit(timestamp.charAt(len-1)) )
+                  timestamp = timestamp.substring(0, len-2) + ':' + timestamp.substring(len-2, len);
             return OffsetDateTime.parse(timestamp).toInstant().toEpochMilli();
+          }
+          catch (RuntimeException e) {
+            LocalDate ldt = LocalDate.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return ldt.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli();
+          }
         } else {
             return DateTimeUtils.parseDateTime(timestamp, picture);
         }
