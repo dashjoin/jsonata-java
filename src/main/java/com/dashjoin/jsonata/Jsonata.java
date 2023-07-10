@@ -1569,8 +1569,9 @@ public class Jsonata {
          } else {
              var func = /* await */ evaluate(expr.rhs, input, environment);
  
-             if(!Utils.isFunction(func) && !Utils.isFunction(lhs) && 
-                !(lhs instanceof Symbol && ((Symbol)lhs)._jsonata_lambda)) {
+             if(!Utils.isFunction(func) && !Utils.isFunction(lhs) &&
+                !Functions.isLambda(lhs) &&
+                !(func instanceof Pattern)) {
                  throw new JException("T2006",
                      //stack: (new Error()).stack,
                      expr.position,
@@ -1762,6 +1763,16 @@ public class Jsonata {
                 //  if (isPromise(result)) {
                 //      result = /* await */ result;
                 //  }
+             } else if (proc instanceof Pattern) {
+                List _res = new ArrayList<>();
+                for (String s : (List<String>)validatedArgs) {
+                //System.err.println("PAT "+proc+" input "+s);
+                    if (((Pattern)proc).matcher(s).find()) {
+                        //System.err.println("MATCH");
+                        _res.add(s);
+                    }
+                }
+                result = _res;
              } else {
                 System.out.println("Proc not found "+proc);
                  throw new JException(
