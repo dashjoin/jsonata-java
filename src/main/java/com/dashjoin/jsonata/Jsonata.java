@@ -6,10 +6,8 @@
 
 package com.dashjoin.jsonata;
 
-import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -20,8 +18,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-
-import javax.swing.JEditorPane;
 
 import com.dashjoin.jsonata.Parser.Infix;
 import com.dashjoin.jsonata.Parser.Symbol;
@@ -58,10 +54,20 @@ public class Jsonata {
  
      // Start of Evaluator code
  
-     public static class Frame {
+    public static interface EntryCallback {
+        void callback(Symbol expr, Object input, Frame environment) throws JException;
+    }
+
+    public static interface ExitCallback {
+        void callback(Symbol expr, Object input, Frame environment, Object result) throws JException;
+    }
+
+    public static class Frame {
         Map<String, Object> bindings = new TreeMap<String,Object>();
 
         Frame parent;
+
+        public boolean isParallelCall;
 
         public Frame(Frame enclosingEnvironment) {
             parent = enclosingEnvironment;
@@ -78,6 +84,24 @@ public class Jsonata {
             if (parent!=null)
                 return parent.lookup(name);
             return null;
+        }
+
+        /**
+         * Sets the runtime bounds for this environment
+         * 
+         * @param timeout Timeout in millis
+         * @param maxRecursionDepth Max recursion depth
+         */
+        public void setRuntimeBounds(long timeout, int maxRecursionDepth) {
+            new Timebox(this, timeout, maxRecursionDepth);
+        }
+
+        public void setEvaluateEntryCallback(EntryCallback cb) {
+            bind("__evaluate_entry", cb);
+        }
+
+        public void setEvaluateExitCallback(ExitCallback cb) {
+            bind("__evaluate_exit", cb);
         }
      }
 
@@ -96,10 +120,10 @@ public class Jsonata {
  
         if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
-        //  var entryCallback = environment.lookup("__evaluate_entry");
-        //  if(entryCallback) {
-        //      await entryCallback(expr, input, environment);
-        //  }
+         var entryCallback = environment.lookup("__evaluate_entry");
+         if(entryCallback!=null) {
+            ((EntryCallback)entryCallback).callback(expr, input, environment);
+         }
  
         if (expr.type!=null)
          switch (expr.type) {
@@ -181,10 +205,10 @@ public class Jsonata {
         //      result = /* await */ evaluateGroupExpression(expr.group, result, environment);
         //  }
  
-        //  var exitCallback = environment.lookup("__evaluate_exit");
-        //  if(exitCallback) {
-        //      /* await */ exitCallback(expr, input, environment, result);
-        //  }
+         var exitCallback = environment.lookup("__evaluate_exit");
+         if(exitCallback!=null) {
+            ((ExitCallback)exitCallback).callback(expr, input, environment, result);
+         }
 
         
         // mangle result (list of 1 element -> 1 element, empty list -> null)
@@ -625,7 +649,9 @@ public class Jsonata {
              case "[":
                 // array constructor - evaluate each item
                 result = new JList<>(); // [];
+                int idx = 0;
                 for (var item : expr.expressions) {
+                    environment.isParallelCall = idx > 0;
                     Object value = evaluate(item, input, environment);
                     if (value!=null) {
                         if ((""+item.value).equals("["))
@@ -633,6 +659,7 @@ public class Jsonata {
                         else
                             result = Functions.append(result, value);
                     }
+                    idx++;
                 }
                 if(expr.consarray) {
                     //System.out.println("const "+result);
@@ -1082,6 +1109,7 @@ public class Jsonata {
  
          // iterate over the groups to evaluate the "value" expression
         //let generators = /* await */ Promise.all(Object.keys(groups).map(/* async */ (key, idx) => {
+        int idx = 0;
         for (Entry<Object,GroupEntry> e : groups.entrySet()) {
              var entry = e.getValue();
              var context = entry.data;
@@ -1092,11 +1120,13 @@ public class Jsonata {
                  ((Map)tuple).remove("@");
                  env = createFrameFromTuple(environment, (Map)tuple);
              }
-            // currently not used in Java: environment.isParallelCall = idx > 0
+            env.isParallelCall = idx > 0;
             //return [key, /* await */ evaluate(expr.lhs[entry.exprIndex][1], context, env)];
             Object res = evaluate(expr.lhsObject.get(entry.exprIndex)[1], context, env);
             if (res!=null)
                 result.put(e.getKey(), res);
+
+            idx++;
          }
  
         //  for (let generator of generators) {
@@ -1698,11 +1728,13 @@ public class Jsonata {
              // trampoline loop - this gets invoked as a result of tail-call optimization
              // the Object returned a tail-call thunk
              // unpack it, evaluate its arguments, and apply the tail call
-             var next = /* await */ evaluate(((Infix)result).body.procedure, ((Symbol)result).input, ((Symbol)result).environment);
-             if(((Infix)result).body.procedure.type == "variable") {
-                ((Symbol)next).token = ((Symbol)result).body.procedure.value;
+             var next = /* await */ evaluate(((Symbol)result).body.procedure, ((Symbol)result).input, ((Symbol)result).environment);
+             if(((Symbol)result).body.procedure.type == "variable") {
+                if (next instanceof Symbol) // Java: not if JFunction
+                    ((Symbol)next).token = ((Symbol)result).body.procedure.value;
              }
-             ((Symbol)next).position = ((Symbol)result).body.procedure.position;
+             if (next instanceof Symbol) // Java: not if JFunction
+                ((Symbol)next).position = ((Symbol)result).body.procedure.position;
              var evaluatedArgs = new ArrayList<>();
              for(var ii = 0; ii < ((Symbol)result).body.arguments.size(); ii++) {
                  evaluatedArgs.add(/* await */ evaluate(((Symbol)result).body.arguments.get(ii), ((Symbol)result).input, ((Symbol)result).environment));

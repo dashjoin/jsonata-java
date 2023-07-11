@@ -1134,6 +1134,39 @@ public class Parser {
         });
     }
 
+    // tail call optimization
+    // this is invoked by the post parser to analyse lambda functions to see
+    // if they make a tail call.  If so, it is replaced by a thunk which will
+    // be invoked by the trampoline loop during function application.
+    // This enables tail-recursive functions to be written without growing the stack
+    Symbol tailCallOptimize(Symbol expr) {
+        Symbol result;
+        if (expr.type.equals("function") && expr.predicate==null) {
+            var thunk = new Symbol(); thunk.type = "lambda"; thunk.thunk = true; thunk.arguments = List.of(); thunk.position = expr.position;
+            thunk.body = expr;
+            result = thunk;
+        } else if (expr.type.equals("condition")) {
+            // analyse both branches
+            expr.then = tailCallOptimize(expr.then);
+            if (expr._else != null) {
+                expr._else = tailCallOptimize(expr._else);
+            }
+            result = expr;
+        } else if (expr.type.equals("block")) {
+            // only the last expression in the block
+            var length = expr.expressions.size();
+            if (length > 0) {
+                if (!(expr.expressions instanceof ArrayList))
+                     expr.expressions = new ArrayList<>(expr.expressions);
+                expr.expressions.set(length - 1, tailCallOptimize(expr.expressions.get(length - 1)));
+            }
+            result = expr;
+        } else {
+            result = expr;
+        }
+        return result;
+    }
+
     int ancestorLabel = 0;
     int ancestorIndex = 0;
     List<Symbol> ancestry = new ArrayList<>();
@@ -1611,7 +1644,7 @@ public class Parser {
                 result.signature = expr.signature;
                 result.position = expr.position;
                 var body = processAST(expr.body);
-                result.body = body; // FIXME: tailCallOptimize(body);
+                result.body = tailCallOptimize(body);
                 break;
             case "condition":
                 result = new Symbol();
