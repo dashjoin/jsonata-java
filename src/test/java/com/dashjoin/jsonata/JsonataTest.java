@@ -22,36 +22,28 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static com.dashjoin.jsonata.Jsonata.NULL_VALUE;
+
 public class JsonataTest {
 
-    Long convertToInt(Object val) {
-        if (val instanceof Double) {
-            double d = (double)val;
-            long l = (long)d;
-            // If number can be represented as long (no fraction), use long:
-            if (l==d)
-                return Long.valueOf(l);
-        }
-        return null;
+    Object convertValue(Object val) {
+        return val != NULL_VALUE ? val : null;
     }
 
-    void convertNumbers(Map<String, Object> res) {
+    void convertNulls(Map<String, Object> res) {
         for (Entry<String, Object> e : res.entrySet()) {
             Object val = e.getValue();
-            Long l = convertToInt(val);
+            Object l = convertValue(val);
             if (l!=null)
                 e.setValue(l);
-            if (val instanceof Map) {
-                convertNumbers((Map<String, Object>)val);
-            }
             recurse(val);
         }
     }
 
-    void convertNumbers(List<Object> res) {
+    void convertNulls(List<Object> res) {
         for (int i=0; i<res.size(); i++) {
             Object val = res.get(i);
-            Long l = convertToInt(val);
+            Object l = convertValue(val);
             if (l!=null)
                 res.set(i, l);
             recurse(val);
@@ -60,18 +52,14 @@ public class JsonataTest {
 
     void recurse(Object val) {
         if (val instanceof Map)
-            convertNumbers((Map)val);
+            convertNulls((Map)val);
         if (val instanceof List)
-            convertNumbers((List)val);
+            convertNulls((List)val);
     }
 
-    Object convertNumbers(Object res) {
-        if (res instanceof Double) {
-            Long l = convertToInt((double)res);
-            return l!=null ? l : res;            
-        }
+    Object convertNulls(Object res) {
         recurse(res);
-        return res;
+        return convertValue(res);
     }
 
     boolean testExpr(String expr, Object data, Map<String,Object> bindings,
@@ -92,10 +80,12 @@ public class JsonataTest {
         }
 
         Jsonata jsonata = new Jsonata(expr, false);
+        if (bindingFrame!=null)
+            bindingFrame.setRuntimeBounds(5000L, 303);
         Object result = jsonata.evaluate(data, bindingFrame);
-        if (result==Jsonata.NULL_VALUE)
-            result = null;
-        //result = convertNumbers(result);
+        //if (result==Jsonata.NULL_VALUE)
+        //    result = null;
+        result = convertNulls(result);
         if (code!=null)
             success = false;
         
@@ -266,8 +256,6 @@ public class JsonataTest {
 
     boolean runTestCase(String name, Map<String, Object> testDef) throws Exception {
 
-        System.out.println( getTestOverrides() );
-
         testCases++;
         System.out.println("\nRunning test "+name);
 
@@ -283,11 +271,11 @@ public class JsonataTest {
         Map<String,Object> bindings = (Map)testDef.get("bindings");
         Object result = testDef.get("result");
         
-        if (result == null)
-          if (testDef.containsKey("result"))
-            result = Jsonata.NULL_VALUE;
+        // if (result == null)
+        //   if (testDef.containsKey("result"))
+        //     result = Jsonata.NULL_VALUE;
 
-        replaceNulls(result);
+        // replaceNulls(result);
 
         String code = (String)testDef.get("code");
         
@@ -302,7 +290,7 @@ public class JsonataTest {
 
         TestOverride to = getOverrideForTest(name);
         if (to!=null) {
-            System.out.println("OVERRIDE used : "+to.name+" for "+name);
+            System.out.println("OVERRIDE used : "+to.name+" for "+name+" reason="+to.reason);
             if (to.alternateResult!=null) {
                 result = to.alternateResult;
             }
