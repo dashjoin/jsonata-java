@@ -1588,9 +1588,8 @@ public class Jsonata {
          } else {
              var func = /* await */ evaluate(expr.rhs, input, environment);
  
-             if(!Utils.isFunction(func) && !Utils.isFunction(lhs) &&
-                !Functions.isLambda(lhs) &&
-                !(func instanceof Pattern)) {
+             if(!isFunctionLike(func) &&
+                !isFunctionLike(lhs)) {
                  throw new JException("T2006",
                      //stack: (new Error()).stack,
                      expr.position,
@@ -1598,7 +1597,7 @@ public class Jsonata {
                  );
              }
  
-             if(Utils.isFunction(lhs) || Functions.isLambda(lhs)) {
+             if(isFunctionLike(lhs)) {
                  // this is Object chaining (func1 ~> func2)
                  // λ($f, $g) { λ($x){ $g($f($x)) } }
                  var chain = /* await */ evaluate(chainAST(), null, environment);
@@ -1613,7 +1612,11 @@ public class Jsonata {
  
          return result;
      }
- 
+
+    boolean isFunctionLike(Object o) {
+        return Utils.isFunction(o) || Functions.isLambda(o) || (o instanceof Pattern);
+    }
+     
      static ThreadLocal<Jsonata> current = new ThreadLocal<>();
 
      /**
