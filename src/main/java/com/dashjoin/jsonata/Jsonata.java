@@ -902,19 +902,11 @@ public class Jsonata {
          Object result = null;
  
          // type checks
-         var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
-         var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
-        if (parser.dbg) System.out.println("evalComparison "+ltype+","+rtype);
-         var lcomparable = (ltype == null || ltype.equals("String") || ltype.equals("Double"));
-         var rcomparable = (rtype == null || rtype.equals("String") || rtype.equals("Double"));
+         var lcomparable = lhs == null || lhs instanceof String || lhs instanceof Number;
+         var rcomparable = rhs == null || rhs instanceof String || rhs instanceof Number;
  
-         // if either side is undefined, the result is undefined
-         if (ltype == null || rtype==null) {
-             return null;
-         }
-
          // if either aa or bb are not comparable (string or numeric) values, then throw an error
-         if (!(lhs instanceof String || lhs instanceof Number) || !(rhs instanceof String || rhs instanceof Number)) {
+        if (!lcomparable || !rcomparable) {
              throw new JException(
                 "T2010",
                 0, //position,
@@ -922,9 +914,14 @@ public class Jsonata {
                 lhs!=null ? lhs : rhs
              );
          }
- 
+
+         // if either side is undefined, the result is undefined
+         if (lhs == null || rhs==null) {
+             return null;
+         }
+         
          //if aa and bb are not of the same type
-         if (!ltype.equals(rtype)) {
+         if (!lhs.getClass().equals(rhs.getClass())) {
 
             if (lhs instanceof Number && rhs instanceof Number) {
                 // Java : handle Double / Integer / Long comparisons
