@@ -18,6 +18,7 @@ import java.util.Map;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
 import com.dashjoin.jsonata.Tokenizer.Token;
+import com.dashjoin.jsonata.utils.Signature;
 
 //var parseSignature = require('./signature');
 
@@ -628,6 +629,7 @@ public class Parser {
                         sig += tok.value;
                     }
                     advance(">");
+                    this.signature = new Signature(sig, "lambda");
                     // FIXME: parse signature
                     // try {
                     //     this.signature = parseSignature(sig);

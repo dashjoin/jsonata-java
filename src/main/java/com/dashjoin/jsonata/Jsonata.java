@@ -1757,7 +1757,7 @@ public class Jsonata {
          Object result = null;
          try {
              var validatedArgs = args;
-             if (proc instanceof JFunctionSignatureValidation) {
+             if (proc != null) {
                  validatedArgs = validateArguments(proc, args, input);
              }
  
@@ -1905,12 +1905,15 @@ public class Jsonata {
       * @returns {Array} - validated arguments
       */
      Object validateArguments(Object signature, Object args, Object context) throws JException {
-         if(!(signature instanceof JFunction)) { //typeof signature === "undefined") {
-             // nothing to validate
-             return args;
-         }
-         var validatedArgs = ((JFunction)signature).validate(args, context);
-         return validatedArgs;
+        var validatedArgs = args;
+        if (Utils.isFunction(signature)) {
+            validatedArgs = ((JFunction)signature).validate(args, context);
+        } else if (Functions.isLambda(signature)) {
+            Signature sig = ((Signature) ((Symbol)signature).signature);
+            if (sig != null)
+                validatedArgs = sig.validate(args, context);
+        }
+        return validatedArgs;
      }
  
      /**
