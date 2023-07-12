@@ -192,18 +192,10 @@ public class Jsonata {
             for(var ii = 0; ii < expr.predicate.size(); ii++) {
                  result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
              }
-
-        //System.out.println("FILTER "+expr.predicate.get(0).type);
-        //  if (Object.prototype.hasOwnProperty.call(expr, "predicate")) {
-        //      for(var ii = 0; ii < expr.predicate.length; ii++) {
-        //          result = /* await */ evaluateFilter(expr.predicate[ii].expr, result, environment);
-        //      }
-        //  }
  
-        // FIXME path
-        //  if (expr.type !== "path" && Object.prototype.hasOwnProperty.call(expr, "group")) {
-        //      result = /* await */ evaluateGroupExpression(expr.group, result, environment);
-        //  }
+        if (!expr.type.equals("path") && expr.group!=null) {
+            result = /* await */ evaluateGroupExpression(expr.group, result, environment);
+        }
  
          var exitCallback = environment.lookup("__evaluate_exit");
          if(exitCallback!=null) {
