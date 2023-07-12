@@ -1850,6 +1850,9 @@ public class Functions {
             }
         } else if (input instanceof Map) { // && typeof input === 'object') {
             result = ((java.util.Map)input).get(key);
+            // Detect the case where the value is null:
+            if (result==null && ((java.util.Map)input).containsKey(key))
+                result = Jsonata.NULL_VALUE;
         }
         return result;
     }
