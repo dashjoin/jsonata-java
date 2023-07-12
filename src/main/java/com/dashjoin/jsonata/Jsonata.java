@@ -1064,7 +1064,7 @@ public class Jsonata {
                  var pair = expr.lhsObject.get(pairIndex);
                  var key = /* await */ evaluate(pair[0], reduce ? ((Map)item).get("@") : item, env);
                  // key has to be a string
-                 if (!(key instanceof String)) {
+                 if (key!=null && !(key instanceof String)) {
                      throw new JException("T1003",
                          //stack: (new Error()).stack,
                          expr.position,
