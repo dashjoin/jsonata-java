@@ -2047,7 +2047,7 @@ public class Functions {
         if(expr == null) {
             return null;
         }
-        Object input = null; // =  this.input;
+        Object input = Jsonata.current.get().input; // =  this.input;
         if(focus != null) {
             input = focus;
             // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input

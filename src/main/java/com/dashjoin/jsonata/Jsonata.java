@@ -117,7 +117,11 @@ public class Jsonata {
       */
      Object evaluate(Symbol expr, Object input, Frame environment) throws JException {
         Object result = null;
- 
+
+        // Store the current input
+        // This is required by Functions.functionEval for current $eval() input context
+        this.input = input;
+
         if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
          var entryCallback = environment.lookup("__evaluate_entry");
@@ -1664,10 +1668,10 @@ public class Jsonata {
                 //  };
                 //  closure.arity = getFunctionArity(arg);
 
-                JFunctionCallable fc = (ctx,params) ->
-                    apply(arg, params, null, environment);
+                // JFunctionCallable fc = (ctx,params) ->
+                //     apply(arg, params, null, environment);
 
-                JFunction cl = new JFunction(fc, "<o:o>");
+                // JFunction cl = new JFunction(fc, "<o:o>");
 
                 //Object cl = apply(arg, params, null, environment);
                 evaluatedArgs.add(arg);
@@ -2395,6 +2399,7 @@ public class Jsonata {
     Frame environment;
     Symbol ast;
     long timestamp;
+    Object input;
 
     static {
         staticFrame = new Frame(null);
