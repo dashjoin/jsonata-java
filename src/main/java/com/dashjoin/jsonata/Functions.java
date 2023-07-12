@@ -2079,6 +2079,21 @@ public class Functions {
         return result;
     }
 
+    //  environment.bind("now", defineFunction(function(picture, timezone) {
+    //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
+    //  }, "<s?s?:s>"));
+    public static String now(String picture, String timezone) {
+        long t = Jsonata.current.get().timestamp;
+        return dateTimeFromMillis(t, picture, timezone);
+    }
+
+    //  environment.bind("millis", defineFunction(function() {
+    //      return timestamp.getTime();
+    //  }, "<:n>"));
+    public static long millis() {
+        long t = Jsonata.current.get().timestamp;
+        return t;
+    }
 
     public static void main(String[] _args) throws Throwable {
         List args = new ArrayList();

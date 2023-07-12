@@ -2248,6 +2248,17 @@ public class Jsonata {
          defineFunction("toMillis", "<s-s?:n>", "dateTimeToMillis");
          defineFunction("fromMillis", "<n-s?s?:s>", "dateTimeFromMillis");
          defineFunction("clone", "<(oa)-:o>", "functionClone");
+
+         defineFunction("now", "<s?s?:s>");
+         defineFunction("millis", "<:n>");
+
+        //  environment.bind("now", defineFunction(function(picture, timezone) {
+        //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
+        //  }, "<s?s?:s>"));
+        //  environment.bind("millis", defineFunction(function() {
+        //      return timestamp.getTime();
+        //  }, "<:n>"));
+
     }
 
      /**
@@ -2391,6 +2402,7 @@ public class Jsonata {
     List<Exception> errors;
     Frame environment;
     Symbol ast;
+    long timestamp;
 
     static {
         staticFrame = new Frame(null);
@@ -2417,9 +2429,9 @@ public class Jsonata {
          }
          environment = createFrame(staticFrame);
  
-         var timestamp = new java.util.Date(); // will be overridden on each call to evalute()
+        timestamp = System.currentTimeMillis(); // will be overridden on each call to evalute()
 
-        // FIXME bind functions
+        // Note: now and millis are implemented in Functions
         //  environment.bind("now", defineFunction(function(picture, timezone) {
         //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
         //  }, "<s?s?:s>"));
