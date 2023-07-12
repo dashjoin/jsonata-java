@@ -1598,7 +1598,7 @@ public class Jsonata {
                  );
              }
  
-             if(Utils.isFunction(lhs)) {
+             if(Utils.isFunction(lhs) || Functions.isLambda(lhs)) {
                  // this is Object chaining (func1 ~> func2)
                  // λ($f, $g) { λ($x){ $g($f($x)) } }
                  var chain = /* await */ evaluate(chainAST(), null, environment);
