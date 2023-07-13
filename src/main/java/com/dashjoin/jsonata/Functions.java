@@ -625,13 +625,81 @@ public class Functions {
         return String.join(separator, strs);
     }
 
-    static String replaceRegexString(String in) {
+    static String safeReplacement(String in) {
         // In JSONata and in Java the $ in the replacement test usually starts the insertion of a capturing group
         // In order to replace a simple $ in Java you have to escape the $ with "\$"
         // in JSONata you do this with a '$$'
         // "\$" followed any character besides '<' and and digit into $ + this character  
         return in.replaceAll("\\$\\$", "\\\\\\$")
-            .replaceAll("([^\\\\]|^)\\$([^0-9^<])", "$1\\\\\\$$2");
+            .replaceAll("([^\\\\]|^)\\$([^0-9^<])", "$1\\\\\\$$2")
+            .replaceAll("\\$$", "\\\\\\$"); // allow $ at end
+    }
+
+    /**
+     * Safe replaceAll
+     * 
+     * In Java, non-existing groups cause an exception.
+     * Ignore these non-existing groups (replace with "")
+     * 
+     * @param s
+     * @param pattern
+     * @param replacement
+     * @return
+     */
+    static String safeReplaceAll(String s, Pattern pattern, String replacement) {
+        replacement = safeReplacement(replacement);
+        Matcher m = pattern.matcher(s);
+        String r = null;
+        for (int i=0; i<10; i++) {
+            try {
+                r = m.replaceAll(replacement);
+                break;
+            } catch (IndexOutOfBoundsException e) {
+                String msg = e.getMessage();
+
+                // Message we understand needs to be:
+                // No group X
+                if (!msg.contains("No group")) throw e;
+
+                // Adjust replacement to remove the non-existing group
+                String g = "" + msg.charAt(msg.length()-1);
+
+                replacement = replacement.replace("$"+g, "");
+            }
+        }
+        return r;
+    }
+
+    /**
+     * Safe replaceFirst
+     * 
+     * @param s
+     * @param pattern
+     * @param replacement
+     * @return
+     */
+    static String safeReplaceFirst(String s, Pattern pattern, String replacement) {
+        replacement = safeReplacement(replacement);
+        Matcher m = pattern.matcher(s);
+        String r = null;
+        for (int i=0; i<10; i++) {
+            try {
+                r = m.replaceFirst(replacement);
+                break;
+            } catch (IndexOutOfBoundsException e) {
+                String msg = e.getMessage();
+
+                // Message we understand needs to be:
+                // No group X
+                if (!msg.contains("No group")) throw e;
+
+                // Adjust replacement to remove the non-existing group
+                String g = "" + msg.charAt(msg.length()-1);
+
+                replacement = replacement.replace("$"+g, "");
+            }
+        }
+        return r;
     }
 
     public static String replace(String str, Object pattern, String replacement, Integer limit) throws JException {
@@ -645,20 +713,18 @@ public class Functions {
           if (pattern instanceof String) {
               return str.replace((String)pattern, replacement);
           } else {
-            replacement = replaceRegexString(replacement);
-              return str.replaceAll(((Pattern)pattern).pattern(), replacement);
+              return safeReplaceAll(str, (Pattern)pattern, replacement);
           }
         } else {
           
           if (limit<0)
             throw new JException("Fourth argument of replace function must evaluate to a positive number", 0);
           
-            replacement = replaceRegexString(replacement);
           for (int i=0; i<limit; i++)
             if (pattern instanceof String) {
                 str = str.replaceFirst((String)pattern, replacement);
             } else {
-                str = str.replaceFirst(((Pattern)pattern).pattern(), replacement);
+                str = safeReplaceFirst(str, (Pattern)pattern, replacement);
             }
           return str;
         }
