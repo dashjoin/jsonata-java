@@ -56,12 +56,12 @@
         },
         { 
             "name": "function-sort/case009.json",
-            "ignoreError": true,
+            "alternateResult": ["0406634348", "040657863", "0406654608", "0406654603"],
             "reason": "the sort expression is evaluated correctly - however the sort algorithm seems to behave slightly different for equality - jsonata expects the native order to be preserved"
         },
         { 
-            "name": "function-sort/case0010.json",
-            "ignoreError": true,
+            "name": "function-sort/case010.json",
+            "alternateResult": ["0406634348", "0406654608", "040657863", "0406654603"],
             "reason": "same as above, works if the condition is changed to >="
         }
     ]
