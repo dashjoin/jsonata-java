@@ -44,6 +44,7 @@ import com.dashjoin.jsonata.utils.Constants;
 import com.dashjoin.jsonata.utils.DateTimeUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 public class Functions {
 
@@ -295,7 +296,7 @@ public class Functions {
 
 
     /**
-     * Sourrce = Jsonata4Java JSONataUtils.substr
+     * Source = Jsonata4Java JSONataUtils.substr
      * @param str
      * @param start  Location at which to begin extracting characters. If a negative
      *               number is given, it is treated as strLength - start where
@@ -482,21 +483,71 @@ public class Functions {
         }
 
         String result;
-        var padLength = Math.abs(width) - str.length();
-        if (padLength > 0) {
-            var padding = _char; while (padding.length()<padLength) padding = padding + _char;
-            if (_char.length() > 1) {
-                padding = substring(padding, 0, padLength);
-            }
-            if (width > 0) {
-                result = str + padding;
-            } else {
-                result = padding + str;
-            }
+
+        if (width < 0) {
+            result = leftPad(str, -width, _char);
         } else {
-            result = str;
+            result = rightPad(str, width, _char);
         }
         return result;
+    }
+
+    // Source: Jsonata4Java PadFunction
+    public static String leftPad(final String str, final int size, String padStr) {
+        if (str == null) {
+            return null;
+        }
+        if (padStr == null) {
+            padStr = " ";
+        }
+
+        String strData = Objects.requireNonNull(str).intern();
+        int strLen = strData.codePointCount(0, strData.length());
+
+        String padData = Objects.requireNonNull(padStr).intern();
+        int padLen = padData.codePointCount(0, padData.length());
+
+        if (padLen == 0) {
+            padStr = " ";
+        }
+        final int pads = size - strLen;
+        if (pads <= 0) {
+            return str;
+        }
+        String padding = "";
+        for (int i = 0; i < pads + 1; i++) {
+            padding += padStr;
+        }
+        return substr(padding, 0, pads).concat(str);
+    }
+
+    // Source: Jsonata4Java PadFunction
+    public static String rightPad(final String str, final int size, String padStr) {
+        if (str == null) {
+            return null;
+        }
+        if (padStr == null) {
+            padStr = " ";
+        }
+
+        String strData = Objects.requireNonNull(str).intern();
+        int strLen = strData.codePointCount(0, strData.length());
+
+        String padData = Objects.requireNonNull(padStr).intern();
+        int padLen = padData.codePointCount(0, padData.length());
+
+        if (padLen == 0) {
+            padStr = " ";
+        }
+        final int pads = size - strLen;
+        if (pads <= 0) {
+            return str;
+        }
+        String padding = "";
+        for (int i = 0; i < pads + 1; i++) {
+            padding += padStr;
+        }
+        return str.concat(substr(padding, 0, pads));
     }
 
     static class RegexpMatch {
