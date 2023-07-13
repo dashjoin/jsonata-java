@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -697,7 +698,13 @@ public class Functions {
      * @param replacement
      * @return
      */
-    static String safeReplaceAll(String s, Pattern pattern, String replacement) {
+    static String safeReplaceAll(String s, Pattern pattern, Object _replacement) {
+
+        if (!(_replacement instanceof String))
+            return safeReplaceAllFn(s, pattern, _replacement);
+
+        String replacement = (String)_replacement;
+
         replacement = safeReplacement(replacement);
         Matcher m = pattern.matcher(s);
         String r = null;
@@ -718,6 +725,48 @@ public class Functions {
                 replacement = replacement.replace("$"+g, "");
             }
         }
+        return r;
+    }
+
+    /**
+     * Converts Java MatchResult to the Jsonata object format
+     * @param mr
+     * @return
+     */
+    static Map toJsonataMatch(MatchResult mr) {
+        Map obj = new LinkedHashMap<>();
+        obj.put("match", mr.group());
+
+        List groups = new ArrayList<>();
+        for (int i=0; i<=mr.groupCount(); i++)
+            groups.add(mr.group(i));
+
+        obj.put("groups", groups);
+
+        return obj;
+    }
+
+    /**
+     * Regexp Replace with replacer function
+     * @param s
+     * @param pattern
+     * @param fn
+     * @return
+     */
+    static String safeReplaceAllFn(String s, Pattern pattern, Object fn) {
+        Matcher m = pattern.matcher(s);
+        String r = null;
+        r = m.replaceAll(t -> { try {
+            Object res = funcApply(fn, List.of(toJsonataMatch(t)));
+            if (res instanceof String)
+                return (String)res;
+            else
+                return null;
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return null;
+        });
         return r;
     }
 
@@ -753,7 +802,7 @@ public class Functions {
         return r;
     }
 
-    public static String replace(String str, Object pattern, String replacement, Integer limit) throws JException {
+    public static String replace(String str, Object pattern, Object replacement, Integer limit) throws JException {
         if (str == null) {
             return null;
         }
@@ -762,7 +811,7 @@ public class Functions {
             throw new JException("Second argument of replace function cannot be an empty string", 0);
         if (limit == null) {
           if (pattern instanceof String) {
-              return str.replace((String)pattern, replacement);
+              return str.replace((String)pattern, (String)replacement);
           } else {
               return safeReplaceAll(str, (Pattern)pattern, replacement);
           }
@@ -773,9 +822,9 @@ public class Functions {
           
           for (int i=0; i<limit; i++)
             if (pattern instanceof String) {
-                str = str.replaceFirst((String)pattern, replacement);
+                str = str.replaceFirst((String)pattern, (String)replacement);
             } else {
-                str = safeReplaceFirst(str, (Pattern)pattern, replacement);
+                str = safeReplaceFirst(str, (Pattern)pattern, (String)replacement);
             }
           return str;
         }
