@@ -503,6 +503,9 @@ public class Functions {
         String match;
         int index;
         List<String> groups;
+        @Override public String toString() {
+            return "regexpMatch "+match+" idx="+index+" groups="+groups;
+        }
     }
     /**
      * Evaluate the matcher function against the str arg
@@ -517,7 +520,7 @@ public class Functions {
         while (m.find()) {
             RegexpMatch rm = new RegexpMatch();
 
-            System.out.println("grc="+m.groupCount()+" "+m.group(1));
+            //System.out.println("grc="+m.groupCount()+" "+m.group(1));
 
             rm.index = m.start();
             rm.match = m.group();
@@ -622,6 +625,15 @@ public class Functions {
         return String.join(separator, strs);
     }
 
+    static String replaceRegexString(String in) {
+        // In JSONata and in Java the $ in the replacement test usually starts the insertion of a capturing group
+        // In order to replace a simple $ in Java you have to escape the $ with "\$"
+        // in JSONata you do this with a '$$'
+        // "\$" followed any character besides '<' and and digit into $ + this character  
+        return in.replaceAll("\\$\\$", "\\\\\\$")
+            .replaceAll("([^\\\\]|^)\\$([^0-9^<])", "$1\\\\\\$$2");
+    }
+
     public static String replace(String str, Object pattern, String replacement, Integer limit) throws JException {
         if (str == null) {
             return null;
@@ -633,6 +645,7 @@ public class Functions {
           if (pattern instanceof String) {
               return str.replace((String)pattern, replacement);
           } else {
+            replacement = replaceRegexString(replacement);
               return str.replaceAll(((Pattern)pattern).pattern(), replacement);
           }
         } else {
@@ -640,6 +653,7 @@ public class Functions {
           if (limit<0)
             throw new JException("Fourth argument of replace function must evaluate to a positive number", 0);
           
+            replacement = replaceRegexString(replacement);
           for (int i=0; i<limit; i++)
             if (pattern instanceof String) {
                 str = str.replaceFirst((String)pattern, replacement);
