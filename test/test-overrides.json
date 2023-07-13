@@ -31,27 +31,27 @@
         },
         { 
             "name": "function-fromMillis/formatDateTime.json_61",
-            "ignoreError": true,
+            "alternateResult": "Week: 0 of February",
             "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
         },
         { 
             "name": "function-fromMillis/formatDateTime.json_63",
-            "ignoreError": true,
+            "alternateResult": "Week: 0 of January",
             "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
         },
         { 
             "name": "function-fromMillis/formatDateTime.json_64",
-            "ignoreError": true,
+            "alternateResult": "Week: 5 of July",
             "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
         },
         { 
             "name": "function-fromMillis/formatDateTime.json_65",
-            "ignoreError": true,
+            "alternateResult": "Week: 5 of December",
             "reason": "Ignore formatDateTime cases + differences in Week 5 of Jan vs Week 0 of Feb"
         },
         { 
             "name": "function-string/case006.json",
-            "ignoreError": true,
+            "alternateResult": "1e+20",
             "reason": "toString precision should be 15, handled differently by Java Bigdecimal(..., new MathContext(15)"
         },
         { 
