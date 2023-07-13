@@ -81,7 +81,7 @@ public class JsonataTest {
 
         Jsonata jsonata = new Jsonata(expr, false);
         if (bindingFrame!=null)
-            bindingFrame.setRuntimeBounds(5000L, 303);
+            bindingFrame.setRuntimeBounds(debug ? 500000L : 1000L, 303);
         Object result = jsonata.evaluate(data, bindingFrame);
         //if (result==Jsonata.NULL_VALUE)
         //    result = null;
@@ -275,7 +275,7 @@ public class JsonataTest {
         //   if (testDef.containsKey("result"))
         //     result = Jsonata.NULL_VALUE;
 
-        // replaceNulls(result);
+        //replaceNulls(result);
 
         String code = (String)testDef.get("code");
         
