@@ -1585,6 +1585,12 @@ public class Jsonata {
  
  
          var lhs = /* await */ evaluate(expr.lhs, input, environment);
+
+        // Map null to NULL_VALUE before applying to functions
+        // TODO: fix more generically!
+        if (lhs==null)
+            lhs = Jsonata.NULL_VALUE;
+
          if(expr.rhs.type.equals("function")) {
             //Symbol applyTo = new Symbol(); applyTo.context = lhs;
              // this is a Object _invocation_; invoke it with lhs expression as the first argument
