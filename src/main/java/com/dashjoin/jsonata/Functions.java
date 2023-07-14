@@ -2198,6 +2198,10 @@ public class Functions {
         // return result;
         
         if (picture != null) {
+          if (picture.equals("a"))
+            return DateTimeUtils.lettersToDecimal(value, 'a');
+          if (picture.equals("A"))
+            return DateTimeUtils.lettersToDecimal(value, 'A');
           if (picture.equals("i"))
             return DateTimeUtils.romanToDecimal(value.toUpperCase());
           if (picture.equals("I"))
