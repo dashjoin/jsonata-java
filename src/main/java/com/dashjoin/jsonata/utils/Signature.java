@@ -123,7 +123,7 @@ public class Signature implements Serializable {
             symbol = "m";
         } else {
             // first check to see if this is a function
-            if (Utils.isFunction(value) || Functions.isLambda(value)) { //} instanceof JFunction || value instanceof Function) {
+            if (Utils.isFunction(value) || Functions.isLambda(value) || (value instanceof Pattern)) { //} instanceof JFunction || value instanceof Function) {
                 symbol = "f";
             } else if (value instanceof String)
                 symbol = "s";
