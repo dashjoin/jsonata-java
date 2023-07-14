@@ -131,7 +131,7 @@ public class DateTimeUtils implements Serializable {
         }
     }
 
-    private static int wordsToNumber(String text) {
+    public static int wordsToNumber(String text) {
         String[] parts = text.split(",\\s|\\sand\\s|[\\s\\-]");
         Integer[] values = new Integer[parts.length];
         for (int i = 0; i < parts.length; i++) {
@@ -213,7 +213,7 @@ public class DateTimeUtils implements Serializable {
         return "";
     }
 
-    private static int romanToDecimal(String roman) {
+    public static int romanToDecimal(String roman) {
         int decimal = 0;
         int max = 1;
         for (int i = roman.length() - 1; i >= 0; i--) {
