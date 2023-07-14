@@ -249,6 +249,8 @@ public class JsonataTest {
     }
 
     TestOverride getOverrideForTest(String name) {
+        if (ignoreOverrides) return null;
+
         TestOverrides tos = getTestOverrides();
         for (TestOverride to : tos.override) {
             if (name.indexOf(to.name)>=0)
@@ -343,7 +345,9 @@ public class JsonataTest {
         return success;
     }
 
-    boolean debug = true;
+    boolean debug = false;
+
+    boolean ignoreOverrides = false;
 
     @Test
     public void testSuite() throws Exception {
