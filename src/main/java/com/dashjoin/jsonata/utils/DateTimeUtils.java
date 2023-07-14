@@ -1160,7 +1160,7 @@ public class DateTimeUtils implements Serializable {
         return matcher;
     }
 
-    private static int lettersToDecimal(String letters, char aChar) {
+    public static int lettersToDecimal(String letters, char aChar) {
         int decimal = 0;
         char[] chars = letters.toCharArray();
         for (int i = 0; i < chars.length; i++) {
