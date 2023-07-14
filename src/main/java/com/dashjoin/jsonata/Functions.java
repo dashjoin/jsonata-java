@@ -2209,9 +2209,9 @@ public class Functions {
           if (picture.equals("I"))
             return DateTimeUtils.romanToDecimal(value);
           if (picture.equals("w"))
-            return DateTimeUtils.wordsToNumber(value);
+            return DateTimeUtils.wordsToLong(value);
           if (picture.equals("W") || picture.equals("wW") || picture.equals("Ww"))
-            return DateTimeUtils.wordsToNumber(value.toLowerCase());
+            return DateTimeUtils.wordsToLong(value.toLowerCase());
           if (picture.indexOf(':') >= 0) {
             value = value.replace(':', ',');
             picture = picture.replace(':', ',');

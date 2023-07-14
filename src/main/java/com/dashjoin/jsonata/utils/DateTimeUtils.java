@@ -131,6 +131,28 @@ public class DateTimeUtils implements Serializable {
         }
     }
 
+    private static Map<String, Long> wordValuesLong = new HashMap<>();
+    static {
+        for (int i = 0; i < few.length; i++) {
+          wordValuesLong.put(few[i].toLowerCase(), (long)i);
+        }
+        for (int i = 0; i < ordinals.length; i++) {
+          wordValuesLong.put(ordinals[i].toLowerCase(), (long)i);
+        }
+        for (int i = 0; i < decades.length; i++) {
+            String lword = decades[i].toLowerCase();
+            wordValuesLong.put(lword, (long)(i + 2) * 10);
+            wordValuesLong.put(lword.substring(0, lword.length() - 1) + "ieth", wordValuesLong.get(lword));
+        }
+        wordValuesLong.put("hundreth", (long)100);
+        for (int i = 0; i < magnitudes.length; i++) {
+            String lword = magnitudes[i].toLowerCase();
+            long val = (long) Math.pow(10, (i + 1) * 3);
+            wordValuesLong.put(lword, val);
+            wordValuesLong.put(lword + "th", val);
+        }
+    }
+
     public static int wordsToNumber(String text) {
         String[] parts = text.split(",\\s|\\sand\\s|[\\s\\-]");
         Integer[] values = new Integer[parts.length];
@@ -153,6 +175,32 @@ public class DateTimeUtils implements Serializable {
         }
         return segs.stream().mapToInt(i -> i.intValue()).sum();
     }
+
+    /**
+     * long version of above
+     */
+    public static long wordsToLong(String text) {
+      String[] parts = text.split(",\\s|\\sand\\s|[\\s\\-]");
+      Long[] values = new Long[parts.length];
+      for (int i = 0; i < parts.length; i++) {
+          values[i] = wordValuesLong.get(parts[i]);
+      }
+      Stack<Long> segs = new Stack<>();
+      segs.push((long)0);
+      for (Long value : values) {
+          if (value < 100) {
+              Long top = segs.pop();
+              if (top >= 1000) {
+                  segs.push(top);
+                  top = (long)0;
+              }
+              segs.push(top + value);
+          } else {
+              segs.push(segs.pop() * value);
+          }
+      }
+      return segs.stream().mapToLong(i -> i.longValue()).sum();
+  }
 
     private static class RomanNumeral {
 
