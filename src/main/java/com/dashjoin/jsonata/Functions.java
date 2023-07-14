@@ -1459,7 +1459,7 @@ public class Functions {
     public static Object funcApply(Object func, List funcArgs) throws Throwable {
         Object res;
         if (isLambda(func))
-            res = Jsonata.current.get().applyProcedure(func, funcArgs);
+            res = Jsonata.current.get().apply(func, funcArgs, null, Jsonata.current.get().environment);
         else
             res = ((JFunction)func).call(null, funcArgs);
         return res;
