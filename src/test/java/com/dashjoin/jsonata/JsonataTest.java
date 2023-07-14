@@ -99,10 +99,12 @@ public class JsonataTest {
         if (expected==null && result!=null)
             success = false;
 
+        if (debug && success) System.out.println("--Result = "+result);
+
         if (!success) {
             System.out.println("--Expr="+expr+" Expected="+expected+" ErrorCode="+code);
             System.out.println("--Data="+data);
-            System.out.println("--Result = "+result);
+            System.out.println("--Result = "+result+" Class="+(result!=null ? result.getClass():null)+" obj="+Objects.toString(result));
             System.out.println("--Expect = "+expected+" ExpectedError="+code);
             System.out.println("WRONG RESULT");
         }
@@ -124,6 +126,7 @@ public class JsonataTest {
                 success = false;
             }
             if (!success) t.printStackTrace();
+            if (debug && success) System.out.println("--Exception = "+t);
             //if (true) System.exit(-1);
         }
         return success;
