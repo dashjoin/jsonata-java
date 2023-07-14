@@ -15,15 +15,18 @@
             "alternateResult": "10000000",
             "reason": "Numerical 1E+7 == 10000000"
         },
-        {   "name": "function-parseInteger/parseInteger.json_11",
+        {
+			"name": "function-parseInteger/parseInteger.json_11",
             "ignoreError": true,
             "reason": "Cannot parse special chars"
         },
-        {   "name": "function-parseInteger/parseInteger.json_12",
+        {   
+			"name": "function-parseInteger/parseInteger.json_12",
             "ignoreError": true,
             "reason": "Cannot parse special chars"
         },
-        {   "name": "function-parseInteger/parseInteger.json_39",
+        {   
+			"name": "function-parseInteger/parseInteger.json_39",
             "ignoreError": true,
             "reason": "Implementation currently uses Long instead of BigDecimal"
         },
@@ -33,9 +36,54 @@
             "reason": "Ignore all formatNumber cases"
         },
         { 
-            "name": "function-fromMillis/isoWeekDate.json",
+            "name": "function-fromMillis/isoWeekDate.json_0",
             "ignoreError": true,
-            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases"
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_1",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_3",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_8",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_11",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_12",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_13",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_16",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_17",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
+        },
+        { 
+            "name": "function-fromMillis/isoWeekDate.json_18",
+            "ignoreError": true,
+            "reason": "Ignore all fromMillis ISO week date (non-standard picture string X0001) cases - [X] behaves like [Y]"
         },
         { 
             "name": "function-fromMillis/formatDateTime.json_61",
