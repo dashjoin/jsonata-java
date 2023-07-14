@@ -104,7 +104,7 @@ public class JsonataTest {
         if (!success) {
             System.out.println("--Expr="+expr+" Expected="+expected+" ErrorCode="+code);
             System.out.println("--Data="+data);
-            System.out.println("--Result = "+result+" Class="+(result!=null ? result.getClass():null)+" obj="+Objects.toString(result));
+            System.out.println("--Result = "+result+" Class="+(result!=null ? result.getClass():null));
             System.out.println("--Expect = "+expected+" ExpectedError="+code);
             System.out.println("WRONG RESULT");
         }
@@ -343,7 +343,7 @@ public class JsonataTest {
         return success;
     }
 
-    boolean debug = false;
+    boolean debug = true;
 
     @Test
     public void testSuite() throws Exception {
