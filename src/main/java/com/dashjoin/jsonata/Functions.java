@@ -2196,9 +2196,7 @@ public class Functions {
         // // TODO validate input based on the matcher regex
         // const result = matchSpec.parse(value);
         // return result;
-        DecimalFormat formatter = new DecimalFormat();
-        if (picture!=null)
-            formatter.applyPattern(picture);
+        DecimalFormat formatter = picture != null ? new DecimalFormat(picture, new DecimalFormatSymbols(Locale.US)) : new DecimalFormat();
         return formatter.parse(value);
         //throw new RuntimeException("not implemented");
     }
@@ -2283,7 +2281,7 @@ public class Functions {
         return t;
     }
 
-    public static void main(String[] _args) throws Throwable {
+    public static void _main(String[] _args) throws Throwable {
         List args = new ArrayList();
         // List arg = new ArrayList();
         // arg.add("5"); arg.add("6");
