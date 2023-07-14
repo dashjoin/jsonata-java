@@ -2206,6 +2206,10 @@ public class Functions {
             return DateTimeUtils.wordsToNumber(value);
           if (picture.equals("W"))
             return DateTimeUtils.wordsToNumber(value.toUpperCase());
+          if (picture.indexOf(':') >= 0) {
+            value = value.replace(':', ',');
+            picture = picture.replace(':', ',');
+          }
         }
         
         DecimalFormat formatter = picture != null ? new DecimalFormat(picture, new DecimalFormatSymbols(Locale.US)) : new DecimalFormat();
