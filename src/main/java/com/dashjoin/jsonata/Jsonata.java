@@ -78,9 +78,10 @@ public class Jsonata {
         }
 
         public Object lookup(String name) {
-            Object res = bindings.get(name);
-            if (res!=null)
-                return res;
+            // Important: if we have a null value,
+            // return it
+            if (bindings.containsKey(name))
+                return bindings.get(name);
             if (parent!=null)
                 return parent.lookup(name);
             return null;
