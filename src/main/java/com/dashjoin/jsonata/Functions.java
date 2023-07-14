@@ -2198,6 +2198,8 @@ public class Functions {
         // return result;
         
         if (picture != null) {
+          if (picture.equals("#"))
+            throw new ParseException("Formatting or parsing an integer as a sequence starting with \"#\" is not supported by this implementation", 0);
           if (picture.endsWith(";o"))
             picture = picture.substring(0, picture.length()-2);
           if (picture.equals("a"))

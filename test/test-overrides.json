@@ -15,9 +15,17 @@
             "alternateResult": "10000000",
             "reason": "Numerical 1E+7 == 10000000"
         },
-        {   "name": "function-parseInteger/parseInteger.json",
+        {   "name": "function-parseInteger/parseInteger.json_11",
             "ignoreError": true,
-            "reason": "Ignore all parseInteger cases"
+            "reason": "Cannot parse special chars"
+        },
+        {   "name": "function-parseInteger/parseInteger.json_12",
+            "ignoreError": true,
+            "reason": "Cannot parse special chars"
+        },
+        {   "name": "function-parseInteger/parseInteger.json_39",
+            "ignoreError": true,
+            "reason": "Implementation currently uses Long instead of BigDecimal"
         },
         { 
             "name": "function-formatNumber/case",

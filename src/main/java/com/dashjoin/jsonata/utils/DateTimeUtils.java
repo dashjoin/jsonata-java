@@ -144,6 +144,7 @@ public class DateTimeUtils implements Serializable {
             wordValuesLong.put(lword, (long)(i + 2) * 10);
             wordValuesLong.put(lword.substring(0, lword.length() - 1) + "ieth", wordValuesLong.get(lword));
         }
+        wordValuesLong.put("hundredth", (long)100);
         wordValuesLong.put("hundreth", (long)100);
         for (int i = 0; i < magnitudes.length; i++) {
             String lword = magnitudes[i].toLowerCase();
