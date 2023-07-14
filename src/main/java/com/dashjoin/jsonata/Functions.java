@@ -2204,8 +2204,8 @@ public class Functions {
             return DateTimeUtils.romanToDecimal(value);
           if (picture.equals("w"))
             return DateTimeUtils.wordsToNumber(value);
-          if (picture.equals("W"))
-            return DateTimeUtils.wordsToNumber(value.toUpperCase());
+          if (picture.equals("W") || picture.equals("wW") || picture.equals("Ww"))
+            return DateTimeUtils.wordsToNumber(value.toLowerCase());
           if (picture.indexOf(':') >= 0) {
             value = value.replace(':', ',');
             picture = picture.replace(':', ',');
