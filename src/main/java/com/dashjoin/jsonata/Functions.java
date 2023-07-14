@@ -2198,6 +2198,8 @@ public class Functions {
         // return result;
         
         if (picture != null) {
+          if (picture.endsWith(";o"))
+            picture = picture.substring(0, picture.length()-2);
           if (picture.equals("a"))
             return DateTimeUtils.lettersToDecimal(value, 'a');
           if (picture.equals("A"))
