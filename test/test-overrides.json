@@ -31,9 +31,39 @@
             "reason": "Implementation currently uses Long instead of BigDecimal"
         },
         { 
-            "name": "function-formatNumber/case",
+            "name": "function-formatNumber/case002.json",
             "ignoreError": true,
-            "reason": "Ignore all formatNumber cases"
+            "reason": "Only last part of formatNumber case is taken into account"
+        },
+        { 
+            "name": "function-formatNumber/case003.json",
+            "ignoreError": true,
+            "reason": "Only last part of formatNumber case is taken into account"
+        },
+        { 
+            "name": "function-formatNumber/case011.json",
+            "ignoreError": true,
+            "reason": "formatNumber strange chars not implemented"
+        },
+        { 
+            "name": "function-formatNumber/case013.json",
+            "ignoreError": true,
+            "reason": "formatNumber exponent not implemented"
+        },
+        { 
+            "name": "function-formatNumber/case014.json",
+            "ignoreError": true,
+            "reason": "formatNumber exponent not implemented"
+        },
+        { 
+            "name": "function-formatNumber/case016.json",
+            "ignoreError": true,
+            "reason": "Only last part of formatNumber case is taken into account"
+        },
+        { 
+            "name": "function-formatNumber/case025.json",
+            "ignoreError": true,
+            "reason": "formatNumber exponent not implemented"
         },
         { 
             "name": "function-fromMillis/isoWeekDate.json_0",

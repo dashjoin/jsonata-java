@@ -1007,6 +1007,15 @@ public class Functions {
         if (value == null) {
             return null;
         }
+        
+        if (picture != null) {
+          if (picture.contains(",,"))
+            throw new RuntimeException("The sub-picture must not contain two adjacent instances of the 'grouping-separator' character");
+          if (picture.indexOf('%') >= 0)
+            if (picture.indexOf('e') >= 0)
+                throw new RuntimeException("A sub-picture that contains a 'percent' or 'per-mille' character must not contain a character treated as an 'exponent-separator");
+        }
+        
         DecimalFormatSymbols symbols = options==null ? new DecimalFormatSymbols(Locale.US) :
             processOptionsArg(options);
 
@@ -1082,7 +1091,7 @@ public class Functions {
                 }
 
                 case Constants.SYMBOL_PER_MILLE: {
-                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_PER_MILLE, true);
+                    String value = getFormattingCharacter(valueNode, Constants.SYMBOL_PER_MILLE, false);
                     symbols.setPerMill(value.charAt(0));
                     break;
                 }
