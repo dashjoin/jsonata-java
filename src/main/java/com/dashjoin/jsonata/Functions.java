@@ -1568,16 +1568,17 @@ public class Functions {
      * @param {Array} [args] - arrays to zip
      * @returns {Array} Zipped array
      */
-    public static List zip(List a1, List a2, List a3, List a4, List a5, List a6, List a7, List a8) {
-        // this can take a variable number of arguments
+    public static List zip(JList<List> args) {
         var result = new ArrayList<>();
-        var args = Arrays.asList(a1,a2,a3,a4,a5,a6,a7,a8);
         // length of the shortest array
         int length = Integer.MAX_VALUE;
         int nargs = 0;
         // nargs : the real size of args!=null
         while (nargs < args.size()) {
-            if (args.get(nargs)==null) break;
+            if (args.get(nargs)==null) {
+                length = 0;
+                break;
+            }
 
             length = Math.min(length, args.get(nargs).size());
             nargs++;
@@ -2085,6 +2086,13 @@ public class Functions {
             }
         }
 
+        // If the function receives the args as JList:
+        // i.e. a varargs fn like zip can use this
+        if (nargs==1 && types[0]==JList.class) {
+            JList allArgs = new JList(args);
+            callArgs = List.of(allArgs);
+        }
+        
         try {
             return m.invoke(null, callArgs.toArray());
         } catch (IllegalAccessException e) {
