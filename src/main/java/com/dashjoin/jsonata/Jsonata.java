@@ -427,7 +427,7 @@ public class Jsonata {
          ((JList)result).tupleStream = true;
          var stepEnv = environment;
          if(tupleBindings == null) {
-             tupleBindings = input.stream().map(item -> Map.of("@", item)).toList();
+             tupleBindings = input.stream().filter(item -> item!=null).map(item -> Map.of("@", item)).toList();
          }
  
          for(var ee = 0; ee < tupleBindings.size(); ee++) {
@@ -1563,9 +1563,9 @@ public class Jsonata {
          return new JFunction(transformer, "<(oa):o>");
      }
  
-    Symbol chainAST; // = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
+    static Symbol chainAST; // = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
  
-    Symbol chainAST() throws JException {
+    static Symbol chainAST() throws JException {
         if (chainAST==null) {
             // only create on demand
             chainAST = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
@@ -2520,7 +2520,7 @@ public class Jsonata {
         return errors;
     }
  
-    Parser parser = new Parser();
+    static Parser parser = new Parser();
 //      jsonata.parser = parser; // TODO remove this in a future release - use ast() instead
  
 //      return jsonata;
