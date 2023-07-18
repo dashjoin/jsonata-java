@@ -18,7 +18,7 @@ public class Generate {
 
       StringBuffer b = new StringBuffer();
       b.append("package com.dashjoin.jsonata.gen;\n");
-      b.append("import org.junit.Test;\n");
+      b.append("import org.junit.jupiter.api.Test;\n");
       b.append("import com.dashjoin.jsonata.JsonataTest;\n");
       b.append("public class " + suite.getName().replace('-', '_') + "Test {\n");
 
