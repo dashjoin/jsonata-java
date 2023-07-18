@@ -62,9 +62,6 @@ public class Functions {
         }
 
         double total = args.stream().mapToDouble(Number::doubleValue).sum();
-        // args.forEach(num -> {
-        //     total += num.doubleValue();
-        // });
         return Utils.convertNumber(total);
     }
 
@@ -177,6 +174,10 @@ public class Functions {
           if (res.indexOf("E-") > 0)
             return res.replace("E-", "e-");
           return res;
+        }
+
+        if (arg instanceof Number) {
+            return ""+arg;
         }
         
         if (arg instanceof String)
@@ -1899,7 +1900,7 @@ public class Functions {
         }
 
         List result = new ArrayList<>(arr);
-        Collections.shuffle(arr);
+        Collections.shuffle(result);
         return result;
     }
 
@@ -2004,6 +2005,11 @@ public class Functions {
         // else
         //     // Arg2 was a list: add it as a list element (don't flatten)
         //     ((List)arg1).add((List)arg2);
+
+        // Shortcut:
+        if (((List)arg1).isEmpty() && (arg2 instanceof Utils.RangeList))
+            return arg2;
+
         arg1 = new JList<>((List)arg1); // create a new copy!
         if (arg2 instanceof JList && ((JList)arg2).cons)
             ((List)arg1).add(arg2);
