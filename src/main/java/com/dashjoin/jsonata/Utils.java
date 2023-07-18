@@ -3,15 +3,15 @@ package com.dashjoin.jsonata;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Jsonata.JFunctionCallable;
 
+@SuppressWarnings({"rawtypes"})
 public class Utils {
     public static boolean isNumeric(Object v) throws JException {
+        if (v instanceof Long) return true;
         boolean isNum = false;
         if (v instanceof Number) {
             double d = ((Number)v).doubleValue();

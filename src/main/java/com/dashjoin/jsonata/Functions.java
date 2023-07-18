@@ -45,8 +45,8 @@ import com.dashjoin.jsonata.utils.Constants;
 import com.dashjoin.jsonata.utils.DateTimeUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class Functions {
 
     /**
@@ -607,7 +607,7 @@ public class Functions {
             result = (str.indexOf((String)token) != -1);
         } else if (token instanceof Pattern) {
             var matches = evaluateMatcher((Pattern)token, str);
-            System.out.println("match = "+matches);
+            //if (dbg) System.out.println("match = "+matches);
             //result = (typeof matches !== 'undefined');
             //throw new Error("regexp not impl"); //result = false;
             result = !matches.isEmpty();
@@ -1492,7 +1492,7 @@ public class Functions {
         // do the map - iterate over the arrays, and invoke func
         for (int i=0; i<arr.size(); i++) {
             Object arg = arr.get(i);
-            List funcArgs = hofFuncArgs(func, arr.get(i), i, arr);
+            List funcArgs = hofFuncArgs(func, arg, i, arr);
 
             Object res = funcApply(func, funcArgs);
             if (res!=null)
@@ -1793,7 +1793,7 @@ public class Functions {
      */
     public static void assertFn(boolean condition, String message) throws Throwable {
         if(!condition) {
-            throw new JException("D3141", -1);
+            throw new JException("D3141", -1, "$assert() statement failed");
 //                message: message || "$assert() statement failed"
         }
     }

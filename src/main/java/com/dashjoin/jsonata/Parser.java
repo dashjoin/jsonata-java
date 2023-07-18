@@ -9,19 +9,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
 import com.dashjoin.jsonata.Tokenizer.Token;
 import com.dashjoin.jsonata.utils.Signature;
 
 //var parseSignature = require('./signature');
-
+@SuppressWarnings({"unchecked"})
 public class Parser {
 
     boolean dbg = false;
@@ -155,7 +153,7 @@ public class Parser {
                 return err;
                 */
                 return new Symbol("(error)") {
-                    JException err = _err;
+                    //JException err = _err;
                 };
             } else {
                 throw _err;
@@ -232,7 +230,7 @@ public class Parser {
             if (recover) {
                 err.remaining = remainingTokens();
                 errors.add(err);
-                Symbol symbol = symbolTable.get("(error)");
+                //Symbol symbol = symbolTable.get("(error)");
                 Symbol node = new Symbol();
                 // FIXME node.error = err;
                 //node.type = "(error)";
@@ -600,7 +598,7 @@ public class Parser {
             // if the name of the function is 'function' or λ, then this is function definition (lambda function)
             if (left.type.equals("name") && (left.value.equals("function") || left.value.equals("\u03BB"))) {
                 // all of the args must be VARIABLE tokens
-                int index = 0;
+                //int index = 0;
                 for (Symbol arg : arguments) {
                 //this.arguments.forEach(function (arg, index) {
                     if (!arg.type.equals("variable")) {
@@ -611,12 +609,11 @@ public class Parser {
                         )
                         );
                     }
-                    index++;
+                    //index++;
                 }
                 this.type = "lambda";
                 // is the next token a '<' - if so, parse the function signature
                 if (node.id.equals("<")) {
-                    int sigPos = node.position;
                     int depth = 1;
                     String sig = "<";
                     while (depth > 0 && !node.id.equals("{") && !node.id.equals("(end)")) {
@@ -630,14 +627,6 @@ public class Parser {
                     }
                     advance(">");
                     this.signature = new Signature(sig, "lambda");
-                    // FIXME: parse signature
-                    // try {
-                    //     this.signature = parseSignature(sig);
-                    // } catch (err) {
-                    //     // insert the position into this error
-                    //     err.position = sigPos + err.offset;
-                    //     return handleError(err);
-                    // }
                 }
                 // parse the function body
                 advance("{");
@@ -2339,15 +2328,15 @@ public class Parser {
     
     public static void main(String[] args) throws Throwable {
         Parser parser = new Parser();
-        String s1 = "$sin := function($x){ /* define sine in terms of cosine */\n"+
-        "    $cos($x - $pi/2)\n"+
-        "}";
-        String s2 = "$pi = 3.14159 ";
-        String s3 = "$sum(Account.Order.Product.(Price * Quantity))";
-        String s4 = "(Account)";
-        String s5 = "(in.(-3+and*or-5))";
-        String s6 = "{'v':(-or-(-and)*in in b)}";
-        String s7 = "[-1,-2]";
+        // String s1 = "$sin := function($x){ /* define sine in terms of cosine */\n"+
+        // "    $cos($x - $pi/2)\n"+
+        // "}";
+        // String s2 = "$pi = 3.14159 ";
+        // String s3 = "$sum(Account.Order.Product.(Price * Quantity))";
+        // String s4 = "(Account)";
+        // String s5 = "(in.(-3+and*or-5))";
+        // String s6 = "{'v':(-or-(-and)*in in b)}";
+        String s7 = "((1*2)-3=4)";
 
         String s = args.length>0 ? args[0] : s7;
 System.out.println("Parsing "+s);
