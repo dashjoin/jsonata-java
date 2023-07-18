@@ -262,11 +262,8 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
             double num = Double.parseDouble(match.group(0));
             if (!Double.isNaN(num) && Double.isFinite(num)) {
                 position += match.group(0).length();
-                // If the number is int, use int as type
-                if (num==(int)num)
-                    return create("number", (int)num);
-                else
-                    return create("number", num);
+                // If the number is integral, use long as type
+                return create("number", Utils.convertNumber(num));
             } else {
                 throw new JException("S0102", position); //, match.group[0]);
             }

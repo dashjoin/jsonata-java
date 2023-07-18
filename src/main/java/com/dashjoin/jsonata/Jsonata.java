@@ -385,7 +385,7 @@ public class Jsonata {
                      for(var ee = 0; ee < ((List)result).size(); ee++) {
                         // FIXME: completely unsure if this is correct 
                         var tuple = ((List)result).get(ee);
-                        ((Map)tuple).put(""+stage.value, ee);
+                        ((Map)tuple).put(""+stage.value, (long)ee);
                      }
                      break;
              }
@@ -455,7 +455,7 @@ public class Jsonata {
                              tuple.put("@", res.get(bb));
                          }
                          if (expr.index!=null) {
-                             tuple.put(expr.index, bb);
+                             tuple.put(expr.index, (long)bb);
                          }
                          if (expr.ancestor!=null) {
                              tuple.put(expr.ancestor.label, tupleBindings.get(ee).get("@"));
@@ -874,10 +874,10 @@ public class Jsonata {
         // JSON might come with integers,
         // convert all to double...
         // FIXME: semantically OK?
-        if (lhs instanceof Integer)
-            lhs = (double)(int)lhs;
-        if (rhs instanceof Integer)
-            rhs = (double)(int)rhs;
+        if (lhs instanceof Number)
+            lhs = ((Number)lhs).doubleValue();
+        if (rhs instanceof Number)
+            rhs = ((Number)rhs).doubleValue();
 
          switch (op) {
              case "=":
@@ -1170,14 +1170,14 @@ public class Jsonata {
      Object evaluateRangeExpression(Object lhs, Object rhs) throws JException {
          Object result = null;
  
-         if (lhs != null && !(lhs instanceof Integer)) {
+         if (lhs != null && !(lhs instanceof Long)) {
              throw new JException("T2003",
                  //stack: (new Error()).stack,
                  -1,
                  lhs
              );
          }
-         if (rhs != null && !(rhs instanceof Integer)) {
+         if (rhs != null && !(rhs instanceof Long)) {
              throw new JException("T2004",
                 //stack: (new Error()).stack,
                 -1,
@@ -1190,7 +1190,7 @@ public class Jsonata {
              return result;
          }
  
-         int _lhs = ((Number)lhs).intValue(), _rhs = ((Number)rhs).intValue();
+         long _lhs = ((Number)lhs).longValue(), _rhs = ((Number)rhs).longValue();
 
          if (_lhs > _rhs) {
              // if the lhs is greater than the rhs, return undefined

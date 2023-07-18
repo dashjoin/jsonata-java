@@ -474,7 +474,7 @@ public class Functions {
      * @param {string} [char] - the pad character(s); defaults to ' '
      * @returns {string} - padded string
      */
-    public static String pad(String str, Integer width, String _char) {
+    public static String pad(String str, Long width, String _char) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
@@ -487,9 +487,9 @@ public class Functions {
         String result;
 
         if (width < 0) {
-            result = leftPad(str, -width, _char);
+            result = leftPad(str, -width.intValue(), _char);
         } else {
-            result = rightPad(str, width, _char);
+            result = rightPad(str, width.intValue(), _char);
         }
         return result;
     }
@@ -803,7 +803,7 @@ public class Functions {
         return r;
     }
 
-    public static String replace(String str, Object pattern, Object replacement, Integer limit) throws JException {
+    public static String replace(String str, Object pattern, Object replacement, Long limit) throws JException {
         if (str == null) {
             return null;
         }
@@ -1222,11 +1222,11 @@ public class Functions {
         else if (arg instanceof String) {
             String s = (String)arg;
             if (s.startsWith("0x"))
-                result = Integer.parseInt(s.substring(2), 16);
+                result = Long.parseLong(s.substring(2), 16);
             else if (s.startsWith("0B"))
-                result = Integer.parseInt(s.substring(2), 2);
+                result = Long.parseLong(s.substring(2), 2);
             else if (s.startsWith("0O"))
-                result = Integer.parseInt(s.substring(2), 8);
+                result = Long.parseLong(s.substring(2), 8);
             else
                 result = Utils.convertNumber( Double.valueOf((String)arg) );
         } else if (arg instanceof Boolean) {
@@ -1250,7 +1250,7 @@ public class Functions {
 
         return Utils.convertNumber( arg instanceof Double ?
             Math.abs((double)arg) :
-            Math.abs((int)arg) );
+            Math.abs((long)arg) );
     }
 
     /**

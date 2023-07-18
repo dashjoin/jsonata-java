@@ -98,28 +98,31 @@ public class Utils {
      * 
      * Used for late materialization of ranges.
      */
-    public static class RangeList extends AbstractList<Integer> {
+    public static class RangeList extends AbstractList<Long> {
 
-        final int a, b;
+        final long a, b;
+        final int size;
 
-        public RangeList(int left, int right) {
+        public RangeList(long left, long right) {
             assert(left<=right);
+            assert(right-left < Integer.MAX_VALUE);
             a = left; b = right;
+            size = (int) (b-a+1);
         }
 
         @Override
         public int size() {
-            return b-a+1;
+            return size;
         }
 
         @Override
-        public boolean addAll(Collection<? extends Integer> c) {
+        public boolean addAll(Collection<? extends Long> c) {
             throw new UnsupportedOperationException("RangeList does not support 'addAll'");
         }
 
         @Override
-        public Integer get(int index) {
-            if (index < size()) {
+        public Long get(int index) {
+            if (index < size) {
                 return a + index;
             }
             throw new IndexOutOfBoundsException(index);
@@ -138,10 +141,10 @@ public class Utils {
 
      
     public static Number convertNumber(Number n) throws JException {
-        // Use int if the number is not fractional
+        // Use long if the number is not fractional
         if (!isNumeric(n)) return null;
-        if (n.intValue()==n.doubleValue())
-            return n.intValue();
+        if (n.longValue()==n.doubleValue())
+            return n.longValue();
         return n.doubleValue();
     }
 
