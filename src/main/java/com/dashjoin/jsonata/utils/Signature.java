@@ -24,11 +24,8 @@ package com.dashjoin.jsonata.utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -38,8 +35,6 @@ import javax.lang.model.type.NullType;
 import com.dashjoin.jsonata.Functions;
 import com.dashjoin.jsonata.JException;
 import com.dashjoin.jsonata.Utils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -272,7 +267,7 @@ public class Signature implements Serializable {
         return _regex;
     }
 
-    void throwValidationError(List badArgs, String badSig, String functionName) {
+    void throwValidationError(List<?> badArgs, String badSig, String functionName) throws JException {
         // to figure out where this went wrong we need apply each component of the
         // regex to each argument until we get to the one that fails to match
         String partialPattern = "^";
@@ -284,18 +279,16 @@ public class Signature implements Serializable {
             Matcher match = tester.matcher(badSig);
             if (match.matches() == false) {
                 // failed here
-                throw new RuntimeException("Argument \"" + (goodTo + 1) + "\" of function \"" + functionName
-                    + "\" does not match function signature");
+                throw new JException("T0410", -1, (goodTo+1), functionName);
             }
             goodTo = match.end();
         }
         // if it got this far, it's probably because of extraneous arguments (we
         // haven't added the trailing '$' in the regex yet.
-        throw new RuntimeException(
-            "Argument \"" + (goodTo + 1) + "\" of function \"" + functionName + "\" does not match function signature");
+        throw new JException("T0410", -1, (goodTo+1), functionName);
     }
 
-
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Object validate(Object _args, Object context) throws JException {
 
         var result = new ArrayList<>();
