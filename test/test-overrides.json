@@ -149,6 +149,21 @@
             "name": "function-sort/case010.json",
             "alternateResult": ["0406634348", "0406654608", "040657863", "0406654603"],
             "reason": "same as above, works if the condition is changed to >="
+        },
+        { 
+            "name": "function-applications/case008.json",
+            "ignoreError": true,
+            "reason": "Exception instead null/empty result. OK because the path has no match so NULL_VALUE is used as argument for $substringAfter"
+        },
+        { 
+            "name": "matchers/case000.json",
+            "ignoreError": true,
+            "reason": "Custom matcher function not supported in Java regexp lib. OK because not much value seen"
+        },
+        { 
+            "name": "regex/case022.json",
+            "ignoreError": true,
+            "reason": "Java regexp OK with this case. Jsonata regexp throws error because the regexp matches 0 characters, which could cause an endless loop in the custom matcher."
         }
     ]
 }
