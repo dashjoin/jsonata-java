@@ -1,5 +1,6 @@
 package com.dashjoin.jsonata;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -89,6 +90,40 @@ public class Utils {
 
     public static boolean isSequence(Object result) {
         return result instanceof JList && ((JList)result).sequence;
+    }
+
+    /**
+     * List representing an int range [a,b]
+     * Both sides are included. Read-only + immutable.
+     * 
+     * Used for late materialization of ranges.
+     */
+    public static class RangeList extends AbstractList<Integer> {
+
+        final int a, b;
+
+        public RangeList(int left, int right) {
+            assert(left<=right);
+            a = left; b = right;
+        }
+
+        @Override
+        public int size() {
+            return b-a+1;
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends Integer> c) {
+            throw new UnsupportedOperationException("RangeList does not support 'addAll'");
+        }
+
+        @Override
+        public Integer get(int index) {
+            if (index < size()) {
+                return a + index;
+            }
+            throw new IndexOutOfBoundsException(index);
+        }        
     }
 
         // createSequence,

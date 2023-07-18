@@ -659,6 +659,8 @@ public class Jsonata {
                     idx++;
                 }
                 if(expr.consarray) {
+                    if (!(result instanceof JList))
+                        result = new JList((List)result);
                     //System.out.println("const "+result);
                     ((JList)result).cons = true; 
                 }
@@ -1207,13 +1209,8 @@ public class Jsonata {
              );
          }
  
-         result = Utils.createSequence();
-         for (int item = _lhs; item <= _rhs; item++) {
-             ((List)result).add(item);
-         }
-         //result.sequence = true;
-         return result;
-     }
+        return new Utils.RangeList(_lhs, _rhs);
+    }
  
      /**
       * Evaluate bind expression against input data
