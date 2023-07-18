@@ -1,6 +1,6 @@
 package com.dashjoin.jsonata;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,12 +13,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,7 +45,7 @@ public class JsonataTest {
         for (int i=0; i<res.size(); i++) {
             Object val = res.get(i);
             Object l = convertValue(val);
-            if (l!=null)
+            if (l!=null && l!=val)
                 res.set(i, l);
             recurse(val);
         }
@@ -132,14 +133,19 @@ public class JsonataTest {
         return success;
     }
 
+    static ObjectMapper om = new ObjectMapper().configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
+    ObjectMapper getObjectMapper() {
+        return om;
+    }
+
     Object toJson(String jsonStr) throws JsonMappingException, JsonProcessingException {
-        ObjectMapper om = new ObjectMapper();
+        ObjectMapper om = getObjectMapper();
         Object json = om.readValue(jsonStr, Object.class);
         return json;
     }
 
     Object readJson(String name) throws StreamReadException, DatabindException, IOException {
-        ObjectMapper om = new ObjectMapper();
+        ObjectMapper om = getObjectMapper();
         Object json = om.readValue(new java.io.FileReader(name, Charset.forName("UTF-8")), Object.class);
         return json;
     }
@@ -340,7 +346,7 @@ public class JsonataTest {
         }
         int successPercentage = 100*good/count;
         System.out.println("Success: "+good+" / "+count+" = "+(100*good/count)+"%");
-        assertEquals(successPercentage+"% succeeded", count, good);
+        assertEquals(count, good, successPercentage+"% succeeded");
         //assertEquals("100% test runs must succeed", 100, successPercentage);
         return success;
     }
