@@ -385,7 +385,7 @@ public class Jsonata {
                      for(var ee = 0; ee < ((List)result).size(); ee++) {
                         // FIXME: completely unsure if this is correct 
                         var tuple = ((List)result).get(ee);
-                        ((Map)tuple).put(""+stage.value, (long)ee);
+                        ((Map)tuple).put(""+stage.value, ee);
                      }
                      break;
              }
@@ -455,7 +455,7 @@ public class Jsonata {
                              tuple.put("@", res.get(bb));
                          }
                          if (expr.index!=null) {
-                             tuple.put(expr.index, (long)bb);
+                             tuple.put(expr.index, bb);
                          }
                          if (expr.ancestor!=null) {
                              tuple.put(expr.ancestor.label, tupleBindings.get(ee).get("@"));
@@ -1170,14 +1170,14 @@ public class Jsonata {
      Object evaluateRangeExpression(Object lhs, Object rhs) throws JException {
          Object result = null;
  
-         if (lhs != null && !(lhs instanceof Long)) {
+         if (lhs != null && (!(lhs instanceof Long) && !(lhs instanceof Integer))) {
              throw new JException("T2003",
                  //stack: (new Error()).stack,
                  -1,
                  lhs
              );
          }
-         if (rhs != null && !(rhs instanceof Long)) {
+         if (rhs != null && (!(rhs instanceof Long) && !(rhs instanceof Integer))) {
              throw new JException("T2004",
                 //stack: (new Error()).stack,
                 -1,

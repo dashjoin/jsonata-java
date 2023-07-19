@@ -61,7 +61,7 @@ public class Functions {
         }
 
         double total = args.stream().mapToDouble(Number::doubleValue).sum();
-        return Utils.convertNumber(total);
+        return total;
     }
 
     /**
@@ -92,7 +92,7 @@ public class Functions {
 
         OptionalDouble res = args.stream().mapToDouble(Number::doubleValue).max();
         if (res.isPresent())
-            return Utils.convertNumber(res.getAsDouble());
+            return res.getAsDouble();
         else
             return null;
     }
@@ -111,7 +111,7 @@ public class Functions {
 
         OptionalDouble res = args.stream().mapToDouble(Number::doubleValue).min();
         if (res.isPresent())
-            return Utils.convertNumber(res.getAsDouble());
+            return res.getAsDouble();
         else
             return null;
     }
@@ -130,7 +130,7 @@ public class Functions {
 
         OptionalDouble res = args.stream().mapToDouble(Number::doubleValue).average();
         if (res.isPresent())
-            return Utils.convertNumber(res.getAsDouble());
+            return res.getAsDouble();
         else
             return null;
     }
@@ -464,7 +464,7 @@ public class Functions {
      * @param {string} [char] - the pad character(s); defaults to ' '
      * @returns {string} - padded string
      */
-    public static String pad(String str, Long width, String _char) {
+    public static String pad(String str, Integer width, String _char) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
@@ -477,9 +477,9 @@ public class Functions {
         String result;
 
         if (width < 0) {
-            result = leftPad(str, -width.intValue(), _char);
+            result = leftPad(str, -width, _char);
         } else {
-            result = rightPad(str, width.intValue(), _char);
+            result = rightPad(str, width, _char);
         }
         return result;
     }
@@ -793,7 +793,7 @@ public class Functions {
         return r;
     }
 
-    public static String replace(String str, Object pattern, Object replacement, Long limit) throws JException {
+    public static String replace(String str, Object pattern, Object replacement, Integer limit) throws JException {
         if (str == null) {
             return null;
         }
@@ -1218,7 +1218,7 @@ public class Functions {
             else if (s.startsWith("0O"))
                 result = Long.parseLong(s.substring(2), 8);
             else
-                result = Utils.convertNumber( Double.valueOf((String)arg) );
+                result = Double.valueOf((String)arg);
         } else if (arg instanceof Boolean) {
             result = ((boolean)arg) ? 1:0;
         }
@@ -1238,9 +1238,8 @@ public class Functions {
             return null;
         }
 
-        return Utils.convertNumber( arg instanceof Double ?
-            Math.abs((double)arg) :
-            Math.abs((long)arg) );
+        return arg instanceof Double ?
+            Math.abs(arg.doubleValue()) : Math.abs(arg.longValue());
     }
 
     /**
@@ -1256,7 +1255,7 @@ public class Functions {
             return null;
         }
 
-        return Utils.convertNumber( Math.floor(arg.doubleValue()) );
+        return Math.floor(arg.doubleValue());
     }
 
     /**
@@ -1272,7 +1271,7 @@ public class Functions {
             return null;
         }
 
-        return Utils.convertNumber( Math.ceil(arg.doubleValue()) );
+        return Math.ceil(arg.doubleValue());
     }
 
     /**
@@ -1294,7 +1293,7 @@ public class Functions {
             precision = 0;
         b = b.setScale(precision.intValue(), RoundingMode.HALF_EVEN);
         
-        return Utils.convertNumber( b.doubleValue() );
+        return b.doubleValue();
     }
 
     /**
@@ -1317,7 +1316,7 @@ public class Functions {
             );
         }
 
-        return Utils.convertNumber( Math.sqrt(arg.doubleValue()) );
+        return Math.sqrt(arg.doubleValue());
     }
 
     /**
@@ -1344,7 +1343,7 @@ public class Functions {
             );
         }
 
-        return Utils.convertNumber(result);
+        return result;
     }
 
     /**
@@ -2099,7 +2098,10 @@ public class Functions {
         }
         
         try {
-            return m.invoke(null, callArgs.toArray());
+            Object res = m.invoke(null, callArgs.toArray());
+            if (res instanceof Number)
+                res = Utils.convertNumber((Number)res);
+            return res;
         } catch (IllegalAccessException e) {
             throw new Exception("Access error calling function "+m.getName(), e);
         } catch (IllegalArgumentException e) {
@@ -2187,9 +2189,10 @@ public class Functions {
      * @param {string} value - the string to parse
      * @param {string} picture - the picture string
      * @throws ParseException
+     * @throws JException
      * @returns {number} - the parsed number
      */
-    public static Number parseInteger(String value, String picture) throws ParseException {
+    public static Number parseInteger(String value, String picture) throws ParseException, JException {
         if (value == null) {
             return null;
         }
