@@ -141,9 +141,8 @@ public class Parser {
 
 
         Symbol nud() throws JException {
-            //if (true) return null; // throw new Error("nud not implemented");
             // error - symbol has been invoked as a unary operator
-            final JException _err = new JException("S0211", position); // FIXME: context of this: , position, value);
+            final JException _err = new JException("S0211", position, value);
 
             if (recover) {
                 /*
@@ -195,8 +194,8 @@ public class Parser {
                 //System.err.println("cloning "+this+" clone="+cl);
                 return cl;
             } catch (CloneNotSupportedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                // never reached
+                if (dbg) e.printStackTrace();
                 return null;
             }
         }

@@ -815,12 +815,12 @@ public class Jsonata {
  
          if (_lhs!=null && !Utils.isNumeric(_lhs)) {
              throw new JException("T2001", -1,
-                _lhs
+                op, _lhs
              );
          }
          if (_rhs!=null && !Utils.isNumeric(_rhs)) {
              throw new JException("T2002", -1,
-                _rhs
+                op, _rhs
              );
          }
  
@@ -911,7 +911,7 @@ public class Jsonata {
                 "T2010",
                 0, //position,
                 //stack: (new Error()).stack,
-                lhs!=null ? lhs : rhs
+                op, lhs!=null ? lhs : rhs
              );
          }
 
