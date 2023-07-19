@@ -15,6 +15,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
+import com.dashjoin.jsonata.json.Json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
@@ -35,7 +36,7 @@ public class JsonataTest {
         for (Entry<String, Object> e : res.entrySet()) {
             Object val = e.getValue();
             Object l = convertValue(val);
-            if (l!=null)
+            if (l!=val)
                 e.setValue(l);
             recurse(val);
         }
@@ -45,7 +46,7 @@ public class JsonataTest {
         for (int i=0; i<res.size(); i++) {
             Object val = res.get(i);
             Object l = convertValue(val);
-            if (l!=null && l!=val)
+            if (l!=val)
                 res.set(i, l);
             recurse(val);
         }
@@ -91,9 +92,9 @@ public class JsonataTest {
             success = false;
         
         if (expected!=null && !expected.equals(result)) {
-            if ((""+expected).equals(""+result))
-                System.out.println("Value equals failed, stringified equals = true. Result = "+result);
-            else
+            // if ((""+expected).equals(""+result))
+            //     System.out.println("Value equals failed, stringified equals = true. Result = "+result);
+            // else
                 success = false;
         }
     
@@ -139,14 +140,17 @@ public class JsonataTest {
     }
 
     Object toJson(String jsonStr) throws JsonMappingException, JsonProcessingException {
-        ObjectMapper om = getObjectMapper();
-        Object json = om.readValue(jsonStr, Object.class);
+        //ObjectMapper om = getObjectMapper();
+        //Object json = om.readValue(jsonStr, Object.class);
+        Object json = Json.parseJson(jsonStr);
         return json;
     }
 
     Object readJson(String name) throws StreamReadException, DatabindException, IOException {
-        ObjectMapper om = getObjectMapper();
-        Object json = om.readValue(new java.io.FileReader(name, Charset.forName("UTF-8")), Object.class);
+        //ObjectMapper om = getObjectMapper();
+        //Object json = om.readValue(new java.io.FileReader(name, Charset.forName("UTF-8")), Object.class);
+
+        Object json = Json.parseJson(new java.io.FileReader(name, Charset.forName("UTF-8")));
         return json;
     }
 
@@ -351,7 +355,8 @@ public class JsonataTest {
         return success;
     }
 
-    boolean debug = false;
+    boolean debug = java.lang.management.ManagementFactory.getRuntimeMXBean().
+        getInputArguments().toString().contains("-Xrunjdwp:transport");
 
     boolean ignoreOverrides = false;
 
