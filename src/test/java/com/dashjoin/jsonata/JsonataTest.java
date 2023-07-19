@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.dashjoin.jsonata.Jsonata.NULL_VALUE;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class JsonataTest {
 
     Object convertValue(Object val) {
@@ -126,7 +126,7 @@ public class JsonataTest {
                 System.out.println("WRONG RESULT (exception)");
                 success = false;
             }
-            if (!success) t.printStackTrace();
+            if (!success) t.printStackTrace(System.out);
             if (debug && success) System.out.println("--Exception = "+t);
             //if (true) System.exit(-1);
         }
@@ -383,8 +383,8 @@ public class JsonataTest {
         runTestSuite(s);
         //String g = "function-applications"; // partly
         //String g = "higher-order-functions"; // works!
-        String g = "hof-map";
-        //String g = "joins"; // TODO
+        //String g = "hof-map";
+        //String g = "joins";
         //String g = "function-join"; // looks good
         //String g = "descendent-operator"; // nearly
         //String g = "object-constructor";
