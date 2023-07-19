@@ -2,6 +2,7 @@ package com.dashjoin.jsonata;
 
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.regex.Matcher;
 
 public class JException extends Exception {
 
@@ -43,24 +44,24 @@ public class JException extends Exception {
 
         if (message==null) {
             // unknown error code
-            return "JSonataException "+error+" @"+location+" arg1="+arg1+" arg2="+arg2;
+            return "JSonataException "+error+" {code=unknown position="+location+" arg1="+arg1+" arg2="+arg2+"}";
         }
 
         String formatted = message;
         try {
-            formatted = formatted.replace("{{index}}", "%1s")
-                .replace("{{token}}", "%2s")
-                .replace("{{{message}}}", "%1s")
-                .replace("{{value}}", "%1s");
+            // Replace any {{var}} with Java format "%1$s"
+            formatted = formatted.replaceFirst("\\{\\{\\w+\\}\\}", Matcher.quoteReplacement("\"%1$s\""));
+            formatted = formatted.replaceFirst("\\{\\{\\w+\\}\\}", Matcher.quoteReplacement("\"%2$s\""));
 
             formatted = String.format(formatted, arg1, arg2);
         } catch (IllegalFormatException ex) {
             ex.printStackTrace();
             // ignore
         }
-        formatted = error+": "+formatted;
+        formatted = formatted + " {code="+error;
         if (location>=0)
-            formatted += ". Location="+location;
+            formatted += " position="+location;
+        formatted += "}";
         return formatted;
     }
 
