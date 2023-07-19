@@ -35,8 +35,6 @@ import javax.lang.model.type.NullType;
 import com.dashjoin.jsonata.Functions;
 import com.dashjoin.jsonata.JException;
 import com.dashjoin.jsonata.Utils;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Manages signature related functions
@@ -44,20 +42,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class Signature implements Serializable {
 
     private static final long serialVersionUID = -450755246855587271L;
-
-    // A mapping between the function signature symbols and the full plural of the
-    // type
-    // Expected to be used in error messages
-    static ObjectNode s_arraySignatureMapping = new ObjectNode(JsonNodeFactory.instance);
-
-    static {
-        s_arraySignatureMapping.put("a", "arrays");
-        s_arraySignatureMapping.put("b", "booleans");
-        s_arraySignatureMapping.put("f", "functions");
-        s_arraySignatureMapping.put("n", "numbers");
-        s_arraySignatureMapping.put("o", "objects");
-        s_arraySignatureMapping.put("s", "strings");
-    };
 
     static class Param {
         String type;
