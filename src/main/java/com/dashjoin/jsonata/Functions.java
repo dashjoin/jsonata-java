@@ -176,91 +176,82 @@ public class Functions {
           return res;
         }
 
-        if (arg instanceof Number) {
+        if (arg instanceof Number || arg instanceof Boolean) {
             return ""+arg;
         }
         
         if (arg instanceof String)
-          return (String) arg;
-        
+            return (String) arg;
+
         if (arg instanceof Map) {
-          StringBuffer b = new StringBuffer();
-          b.append('{');
-          if (prettify)
-            b.append('\n');
-          for ( Entry<String, Object> e : ((Map<String,Object>)arg).entrySet()) {
-            if (prettify) {
-              b.append(indent);
-              b.append("  ");
-            }
-            b.append('"');
-            b.append(e.getKey());
-            b.append('"');
-            b.append(':');
+            StringBuffer b = new StringBuffer();
+            b.append('{');
             if (prettify)
-              b.append(' ');
-            if (e.getValue() instanceof String || e.getValue() instanceof Symbol || e.getValue() instanceof JFunction) {
-              b.append('"');
-              b.append(string(e.getValue(), prettify, indent+"  "));
-              b.append('"');
+                b.append('\n');
+            for (Entry<String, Object> e : ((Map<String, Object>) arg).entrySet()) {
+                if (prettify) {
+                    b.append(indent);
+                    b.append("  ");
+                }
+                b.append('"');
+                b.append(e.getKey());
+                b.append('"');
+                b.append(':');
+                if (prettify)
+                    b.append(' ');
+                if (e.getValue() instanceof String || e.getValue() instanceof Symbol
+                        || e.getValue() instanceof JFunction) {
+                    b.append('"');
+                    b.append(string(e.getValue(), prettify, indent + "  "));
+                    b.append('"');
+                } else
+                    b.append(string(e.getValue(), prettify, indent + "  "));
+                b.append(',');
+                if (prettify)
+                    b.append('\n');
             }
-            else
-              b.append(string(e.getValue(), prettify, indent+"  "));
-            b.append(',');
+            if (!((Map) arg).isEmpty())
+                b.deleteCharAt(b.length() - (prettify ? 2 : 1));
             if (prettify)
-              b.append('\n');
-          }
-          if (!((Map)arg).isEmpty())
-            b.deleteCharAt(b.length()-(prettify ? 2 : 1));
-          if (prettify)
-            b.append(indent);
-          b.append('}');
-          return b.toString();
+                b.append(indent);
+            b.append('}');
+            return b.toString();
         }
-        
-        if ((arg instanceof JList) && prettify) {
-          if (((JList)arg).isEmpty())
-            return "[]";
-          StringBuffer b = new StringBuffer();
-          if (prettify)
-            b.append(indent);
-          b.append('[');
-          if (prettify)
-            b.append('\n');
-          for (Object v : (JList)arg) {
-            if (prettify) {
-              b.append(indent);
-              b.append("  ");
-            }
-            if (v instanceof String || v instanceof Symbol || v instanceof JFunction) {
-              b.append('"');
-              b.append(string(v, prettify, indent+"  "));
-              b.append('"');
-            }
-            else
-              b.append(string(v, prettify, indent+"  "));
-            b.append(',');
+
+        if ((arg instanceof List)) {
+            if (((List) arg).isEmpty())
+                return "[]";
+            StringBuffer b = new StringBuffer();
             if (prettify)
-              b.append('\n');
-          }
-          if (!((JList)arg).isEmpty())
-            b.deleteCharAt(b.length()-(prettify ? 2 : 1));
-          if (prettify)
-            b.append(indent);
-          b.append(']');
-          return b.toString();
-        }
-        
-        try {
+                b.append(indent);
+            b.append('[');
             if (prettify)
-                return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(arg);
-            else
-                return new ObjectMapper().writeValueAsString(arg);
-        } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return arg.toString();
+                b.append('\n');
+            for (Object v : (List) arg) {
+                if (prettify) {
+                    b.append(indent);
+                    b.append("  ");
+                }
+                if (v instanceof String || v instanceof Symbol || v instanceof JFunction) {
+                    b.append('"');
+                    b.append(string(v, prettify, indent + "  "));
+                    b.append('"');
+                } else
+                    b.append(string(v, prettify, indent + "  "));
+                b.append(',');
+                if (prettify)
+                    b.append('\n');
+            }
+            if (!((List) arg).isEmpty())
+                b.deleteCharAt(b.length() - (prettify ? 2 : 1));
+            if (prettify)
+                b.append(indent);
+            b.append(']');
+            return b.toString();
         }
+
+        // Throw error for unknown types
+        throw new IllegalArgumentException(arg.getClass().getName());
     }
 
     /**
