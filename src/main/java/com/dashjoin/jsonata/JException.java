@@ -11,17 +11,20 @@ public class JException extends Exception {
     Object current;
     Object expected;
 
+    public JException(String error) {
+        this(error, -1, null, null);
+    }
     public JException(String error, int location) {
-        super(msg(error, location, null, null));
-        this.error = error; this.location = location;
+        this(error, location, null, null);
     }
     public JException(String error, int location, Object currentToken) {
-        super(msg(error, location, currentToken, null));
-        this.error = error; this.location = location;
-        this.current = currentToken;
+        this(error, location, currentToken, null);
     }
     public JException(String error, int location, Object currentToken, Object expected) {
-        super(msg(error, location, currentToken, expected));
+        this(null, error, location, currentToken, expected);
+    }
+    public JException(Throwable cause, String error, int location, Object currentToken, Object expected) {
+        super(msg(error, location, currentToken, expected), cause);
         this.error = error; this.location = location;
         this.current = currentToken;
         this.expected = expected;

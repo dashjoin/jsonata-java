@@ -2168,9 +2168,7 @@ public class Jsonata {
             } catch (JException e) {
                 throw e;
             } catch (Throwable e) {
-                // TODO Auto-generated catch block
-                //e.printStackTrace();
-                throw new JException("T0410", -1, e);
+                throw new JException(e, "T0410", -1, args, functionName);
             }
         }
 
