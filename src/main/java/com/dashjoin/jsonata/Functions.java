@@ -41,10 +41,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.dashjoin.jsonata.Utils.JList;
+import com.dashjoin.jsonata.json.Json;
 import com.dashjoin.jsonata.utils.Constants;
 import com.dashjoin.jsonata.utils.DateTimeUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Functions {
@@ -2242,14 +2241,8 @@ public class Functions {
             return null;
         }
 
-        try {
-            return new ObjectMapper().readValue(string(arg, false), Object.class);
-        } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
-        }
-        //return JSON.parse(fn.string(arg));
+        Object res = Json.parseJson(string(arg, false));
+        return res;
     }
 
     /**
