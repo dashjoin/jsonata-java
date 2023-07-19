@@ -22,7 +22,6 @@ import java.util.regex.Pattern;
 import com.dashjoin.jsonata.Parser.Infix;
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.dashjoin.jsonata.Utils.JList;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dashjoin.jsonata.utils.Signature;
 
 /**
@@ -2524,21 +2523,4 @@ public class Jsonata {
 //  })();
  
 //  module.exports = jsonata;
-
-    public static void main(String[] args) throws Throwable {
-
-        String s = "$join(['a','b','c'], '#')";
-        //s = "$count([1..(1e4-1)])";
-        //s = "{ 'number': [1..10].$string() }"; // FIXME
-        //s = "[1..10].($ * $).$sum()";
-        s = "($a := [1..10].($ * $); $sum($a) )";
-        s = "$substringBefore(\"Alalala\", \"la\")";
-        s = "$substring(\"Alalala\", 1,4)";
-        s = "$pad('xxx', -5, 'abrac')";
-        s = "$contains(\"Alalala\", /l(a|b)/)";
-        //s = "$string({'a':[1,2]}, true)";
-        Jsonata jsonata = new Jsonata(s, false);
-        Object result = jsonata.evaluate(null, null);
-        System.out.println("Result = "+new ObjectMapper().writeValueAsString(result));
-    }
 }
