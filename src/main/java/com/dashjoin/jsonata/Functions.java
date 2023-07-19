@@ -1032,7 +1032,7 @@ public class Functions {
             fixedPicture = fixedPicture.replace("e", "E");
             littleE = true;
         }
-        System.out.println("picture "+fixedPicture);
+        //System.out.println("picture "+fixedPicture);
         formatter.applyLocalizedPattern(fixedPicture);
         String result = formatter.format(value);
 
@@ -2318,17 +2318,5 @@ public class Functions {
     public static long millis() {
         long t = Jsonata.current.get().timestamp;
         return t;
-    }
-
-    public static void _main(String[] _args) throws Throwable {
-        List args = new ArrayList();
-        // List arg = new ArrayList();
-        // arg.add("5"); arg.add("6");
-        // args.add(arg);
-        args.add("string1");
-        args.add("string2");
-        //args.add("string3");
-        Object res = Functions.call("test", args);
-        System.out.println("Result = "+res);
     }
 }
