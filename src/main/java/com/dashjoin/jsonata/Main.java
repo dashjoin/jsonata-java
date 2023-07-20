@@ -1,6 +1,8 @@
 package com.dashjoin.jsonata;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+
+//import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Main {
     public static void main(String[] args) throws Throwable {
@@ -47,9 +49,12 @@ public class Main {
         //s = "$eval('[1,2].$string()')";
         //s = "false > 5";
         //s = "10e300 * 10e100";
-        s="{'a':()}";
+        //s="{'a':()}";
+        s = "2*$power(2,6e2/10.0)+1";
+        if (args.length>0) s=args[0];
+        //s = "$ = [1..4]";
         Jsonata jsonata = new Jsonata(s, false);
-        Object result = jsonata.evaluate(null, null);
-        System.out.println("Result = "+new ObjectMapper().writeValueAsString(result));    
+        Object result = jsonata.evaluate(List.of(1,2,3,4), null);
+        System.out.println("Result = "+Functions.string(result, false));    
     }
 }

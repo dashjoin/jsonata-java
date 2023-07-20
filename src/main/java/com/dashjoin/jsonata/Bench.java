@@ -1,50 +1,8 @@
 package com.dashjoin.jsonata;
 
-import java.io.IOException;
 import java.util.List;
 
-import com.dashjoin.jsonata.Parser.Symbol;
-import com.dashjoin.jsonata.Utils.JList;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
 public class Bench {
-
-    public static class SymbolSerializer extends StdSerializer<Symbol> {
-    
-    public SymbolSerializer() {
-        this(null);
-    }
-  
-    public SymbolSerializer(Class<Symbol> t) {
-        super(t);
-    }
-
-    @Override
-    public void serialize(
-      Symbol value, JsonGenerator jgen, SerializerProvider provider) 
-      throws IOException, JsonProcessingException {
-
-        if (value._jsonata_lambda) {
-            jgen.writeStartObject();
-            jgen.writeStringField("function", "lambda");
-            jgen.writeEndObject();
-        }
-    }
-}
-
-    public static ObjectMapper getObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(Symbol.class, new SymbolSerializer());
-        mapper.registerModule(module);
-        return mapper;
-    }
 
     public static void main(String[] args) throws Throwable {
         String s;
@@ -98,7 +56,7 @@ public class Bench {
         //s = "[1..5].λ($num){$number($num)}";
         //s = "($f := function($x)<s:s> { $x };  $f(1)  )";
         //s = "$sift({'a':42, 'b':41}, function($e) { $e<42 })";
-        //s = "$sift({'a': 'hello', 'b': 'world', 'hello': 'again'}, λ($v,$k,$o){$lookup($o, $v)})";
+        s = "$sift({'a': 'hello', 'b': 'world', 'hello': 'again'}, λ($v,$k,$o){$lookup($o, $v)})";
         //s = "1+2";
         //s = "$map([1], $string)[]";
         //s = "(  $data := {    \"one\": [1,2,3,4,5],    \"two\": [5,4,3,2,1]  };  $add := function($x){$x*$x};  $data.one )  ";
@@ -129,7 +87,7 @@ public class Bench {
         count1 = i;
         long t1 = System.currentTimeMillis();
 
-        System.out.println("Parse N="+count1+" T="+(t1-t0)+" KiloOps/Sec="+(1.0d*count1/(t1-t0)));
+        System.out.println("Parse N="+count1+" T="+(t1-t0)+" OpsPerSec="+(1000d*count1/(t1-t0)));
 
         for (i=0; ; i++) {
             result = jsonata.evaluate(input, null);
@@ -142,8 +100,8 @@ public class Bench {
         long t2 = System.currentTimeMillis();
 
         //System.out.println("Total T="+(t2-t0)+" PerSec="+(1000000000L/(t2-t0)));
-        System.out.println("Eval  N="+count2+" T="+(t2-t1)+" KiloOps/Sec="+(1.0d*count2/(t2-t1)));
+        System.out.println("Eval  N="+count2+" T="+(t2-t1)+" OpsPerSec="+(1000d*count2/(t2-t1)));
         //Object result = jsonata.evaluate(new JList(List.of(3,1,4,1,5,9)), null);
-        System.out.println("Result = "+getObjectMapper().writeValueAsString(result));
+        System.out.println("Result = "+Functions.string(result, true));
     }
 }
