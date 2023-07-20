@@ -2132,7 +2132,7 @@ public class Functions {
         }
 
         if(picture == null) {
-          if (StringUtils.isNumeric(timestamp)) {
+          if (/*StringUtils.*/isNumeric(timestamp)) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             return sdf.parse(timestamp).getTime();
@@ -2152,6 +2152,19 @@ public class Functions {
         } else {
             return DateTimeUtils.parseDateTime(timestamp, picture);
         }
+    }
+    // Adapted from: org.apache.commons.lang3.StringUtils
+    public static boolean isNumeric(final CharSequence cs) {
+        if (cs == null || cs.length() == 0) {
+            return false;
+        }
+        final int sz = cs.length();
+        for (int i = 0; i < sz; i++) {
+            if (!Character.isDigit(cs.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
