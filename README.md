@@ -47,9 +47,20 @@ So no JSON lib like Jackson is being used. This has advantages, but needs carefu
 Porting Javascript code gets ambiguous as soon as there is a boolean expression that might depend on null and/or undefined.
 In Java there are basically these solutions:
 * use a Holder class that can disambiguate the null/undefined cases
-* use a special value/object for UNDEFINED_VALUE
-* use a special value/object for NULL_VALUE
+* Java null means null, use a special value/object for UNDEFINED_VALUE
+* Java null means undefined, use a special value/object for NULL_VALUE
 
 JSON libs will usually use a Holder variant (implemented in some JSONValue implementation).
 After review, it turned out that we can stay as near as possible to the original code structure (with as little special code as possible) by using the 3rd variant.
 
+## Performance
+We conducted some experiments to measure performance, but it's not an 'overall benchmark' yet. Your mileage may vary...
+
+|Expression| jsonata-js | JSONata4Java | jsonata-java | speedup x |
+|----------|------------|--------------|---|---|
+| function-sift 4 | 26.1 / 109.6 | 36.1 / 144.8 | 140.8 / 348.2 | 3.9 / 2.3 |
+| hof-map 0 | 16.4 / 62.2 | 17.7 / 352.8 | 66.2 / 295.2 | 3.7 / 0.8 |
+| hof-zip 2 | 15.4 / 59.2 | 16.7 / exception | 64.2 / 312.6 | 3.8 / ? |
+| hof-zip-map 0 | 16.0 / 57.3 | 12.6 / 227.7 (wrong) | 58.3 / 323.6 | 4.6 / 1.4 |
+| partial-application 2 | 26.1 / 29.1 | parser error | 162.3 / 133.4 | ? / ? |
+| [1..500].($*$)~>$sum | 24.4 / 1.8 | 159.6 / exception | 286.4 / 9.0 | 1.8 / ? |
