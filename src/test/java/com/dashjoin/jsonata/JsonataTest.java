@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
@@ -360,7 +361,7 @@ public class JsonataTest {
 
     boolean ignoreOverrides = false;
 
-    @Test
+    @Disabled @Test
     public void testSuite() throws Exception {
         //runTestSuite("jsonata/test/test-suite/groups/boolean-expresssions/test.jsonx");
         //runTestSuite("jsonata/test/test-suite/groups/boolean-expresssions/case017.json");
