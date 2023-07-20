@@ -98,7 +98,7 @@ public class Utils {
      * 
      * Used for late materialization of ranges.
      */
-    public static class RangeList extends AbstractList<Long> {
+    public static class RangeList extends AbstractList<Number> {
 
         final long a, b;
         final int size;
@@ -116,14 +116,19 @@ public class Utils {
         }
 
         @Override
-        public boolean addAll(Collection<? extends Long> c) {
+        public boolean addAll(Collection<? extends Number> c) {
             throw new UnsupportedOperationException("RangeList does not support 'addAll'");
         }
 
         @Override
-        public Long get(int index) {
+        public Number get(int index) {
             if (index < size) {
-                return a + index;
+                try {
+                    return Utils.convertNumber( a + index );
+                } catch (JException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
             throw new IndexOutOfBoundsException(index);
         }        
@@ -143,8 +148,13 @@ public class Utils {
     public static Number convertNumber(Number n) throws JException {
         // Use long if the number is not fractional
         if (!isNumeric(n)) return null;
-        if (n.longValue()==n.doubleValue())
-            return n.longValue();
+        if (n.longValue()==n.doubleValue()) {
+            long l = n.longValue();
+            if (((int)l)==l)
+                return (int)l;
+            else
+                return l;
+        }
         return n.doubleValue();
     }
 
