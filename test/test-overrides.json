@@ -5,16 +5,6 @@
             "ignoreError": true,
             "reason": "Do not support number to word for numbers exceeding the 64-bit range"
         },
-        {   
-            "name": "range-operator/case021.json",
-            "alternateResult": "10000000",
-            "reason": "Numerical 1E+7 == 10000000"
-        },
-        {   
-            "name": "range-operator/case024.json",
-            "alternateResult": "10000000",
-            "reason": "Numerical 1E+7 == 10000000"
-        },
         {
 			"name": "function-parseInteger/parseInteger.json_11",
             "ignoreError": true,
