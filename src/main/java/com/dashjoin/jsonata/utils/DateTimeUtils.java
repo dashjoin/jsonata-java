@@ -41,10 +41,12 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+// import org.apache.commons.lang3.ArrayUtils;
+// import org.apache.commons.lang3.StringUtils;
+// import org.apache.commons.lang3.tuple.ImmutablePair;
+// import org.apache.commons.lang3.tuple.Pair;
+
+import com.dashjoin.jsonata.Functions;
 
 public class DateTimeUtils implements Serializable {
 
@@ -377,7 +379,7 @@ public class DateTimeUtils implements Serializable {
                 formattedInteger = "" + value;
                 int padLength = format.mandatoryDigits - formattedInteger.length();
                 if (padLength > 0) {
-                    formattedInteger = StringUtils.leftPad(formattedInteger, format.mandatoryDigits, '0');
+                    formattedInteger = Functions.leftPad(formattedInteger, format.mandatoryDigits, "0");
                 }
                 if (format.zeroCode != 0x30) {
                     char[] chars = formattedInteger.toCharArray();
@@ -468,8 +470,9 @@ public class DateTimeUtils implements Serializable {
                 Vector<GroupingSeparator> groupingSeparators = new Vector<>();
                 int separatorPosition = 0;
                 char[] formatCodepoints = primaryFormat.toCharArray();
-                ArrayUtils.reverse(formatCodepoints);
-                for (char codePoint : formatCodepoints) {
+                //ArrayUtils.reverse(formatCodepoints);
+                for (int ix = formatCodepoints.length-1; ix >= 0; ix--) {
+                    char codePoint = formatCodepoints[ix];
                     boolean digit = false;
                     for (int i = 0; i < decimalGroups.length; i++) {
                         int group = decimalGroups[i];
@@ -592,6 +595,13 @@ public class DateTimeUtils implements Serializable {
         }
     }
 
+    private static class Pair<A,B> {
+        private A a; private B b;
+        Pair(A a, B b) { this.a=a; this.b=b; }
+        A getLeft() { return a; }
+        B getRight() { return b; }
+    }
+
     private static class SpecPart {
 
         String type;
@@ -651,7 +661,7 @@ public class DateTimeUtils implements Serializable {
                         min = widthMod.substring(0, dash);
                         max = widthMod.substring(dash + 1);
                     }
-                    def.width = new ImmutablePair<Integer, Integer>(parseWidth(min), parseWidth(max));
+                    def.width = new Pair<Integer, Integer>(parseWidth(min), parseWidth(max));
                     presMod = marker.substring(1, comma);
                 } else {
                     presMod = marker.substring(1);
