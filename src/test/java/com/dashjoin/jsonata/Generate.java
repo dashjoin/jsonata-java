@@ -13,7 +13,7 @@ public class Generate {
   public static void main(String[] args) throws IOException {
 
     new File("src/test/java/com/dashjoin/jsonata/gen").mkdirs();
-    File suites = new File("test/test-suite/groups");
+    File suites = new File("jsonata/test/test-suite/groups");
     for (File suite : suites.listFiles()) {
 
       StringBuffer b = new StringBuffer();
@@ -36,7 +36,7 @@ public class Generate {
           for (int i=0; i<((List)jsonCase).size(); i++) {
             b.append("// " + s(((Map)((List) jsonCase).get(i)).get("expr"))+"\n");
         b.append("@Test public void " + jname.replace('.', '_') + "_case_"+i+ "() throws Exception { \n");
-        b.append("  new JsonataTest().runSubCase(\"test/test-suite/groups/" + suite.getName()
+        b.append("  new JsonataTest().runSubCase(\"jsonata/test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\", "+i+");\n");
         b.append("}\n");
           }
@@ -44,7 +44,7 @@ public class Generate {
         else {
           b.append("// " + s(((Map) jsonCase).get("expr"))+"\n");
         b.append("@Test public void " + jname.replace('.', '_') + "() throws Exception { \n");
-        b.append("  new JsonataTest().runCase(\"test/test-suite/groups/" + suite.getName()
+        b.append("  new JsonataTest().runCase(\"jsonata/test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\");\n");
         b.append("}\n");
         }

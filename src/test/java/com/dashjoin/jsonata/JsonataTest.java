@@ -162,7 +162,7 @@ public class JsonataTest {
 
     @Test
     public void testPath() throws Exception {
-        Object data = readJson("test/test-suite/datasets/dataset0.json");
+        Object data = readJson("jsonata/test/test-suite/datasets/dataset0.json");
         System.out.println(data);
         testExpr("foo.bar", data, null, 42,null);
     }
@@ -301,7 +301,7 @@ public class JsonataTest {
 
         Object data = testDef.get("data");
         if (data==null && dataset!=null)
-            data = readJson("test/test-suite/datasets/"+dataset+".json");
+            data = readJson("jsonata/test/test-suite/datasets/"+dataset+".json");
 
         TestOverride to = getOverrideForTest(name);
         if (to!=null) {
@@ -327,7 +327,7 @@ public class JsonataTest {
         return res;
     }
 
-    String groupDir = "test/test-suite/groups/";
+    String groupDir = "jsonata/test/test-suite/groups/";
 
     boolean runTestGroup(String group) throws Exception {
         
@@ -362,9 +362,9 @@ public class JsonataTest {
 
     @Test
     public void testSuite() throws Exception {
-        //runTestSuite("test/test-suite/groups/boolean-expresssions/test.jsonx");
-        //runTestSuite("test/test-suite/groups/boolean-expresssions/case017.json");
-        //runTestSuite("test/test-suite/groups/fields/case000.json");
+        //runTestSuite("jsonata/test/test-suite/groups/boolean-expresssions/test.jsonx");
+        //runTestSuite("jsonata/test/test-suite/groups/boolean-expresssions/case017.json");
+        //runTestSuite("jsonata/test/test-suite/groups/fields/case000.json");
         //runTestGroup("fields");
         //runTestGroup("comments");
         //runTestGroup("comparison-operators");
@@ -373,18 +373,18 @@ public class JsonataTest {
         //runTestGroup("transform");
         //runTestGroup("function-substring");
         //runTestGroup("wildcards");
-        //runTestSuite("test/test-suite/groups/function-substring/case012.json");
-        //runTestSuite("test/test-suite/groups/transform/case030.json");
-        //runTestSuite("test/test-suite/groups/array-constructor/case006.json");
+        //runTestSuite("jsonata/test/test-suite/groups/function-substring/case012.json");
+        //runTestSuite("jsonata/test/test-suite/groups/transform/case030.json");
+        //runTestSuite("jsonata/test/test-suite/groups/array-constructor/case006.json");
         // Filter:
-        //runTestSuite("test/test-suite/groups/array-constructor/case017.json");
-        String s = "test/test-suite/groups/wildcards/case003.json";
-        s = "test/test-suite/groups/flattening/large.json";
-        s = "test/test-suite/groups/function-sum/case006.json";
-        s = "test/test-suite/groups/function-substring/case016.json";
-        s = "test/test-suite/groups/null/case001.json";
-        s = "test/test-suite/groups/context/case003.json";
-        s = "test/test-suite/groups/object-constructor/case008.json";
+        //runTestSuite("jsonata/test/test-suite/groups/array-constructor/case017.json");
+        String s = "jsonata/test/test-suite/groups/wildcards/case003.json";
+        s = "jsonata/test/test-suite/groups/flattening/large.json";
+        s = "jsonata/test/test-suite/groups/function-sum/case006.json";
+        s = "jsonata/test/test-suite/groups/function-substring/case016.json";
+        s = "jsonata/test/test-suite/groups/null/case001.json";
+        s = "jsonata/test/test-suite/groups/context/case003.json";
+        s = "jsonata/test/test-suite/groups/object-constructor/case008.json";
         runTestSuite(s);
         //String g = "function-applications"; // partly
         //String g = "higher-order-functions"; // works!
