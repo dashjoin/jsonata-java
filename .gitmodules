@@ -1,0 +1,4 @@
+[submodule "jsonata"]
+	path = jsonata
+	url = https://github.com/jsonata-js/jsonata
+	branch = master
