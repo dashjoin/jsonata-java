@@ -373,8 +373,8 @@ public class Jsonata {
                     break;
                 case "index":
                     for(var ee = 0; ee < ((List)result).size(); ee++) {
-                    var tuple = ((List)result).get(ee);
-                    ((Map)tuple).put(""+stage.value, ee);
+                        var tuple = ((List)result).get(ee);
+                        ((Map)tuple).put(""+stage.value, ee);
                     }
                     break;
             }
@@ -402,7 +402,7 @@ public class Jsonata {
                 for(var ss = 0; ss < ((List)sorted).size(); ss++) {
                     var tuple = Map.of("@", sorted.get(ss),
                     expr.index, ss);
-                result.add(tuple);
+                    result.add(tuple);
                 }
             }
             if(expr.stages!=null) {
@@ -425,16 +425,16 @@ public class Jsonata {
             if (_res!=null) { //(typeof res !== "undefined") {
                 List res;
                 if (!(_res instanceof List)) {
-                res = new ArrayList<>(); res.add(_res);
+                    res = new ArrayList<>(); res.add(_res);
                 } else {
-                res = (List)_res;
+                    res = (List)_res;
                 }
                 for (var bb = 0; bb < res.size(); bb++) {
                     Map tuple = new LinkedHashMap<>();
                     tuple.putAll(tupleBindings.get(ee));
                     //Object.assign(tuple, tupleBindings[ee]);
                     if((res instanceof JList) && ((JList)res).tupleStream) {
-                    tuple.putAll((Map)res.get(bb));
+                        tuple.putAll((Map)res.get(bb));
                     } else {
                         if (expr.focus!=null) {
                             tuple.put(expr.focus, res.get(bb));
@@ -506,7 +506,6 @@ public class Jsonata {
                 }
                 if (Utils.isArrayOfNumbers(res)) {
                 for (Object ires : ((List)res)) {
-//                     res.forEach(Object (ires) {
                         // round it down
                         var ii = ((Number)ires).intValue(); // Math.floor(ires);
                         if (ii < 0) {
@@ -1234,20 +1233,19 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateBlock(Symbol expr, Object input, Frame environment) {
+    /* async */ Object evaluateBlock(Symbol expr, Object input, Frame environment) {
         Object result = null;
-        //Infix expr = (Infix)_expr;
-         // create a new frame to limit the scope of variable assignments
-         // TODO, only do this if the post-parse stage has flagged this as required
-         var frame = createFrame(environment);
-         // invoke each expression in turn
-         // only return the result of the last one
-         for(var ex : expr.expressions) {
-             result = /* await */ evaluate(ex, input, frame);
-         }
- 
-         return result;
-     }
+        // create a new frame to limit the scope of variable assignments
+        // TODO, only do this if the post-parse stage has flagged this as required
+        var frame = createFrame(environment);
+        // invoke each expression in turn
+        // only return the result of the last one
+        for(var ex : expr.expressions) {
+            result = /* await */ evaluate(ex, input, frame);
+        }
+
+        return result;
+    }
  
      /**
       * Prepare a regex
@@ -1305,19 +1303,19 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     Object evaluateVariable(Symbol expr, Object input, Frame environment) {
-         // lookup the variable value in the environment
-         Object result = null;
-         // if the variable name is empty string, then it refers to context value
-         if (expr.value.equals("")) {
-            // Empty string == "$" !
+    Object evaluateVariable(Symbol expr, Object input, Frame environment) {
+        // lookup the variable value in the environment
+        Object result = null;
+        // if the variable name is empty string, then it refers to context value
+        if (expr.value.equals("")) {
+        // Empty string == "$" !
             result = input instanceof JList && ((JList)input).outerWrapper ? ((JList)input).get(0) : input;
-         } else  {
+        } else  {
             result = environment.lookup((String)expr.value);
             if (parser.dbg) System.out.println("variable name="+expr.value+" val="+result);
-         }
-         return result;
-     }
+        }
+        return result;
+    }
  
      /**
       * sort / order-by operator
@@ -1326,31 +1324,31 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Ordered sequence
       */
-     /* async */ Object evaluateSortExpression(Symbol expr, Object input, Frame environment) {
-         Object result;
- 
-         // evaluate the lhs, then sort the results in order according to rhs expression
-         var lhs = (List)input;
-         var isTupleSort = (input instanceof JList && ((JList)input).tupleStream) ? true : false;
- 
-         // sort the lhs array
-         // use comparator function
-         var comparator = new Comparator() { 
+    /* async */ Object evaluateSortExpression(Symbol expr, Object input, Frame environment) {
+        Object result;
 
-            @Override
-            public int compare(Object a, Object b) {
+        // evaluate the lhs, then sort the results in order according to rhs expression
+        var lhs = (List)input;
+        var isTupleSort = (input instanceof JList && ((JList)input).tupleStream) ? true : false;
 
-             // expr.terms is an array of order-by in priority order
-             var comp = 0;
-             for(var index = 0; comp == 0 && index < expr.terms.size(); index++) {
-                 var term = expr.terms.get(index);
-                 //evaluate the sort term in the context of a
-                 var context = a;
-                 var env = environment;
-                 if(isTupleSort) {
-                     context = ((Map)a).get("@");
-                     env = createFrameFromTuple(environment, (Map)a);
-                 }
+        // sort the lhs array
+        // use comparator function
+        var comparator = new Comparator() { 
+
+        @Override
+        public int compare(Object a, Object b) {
+
+            // expr.terms is an array of order-by in priority order
+            var comp = 0;
+            for(var index = 0; comp == 0 && index < expr.terms.size(); index++) {
+                var term = expr.terms.get(index);
+                //evaluate the sort term in the context of a
+                var context = a;
+                var env = environment;
+                if(isTupleSort) {
+                    context = ((Map)a).get("@");
+                    env = createFrameFromTuple(environment, (Map)a);
+                }
                 Object aa = /* await */ evaluate(term.expression, context, env);
 
                  //evaluate the sort term in the context of b
@@ -1376,16 +1374,16 @@ public class Jsonata {
                     continue;
                 }
  
-                 // if aa or bb are not string or numeric values, then throw an error
-                 if(!(aa instanceof Number || aa instanceof String) ||
-                 !(bb instanceof Number || bb instanceof String) 
-                 ) {
-                     throw new JException("T2008",
+                // if aa or bb are not string or numeric values, then throw an error
+                if(!(aa instanceof Number || aa instanceof String) ||
+                !(bb instanceof Number || bb instanceof String) 
+                ) {
+                    throw new JException("T2008",
                         expr.position,
                         aa,
                         bb
-                     );
-                 }
+                    );
+                }
  
                  //if aa and bb are not of the same type
                  boolean sameType = false;
@@ -1396,29 +1394,29 @@ public class Jsonata {
                     sameType = true;
                 }
 
-                 if(!sameType) {
-                     throw new JException("T2007",
+                if(!sameType) {
+                    throw new JException("T2007",
                         expr.position,
                         aa,
                         bb
-                     );
-                 }
-                 if(aa.equals(bb)) {
-                     // both the same - move on to next term
-                     continue;
-                 } else if (((Comparable)aa).compareTo(bb)<0) {
-                     comp = -1;
-                 } else {
-                     comp = 1;
-                 }
-                 if(term.descending == true) {
-                     comp = -comp;
-                 }
-             }
-             // only swap a & b if comp equals 1
+                    );
+                }
+                if(aa.equals(bb)) {
+                    // both the same - move on to next term
+                    continue;
+                } else if (((Comparable)aa).compareTo(bb)<0) {
+                    comp = -1;
+                } else {
+                    comp = 1;
+                }
+                if(term.descending == true) {
+                    comp = -comp;
+                }
+            }
+            // only swap a & b if comp equals 1
             // return comp == 1;
             return comp;
-         }
+        }
         };
  
         //  var focus = {
@@ -1430,7 +1428,7 @@ public class Jsonata {
  
         result = Functions.sort(lhs, comparator);
         return result;        
-     }
+    }
  
      /**
       * create a transformer function
@@ -1439,92 +1437,81 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} tranformer function
       */
-     Object evaluateTransformExpression(Symbol expr, Object input, Frame environment) {
+    Object evaluateTransformExpression(Symbol expr, Object input, Frame environment) {
          // create a Object to implement the transform definition
         JFunctionCallable transformer = (_input, args) -> {
         // /* async */ Object (obj) { // signature <(oa):o>
 
-                    var obj = ((List)args).get(0);
+            var obj = ((List)args).get(0);
 
-             // undefined inputs always return undefined
-             if(obj == null) {
-                 return null;
-             }
+            // undefined inputs always return undefined
+            if(obj == null) {
+                return null;
+            }
  
-             // this Object returns a copy of obj with changes specified by the pattern/operation
-            // var cloneFunction = environment.lookup("clone");
-            //  if(!isFunction(cloneFunction)) {
-            //      // throw type error
-            //      throw {
-            //          code: "T2013",
-            //          stack: (new Error()).stack,
-            //          position: expr.position
-            //      };
-            //  }
-
-            // var result = /* await */ apply(cloneFunction, [obj], null, environment);
+            // this Object returns a copy of obj with changes specified by the pattern/operation
             Object result = Functions.functionClone(obj);
 
-             var _matches = /* await */ evaluate(expr.pattern, result, environment);
-             if(_matches != null) {
-                 if(!(_matches instanceof List)) {
-                     _matches = new ArrayList<>(List.of(_matches));
-                 }
-                 List matches = (List)_matches;
-                 for(var ii = 0; ii < matches.size(); ii++) {
-                     var match = matches.get(ii);
-                     // evaluate the update value for each match
-                     var update = /* await */ evaluate(expr.update, match, environment);
-                     // update must be an object
-                     //var updateType = typeof update;
-                     //if(updateType != null) 
-                     
-                     if (update!=null) {
-                        if(!(update instanceof Map)) {
-                             // throw type error
-                             throw new JException("T2011",
-                                 expr.update.position,
-                                 update
-                             );
-                         }
-                         // merge the update
-                         for(var prop : ((Map)update).keySet()) {
+            var _matches = /* await */ evaluate(expr.pattern, result, environment);
+            if(_matches != null) {
+                if(!(_matches instanceof List)) {
+                    _matches = new ArrayList<>(List.of(_matches));
+                }
+                List matches = (List)_matches;
+                for(var ii = 0; ii < matches.size(); ii++) {
+                    var match = matches.get(ii);
+                    // evaluate the update value for each match
+                    var update = /* await */ evaluate(expr.update, match, environment);
+                    // update must be an object
+                    //var updateType = typeof update;
+                    //if(updateType != null) 
+                    
+                    if (update!=null) {
+                    if(!(update instanceof Map)) {
+                            // throw type error
+                            throw new JException("T2011",
+                                expr.update.position,
+                                update
+                            );
+                        }
+                        // merge the update
+                        for(var prop : ((Map)update).keySet()) {
                             ((Map)match).put(prop, ((Map)update).get(prop));
-                         }
-                     }
- 
-                     // delete, if specified, must be an array of strings (or single string)
-                     if(expr.delete != null) {
-                         var deletions = /* await */ evaluate(expr.delete, match, environment);
-                         if(deletions != null) {
-                             var val = deletions;
-                             if (!(deletions instanceof List)) {
-                                 deletions = new ArrayList<>(List.of(deletions));
-                             }
-                             if (!Utils.isArrayOfStrings(deletions)) {
-                                 // throw type error
-                                 throw new JException("T2012",
-                                     expr.delete.position,
-                                     val
-                                 );
-                             }
+                        }
+                    }
+
+                    // delete, if specified, must be an array of strings (or single string)
+                    if(expr.delete != null) {
+                        var deletions = /* await */ evaluate(expr.delete, match, environment);
+                        if(deletions != null) {
+                            var val = deletions;
+                            if (!(deletions instanceof List)) {
+                                deletions = new ArrayList<>(List.of(deletions));
+                            }
+                            if (!Utils.isArrayOfStrings(deletions)) {
+                                // throw type error
+                                throw new JException("T2012",
+                                    expr.delete.position,
+                                    val
+                                );
+                            }
                             List _deletions = (List)deletions;
-                             for (var jj = 0; jj < _deletions.size(); jj++) {
-                                 if(match instanceof Map) {
-                                    ((Map)match).remove(_deletions.get(jj));
-                                     //delete match[deletions[jj]];
-                                 }
-                             }
-                         }
-                     }
-                 }
-             }
- 
-             return result;
-            };
- 
-         return new JFunction(transformer, "<(oa):o>");
-     }
+                            for (var jj = 0; jj < _deletions.size(); jj++) {
+                                if(match instanceof Map) {
+                                ((Map)match).remove(_deletions.get(jj));
+                                    //delete match[deletions[jj]];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
+        };
+
+        return new JFunction(transformer, "<(oa):o>");
+    }
  
     static Symbol chainAST; // = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
  
@@ -1543,48 +1530,48 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateApplyExpression(Symbol expr, Object input, Frame environment) {
-         Object result = null;
- 
- 
-         var lhs = /* await */ evaluate(expr.lhs, input, environment);
+    /* async */ Object evaluateApplyExpression(Symbol expr, Object input, Frame environment) {
+        Object result = null;
+
+
+        var lhs = /* await */ evaluate(expr.lhs, input, environment);
 
         // Map null to NULL_VALUE before applying to functions
         // TODO: fix more generically!
         if (lhs==null)
             lhs = Jsonata.NULL_VALUE;
 
-         if(expr.rhs.type.equals("function")) {
-            //Symbol applyTo = new Symbol(); applyTo.context = lhs;
-             // this is a Object _invocation_; invoke it with lhs expression as the first argument
-             result = /* await */ evaluateFunction(expr.rhs, input, environment, lhs);
-         } else {
-             var func = /* await */ evaluate(expr.rhs, input, environment);
- 
-             if(!isFunctionLike(func) &&
-                !isFunctionLike(lhs)) {
-                 throw new JException("T2006",
-                     //stack: (new Error()).stack,
-                     expr.position,
-                     func
-                 );
-             }
- 
-             if(isFunctionLike(lhs)) {
-                 // this is Object chaining (func1 ~> func2)
-                 // λ($f, $g) { λ($x){ $g($f($x)) } }
-                 var chain = /* await */ evaluate(chainAST(), null, environment);
-                 List args = new ArrayList<>(); args.add(lhs); args.add(func); // == [lhs, func]
-                 result = /* await */ apply(chain, args, null, environment);
-             } else {
-                 List args = new ArrayList<>(); args.add(lhs); // == [lhs]
-                 result = /* await */ apply(func, args, null, environment);
-             }
- 
-         }
- 
-         return result;
-     }
+        if(expr.rhs.type.equals("function")) {
+        //Symbol applyTo = new Symbol(); applyTo.context = lhs;
+            // this is a Object _invocation_; invoke it with lhs expression as the first argument
+            result = /* await */ evaluateFunction(expr.rhs, input, environment, lhs);
+        } else {
+            var func = /* await */ evaluate(expr.rhs, input, environment);
+
+            if(!isFunctionLike(func) &&
+            !isFunctionLike(lhs)) {
+                throw new JException("T2006",
+                    //stack: (new Error()).stack,
+                    expr.position,
+                    func
+                );
+            }
+
+            if(isFunctionLike(lhs)) {
+                // this is Object chaining (func1 ~> func2)
+                // λ($f, $g) { λ($x){ $g($f($x)) } }
+                var chain = /* await */ evaluate(chainAST(), null, environment);
+                List args = new ArrayList<>(); args.add(lhs); args.add(func); // == [lhs, func]
+                result = /* await */ apply(chain, args, null, environment);
+            } else {
+                List args = new ArrayList<>(); args.add(lhs); // == [lhs]
+                result = /* await */ apply(func, args, null, environment);
+            }
+
+        }
+
+        return result;
+    }
 
     boolean isFunctionLike(Object o) {
         return Utils.isFunction(o) || Functions.isLambda(o) || (o instanceof Pattern);
@@ -1687,28 +1674,28 @@ public class Jsonata {
       * @param {Object} environment - environment
       * @returns {*} Result of procedure
       */
-     /* async */ Object apply(Object proc, Object args, Object input, Object environment) {
-         var result = /* await */ applyInner(proc, args, input, environment);
-         while(Functions.isLambda(result) && ((Symbol)result).thunk == true) {
-             // trampoline loop - this gets invoked as a result of tail-call optimization
-             // the Object returned a tail-call thunk
-             // unpack it, evaluate its arguments, and apply the tail call
-             var next = /* await */ evaluate(((Symbol)result).body.procedure, ((Symbol)result).input, ((Symbol)result).environment);
-             if(((Symbol)result).body.procedure.type == "variable") {
+    /* async */ Object apply(Object proc, Object args, Object input, Object environment) {
+        var result = /* await */ applyInner(proc, args, input, environment);
+        while(Functions.isLambda(result) && ((Symbol)result).thunk == true) {
+            // trampoline loop - this gets invoked as a result of tail-call optimization
+            // the Object returned a tail-call thunk
+            // unpack it, evaluate its arguments, and apply the tail call
+            var next = /* await */ evaluate(((Symbol)result).body.procedure, ((Symbol)result).input, ((Symbol)result).environment);
+            if(((Symbol)result).body.procedure.type == "variable") {
                 if (next instanceof Symbol) // Java: not if JFunction
                     ((Symbol)next).token = ((Symbol)result).body.procedure.value;
-             }
-             if (next instanceof Symbol) // Java: not if JFunction
+                }
+                if (next instanceof Symbol) // Java: not if JFunction
                 ((Symbol)next).position = ((Symbol)result).body.procedure.position;
-             var evaluatedArgs = new ArrayList<>();
-             for(var ii = 0; ii < ((Symbol)result).body.arguments.size(); ii++) {
-                 evaluatedArgs.add(/* await */ evaluate(((Symbol)result).body.arguments.get(ii), ((Symbol)result).input, ((Symbol)result).environment));
-             }
- 
-             result = /* await */ applyInner(next, evaluatedArgs, input, environment);
-         }
-         return result;
-     }
+                var evaluatedArgs = new ArrayList<>();
+                for(var ii = 0; ii < ((Symbol)result).body.arguments.size(); ii++) {
+                    evaluatedArgs.add(/* await */ evaluate(((Symbol)result).body.arguments.get(ii), ((Symbol)result).input, ((Symbol)result).environment));
+            }
+
+            result = /* await */ applyInner(next, evaluatedArgs, input, environment);
+        }
+        return result;
+    }
  
      /**
       * Apply procedure or function
@@ -1796,7 +1783,7 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {{lambda: boolean, input: *, environment: *, arguments: *, body: *}} Evaluated input data
       */
-     Object evaluateLambda(Symbol expr, Object input, Frame environment) {
+    Object evaluateLambda(Symbol expr, Object input, Frame environment) {
         // make a Object (closure)
         var procedure = parser.new Symbol();
         
@@ -1808,13 +1795,13 @@ public class Jsonata {
         procedure.body = expr.body;
         
         if(expr.thunk == true)
-             procedure.thunk = true;
+                procedure.thunk = true;
         
         // procedure.apply = /* async */ function(self, args) {
         //     return /* await */ apply(procedure, args, input, !!self ? self.environment : environment);
         // };
         return procedure;
-     }
+    }
  
      /**
       * Evaluate partial application
@@ -1823,43 +1810,43 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluatePartialApplication(Symbol expr, Object input, Frame environment) {
-         // partially apply a function
-         Object result = null;
-         // evaluate the arguments
-         var evaluatedArgs = new ArrayList<>();
-         for(var ii = 0; ii < expr.arguments.size(); ii++) {
-             var arg = expr.arguments.get(ii);
-             if (arg.type.equals("operator") && (arg.value.equals("?"))) {
-                 evaluatedArgs.add(arg);
-             } else {
-                 evaluatedArgs.add(/* await */ evaluate(arg, input, environment));
-             }
-         }
-         // lookup the procedure
-         var proc = /* await */ evaluate(expr.procedure, input, environment);
-         if (proc != null && expr.procedure.type.equals("path") && environment.lookup((String)expr.procedure.steps.get(0).value)!=null) {
-             // help the user out here if they simply forgot the leading $
-             throw new JException("T1007",
-                 expr.position,
-                 expr.procedure.steps.get(0).value
-             );
-         }
-         if (Functions.isLambda(proc)) {
-             result = partialApplyProcedure((Symbol)proc, (List)evaluatedArgs);
-         } else if (Utils.isFunction(proc)) {
-             result = partialApplyNativeFunction((JFunction)proc /*.implementation*/, evaluatedArgs);
-        //  } else if (typeof proc === "function") {
-        //      result = partialApplyNativeFunction(proc, evaluatedArgs);
-         } else {
-             throw new JException("T1008",
-                 //stack: (new Error()).stack,
-                 expr.position,
-                 expr.procedure.type.equals("path") ? expr.procedure.steps.get(0).value : expr.procedure.value
-             );
-         }
-         return result;
-     }
+    /* async */ Object evaluatePartialApplication(Symbol expr, Object input, Frame environment) {
+        // partially apply a function
+        Object result = null;
+        // evaluate the arguments
+        var evaluatedArgs = new ArrayList<>();
+        for(var ii = 0; ii < expr.arguments.size(); ii++) {
+            var arg = expr.arguments.get(ii);
+            if (arg.type.equals("operator") && (arg.value.equals("?"))) {
+                evaluatedArgs.add(arg);
+            } else {
+                evaluatedArgs.add(/* await */ evaluate(arg, input, environment));
+            }
+        }
+        // lookup the procedure
+        var proc = /* await */ evaluate(expr.procedure, input, environment);
+        if (proc != null && expr.procedure.type.equals("path") && environment.lookup((String)expr.procedure.steps.get(0).value)!=null) {
+            // help the user out here if they simply forgot the leading $
+            throw new JException("T1007",
+                expr.position,
+                expr.procedure.steps.get(0).value
+            );
+        }
+        if (Functions.isLambda(proc)) {
+            result = partialApplyProcedure((Symbol)proc, (List)evaluatedArgs);
+        } else if (Utils.isFunction(proc)) {
+            result = partialApplyNativeFunction((JFunction)proc /*.implementation*/, evaluatedArgs);
+    //  } else if (typeof proc === "function") {
+    //      result = partialApplyNativeFunction(proc, evaluatedArgs);
+        } else {
+            throw new JException("T1008",
+                //stack: (new Error()).stack,
+                expr.position,
+                expr.procedure.type.equals("path") ? expr.procedure.steps.get(0).value : expr.procedure.value
+            );
+        }
+        return result;
+    }
  
      /**
       * Validate the arguments against the signature validator (if it exists)
@@ -1868,7 +1855,7 @@ public class Jsonata {
       * @param {*} context - context value
       * @returns {Array} - validated arguments
       */
-     Object validateArguments(Object signature, Object args, Object context) {
+    Object validateArguments(Object signature, Object args, Object context) {
         var validatedArgs = args;
         if (Utils.isFunction(signature)) {
             validatedArgs = ((JFunction)signature).validate(args, context);
@@ -1878,7 +1865,7 @@ public class Jsonata {
                 validatedArgs = sig.validate(args, context);
         }
         return validatedArgs;
-     }
+    }
  
      /**
       * Apply procedure
@@ -1886,7 +1873,7 @@ public class Jsonata {
       * @param {Array} args - Arguments
       * @returns {*} Result of procedure
       */
-     /* async */ Object applyProcedure(Object _proc, Object _args) {
+    /* async */ Object applyProcedure(Object _proc, Object _args) {
         List args = (List)_args;
         Symbol proc = (Symbol)_proc;
         Object result = null;
@@ -1902,7 +1889,7 @@ public class Jsonata {
         //      // this is a lambda that wraps a native Object - generated by partially evaluating a native
         //      result = /* await */ applyNativeFunction(proc.body, env);
         return result;
-     }
+    }
  
      /**
       * Partially apply procedure
@@ -1910,31 +1897,31 @@ public class Jsonata {
       * @param {Array} args - Arguments
       * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applied procedure
       */
-     Object partialApplyProcedure(Symbol proc, List<Symbol> args) {
-         // create a closure, bind the supplied parameters and return a Object that takes the remaining (?) parameters
-         // Note Uli: if no env, bind to default env so the native functions can be found
-         var env = createFrame(proc.environment!=null ? proc.environment : this.environment);
-         var unboundArgs = new ArrayList<Symbol>();
-         int index = 0;
-         for (var param : proc.arguments) {
+    Object partialApplyProcedure(Symbol proc, List<Symbol> args) {
+        // create a closure, bind the supplied parameters and return a Object that takes the remaining (?) parameters
+        // Note Uli: if no env, bind to default env so the native functions can be found
+        var env = createFrame(proc.environment!=null ? proc.environment : this.environment);
+        var unboundArgs = new ArrayList<Symbol>();
+        int index = 0;
+        for (var param : proc.arguments) {
 //         proc.arguments.forEach(Object (param, index) {
-             Object arg = index<args.size() ? args.get(index) : null;
-             if ((arg==null) || (arg instanceof Symbol && ("operator".equals(((Symbol)arg).type) && "?".equals(((Symbol)arg).value)))) {
-                 unboundArgs.add(param);
-             } else {
-                 env.bind((String)param.value, arg);
-             }
-             index++;
-         }
-         var procedure = parser.new Symbol();
-         procedure._jsonata_lambda = true;
-         procedure.input = proc.input;
-         procedure.environment = env;
-         procedure.arguments = unboundArgs;
-         procedure.body = proc.body;
+            Object arg = index<args.size() ? args.get(index) : null;
+            if ((arg==null) || (arg instanceof Symbol && ("operator".equals(((Symbol)arg).type) && "?".equals(((Symbol)arg).value)))) {
+                unboundArgs.add(param);
+            } else {
+                env.bind((String)param.value, arg);
+            }
+            index++;
+        }
+        var procedure = parser.new Symbol();
+        procedure._jsonata_lambda = true;
+        procedure.input = proc.input;
+        procedure.environment = env;
+        procedure.arguments = unboundArgs;
+        procedure.body = proc.body;
 
-         return procedure;
-     }
+        return procedure;
+    }
  
      /**
       * Partially apply native function
@@ -1942,10 +1929,10 @@ public class Jsonata {
       * @param {Array} args - Arguments
       * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applying native function
       */
-     Object partialApplyNativeFunction(JFunction _native, List args) {
-         // create a lambda Object that wraps and invokes the native function
-         // get the list of declared arguments from the native function
-         // this has to be picked out from the toString() value
+    Object partialApplyNativeFunction(JFunction _native, List args) {
+        // create a lambda Object that wraps and invokes the native function
+        // get the list of declared arguments from the native function
+        // this has to be picked out from the toString() value
 
 
         //var body = "function($a,$c) { $substring($a,0,$c) }";
@@ -1971,13 +1958,13 @@ public class Jsonata {
         //      return "$" + sigArg;
         //  }).toList();
         //  var body = "function(" + String.join(", ", sigArgs) + "){ _ }";
- 
-         var bodyAST = parser.parse(body);
-         //bodyAST.body = _native;
- 
-         var partial = partialApplyProcedure(bodyAST, (List)args);
-         return partial;
-     }
+
+        var bodyAST = parser.parse(body);
+        //bodyAST.body = _native;
+
+        var partial = partialApplyProcedure(bodyAST, (List)args);
+        return partial;
+    }
  
      /**
       * Apply native function
@@ -1985,38 +1972,20 @@ public class Jsonata {
       * @param {Object} env - Environment
       * @returns {*} Result of applying native function
       */
-     /* async */ Object applyNativeFunction(JFunction proc, Frame env) {
-        /* FIXME
-         var sigArgs = getNativeFunctionArguments(proc);
-         // generate the array of arguments for invoking the Object - look them up in the environment
-         var args = sigArgs.map(Object (sigArg) {
-             return env.lookup(sigArg.trim());
-         });
- 
-         var focus = {
-             environment: env
-         };
-         var result = proc.apply(focus, args);
-         if (isPromise(result)) {
-             result = / await / result;
-         }
-         return result;
-         */
-         return null;
-     }
+    /* async */ Object applyNativeFunction(JFunction proc, Frame env) {
+        // Not called in Java - JFunction call directly calls native function
+        return null;
+    }
  
      /**
       * Get native Object arguments
       * @param {Function} func - Function
       * @returns {*|Array} Native Object arguments
       */
-     List getNativeFunctionArguments(JFunction func) {
-         //var signature = func.toString();
-         //var sigParens = /\(([^)]*)\)/.exec(signature)[1]; // the contents of the parens
-         //var sigArgs = sigParens.split(",");
-         //return sigArgs;
-         return null;
-     }
+    List getNativeFunctionArguments(JFunction func) {
+        // Not called in Java
+        return null;
+    }
  
      /**
       * Creates a Object definition
@@ -2057,8 +2026,7 @@ public class Jsonata {
       * @param {Object} enclosingEnvironment - Enclosing environment
       * @returns {{bind: bind, lookup: lookup}} Created frame
       */
-     Frame createFrame(Frame enclosingEnvironment) {
-
+    Frame createFrame(Frame enclosingEnvironment) {
         return new Frame(enclosingEnvironment);
 
         // The following logic is in class Frame:
@@ -2083,7 +2051,7 @@ public class Jsonata {
         //          ancestry: [ null ]
         //      }
         //  };
-     }
+    }
 
     /**
      * JFunction callable Lambda interface
@@ -2146,72 +2114,72 @@ public class Jsonata {
 
      // Function registration
     static void registerFunctions() {
-         defineFunction("sum", "<a<n>:n>");
-         defineFunction("count", "<a:n>");
-         defineFunction("max", "<a<n>:n>");
-         defineFunction("min", "<a<n>:n>");
-         defineFunction("average", "<a<n>:n>");
-         defineFunction("string", "<x-b?:s>");
-         defineFunction("substring", "<s-nn?:s>");
-         defineFunction("substringBefore", "<s-s:s>");
-         defineFunction("substringAfter", "<s-s:s>");
-         defineFunction("lowercase", "<s-:s>");
-         defineFunction("uppercase", "<s-:s>");
-         defineFunction("length", "<s-:n>");
-         defineFunction("trim", "<s-:s>");
-         defineFunction("pad", "<s-ns?:s>");
-         defineFunction("match", "<s-f<s:o>n?:a<o>>");
-         defineFunction("contains", "<s-(sf):b>"); // TODO <s-(sf<s:o>):b>
-         defineFunction("replace", "<s-(sf)(sf)n?:s>"); // TODO <s-(sf<s:o>)(sf<o:s>)n?:s>
-         defineFunction("split", "<s-(sf)n?:a<s>>"); // TODO <s-(sf<s:o>)n?:a<s>>
-         defineFunction("join", "<a<s>s?:s>");
-         defineFunction("formatNumber", "<n-so?:s>");
-         defineFunction("formatBase", "<n-n?:s>");
-         defineFunction("formatInteger", "<n-s:s>");
-         defineFunction("parseInteger", "<s-s:n>");
-         defineFunction("number", "<(nsb)-:n>");
-         defineFunction("floor", "<n-:n>");
-         defineFunction("ceil", "<n-:n>");
-         defineFunction("round", "<n-n?:n>");
-         defineFunction("abs", "<n-:n>");
-         defineFunction("sqrt", "<n-:n>");
-         defineFunction("power", "<n-n:n>");
-         defineFunction("random", "<:n>");
-         defineFunction("boolean", "<x-:b>", "toBoolean");
-         defineFunction("not", "<x-:b>");
-         defineFunction("map", "<af>");
-         defineFunction("zip", "<a+>");
-         defineFunction("filter", "<af>");
-         defineFunction("single", "<af?>");
-         defineFunction("reduce", "<afj?:j>", "foldLeft"); // TODO <f<jj:j>a<j>j?:j>
-         defineFunction("sift", "<o-f?:o>");
-         defineFunction("keys", "<x-:a<s>>");
-         defineFunction("lookup", "<x-s:x>");
-         defineFunction("append", "<xx:a>");
-         defineFunction("exists", "<x:b>");
-         defineFunction("spread", "<x-:a<o>>");
-         defineFunction("merge", "<a<o>:o>");
-         defineFunction("reverse", "<a:a>");
-         defineFunction("each", "<o-f:a>");
-         defineFunction("error", "<s?:x>");
-         defineFunction("assert", "<bs?:x>", "assertFn");
-         defineFunction("type", "<x:s>");
-         defineFunction("sort", "<af?:a>");
-         defineFunction("shuffle", "<a:a>");
-         defineFunction("distinct", "<x:x>");
-         defineFunction("base64encode", "<s-:s>");
-         defineFunction("base64decode", "<s-:s>");
-         defineFunction("encodeUrlComponent", "<s-:s>");
-         defineFunction("encodeUrl", "<s-:s>");
-         defineFunction("decodeUrlComponent", "<s-:s>");
-         defineFunction("decodeUrl", "<s-:s>");
-         defineFunction("eval", "<sx?:x>", "functionEval");
-         defineFunction("toMillis", "<s-s?:n>", "dateTimeToMillis");
-         defineFunction("fromMillis", "<n-s?s?:s>", "dateTimeFromMillis");
-         defineFunction("clone", "<(oa)-:o>", "functionClone");
+        defineFunction("sum", "<a<n>:n>");
+        defineFunction("count", "<a:n>");
+        defineFunction("max", "<a<n>:n>");
+        defineFunction("min", "<a<n>:n>");
+        defineFunction("average", "<a<n>:n>");
+        defineFunction("string", "<x-b?:s>");
+        defineFunction("substring", "<s-nn?:s>");
+        defineFunction("substringBefore", "<s-s:s>");
+        defineFunction("substringAfter", "<s-s:s>");
+        defineFunction("lowercase", "<s-:s>");
+        defineFunction("uppercase", "<s-:s>");
+        defineFunction("length", "<s-:n>");
+        defineFunction("trim", "<s-:s>");
+        defineFunction("pad", "<s-ns?:s>");
+        defineFunction("match", "<s-f<s:o>n?:a<o>>");
+        defineFunction("contains", "<s-(sf):b>"); // TODO <s-(sf<s:o>):b>
+        defineFunction("replace", "<s-(sf)(sf)n?:s>"); // TODO <s-(sf<s:o>)(sf<o:s>)n?:s>
+        defineFunction("split", "<s-(sf)n?:a<s>>"); // TODO <s-(sf<s:o>)n?:a<s>>
+        defineFunction("join", "<a<s>s?:s>");
+        defineFunction("formatNumber", "<n-so?:s>");
+        defineFunction("formatBase", "<n-n?:s>");
+        defineFunction("formatInteger", "<n-s:s>");
+        defineFunction("parseInteger", "<s-s:n>");
+        defineFunction("number", "<(nsb)-:n>");
+        defineFunction("floor", "<n-:n>");
+        defineFunction("ceil", "<n-:n>");
+        defineFunction("round", "<n-n?:n>");
+        defineFunction("abs", "<n-:n>");
+        defineFunction("sqrt", "<n-:n>");
+        defineFunction("power", "<n-n:n>");
+        defineFunction("random", "<:n>");
+        defineFunction("boolean", "<x-:b>", "toBoolean");
+        defineFunction("not", "<x-:b>");
+        defineFunction("map", "<af>");
+        defineFunction("zip", "<a+>");
+        defineFunction("filter", "<af>");
+        defineFunction("single", "<af?>");
+        defineFunction("reduce", "<afj?:j>", "foldLeft"); // TODO <f<jj:j>a<j>j?:j>
+        defineFunction("sift", "<o-f?:o>");
+        defineFunction("keys", "<x-:a<s>>");
+        defineFunction("lookup", "<x-s:x>");
+        defineFunction("append", "<xx:a>");
+        defineFunction("exists", "<x:b>");
+        defineFunction("spread", "<x-:a<o>>");
+        defineFunction("merge", "<a<o>:o>");
+        defineFunction("reverse", "<a:a>");
+        defineFunction("each", "<o-f:a>");
+        defineFunction("error", "<s?:x>");
+        defineFunction("assert", "<bs?:x>", "assertFn");
+        defineFunction("type", "<x:s>");
+        defineFunction("sort", "<af?:a>");
+        defineFunction("shuffle", "<a:a>");
+        defineFunction("distinct", "<x:x>");
+        defineFunction("base64encode", "<s-:s>");
+        defineFunction("base64decode", "<s-:s>");
+        defineFunction("encodeUrlComponent", "<s-:s>");
+        defineFunction("encodeUrl", "<s-:s>");
+        defineFunction("decodeUrlComponent", "<s-:s>");
+        defineFunction("decodeUrl", "<s-:s>");
+        defineFunction("eval", "<sx?:x>", "functionEval");
+        defineFunction("toMillis", "<s-s?:n>", "dateTimeToMillis");
+        defineFunction("fromMillis", "<n-s?s?:s>", "dateTimeFromMillis");
+        defineFunction("clone", "<(oa)-:o>", "functionClone");
 
-         defineFunction("now", "<s?s?:s>");
-         defineFunction("millis", "<:n>");
+        defineFunction("now", "<s?s?:s>");
+        defineFunction("millis", "<:n>");
 
         //  environment.bind("now", defineFunction(function(picture, timezone) {
         //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
@@ -2379,18 +2347,18 @@ public class Jsonata {
       * @param {Function} options.RegexEngine: RegEx class constructor to use
       * @returns {{evaluate: evaluate, assign: assign}} Evaluated expression
       */
-     public Jsonata(String expr, boolean optionsRecover) {
-         try {
-             ast = parser.parse(expr);//, optionsRecover);
-             errors = ast.errors;
-             ast.errors = null; //delete ast.errors;
-         } catch(JException err) {
-             // insert error message into structure
-             //populateMessage(err); // possible side-effects on `err`
-             throw err;
-         }
-         environment = createFrame(staticFrame);
- 
+    public Jsonata(String expr, boolean optionsRecover) {
+        try {
+            ast = parser.parse(expr);//, optionsRecover);
+            errors = ast.errors;
+            ast.errors = null; //delete ast.errors;
+        } catch(JException err) {
+            // insert error message into structure
+            //populateMessage(err); // possible side-effects on `err`
+            throw err;
+        }
+        environment = createFrame(staticFrame);
+
         timestamp = System.currentTimeMillis(); // will be overridden on each call to evalute()
 
         // Note: now and millis are implemented in Functions
