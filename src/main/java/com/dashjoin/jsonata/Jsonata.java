@@ -380,7 +380,6 @@ public class Jsonata {
                      break;
                  case "index":
                      for(var ee = 0; ee < ((List)result).size(); ee++) {
-                        // FIXME: completely unsure if this is correct 
                         var tuple = ((List)result).get(ee);
                         ((Map)tuple).put(""+stage.value, ee);
                      }
