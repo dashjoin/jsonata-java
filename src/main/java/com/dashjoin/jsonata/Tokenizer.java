@@ -100,7 +100,7 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
 
     int depth;
 
-    Pattern scanRegex() throws JException {
+    Pattern scanRegex() {
         // the prefix '/' will have been previously scanned. Find the end of the regex.
         // search for closing '/' ignoring any that are escaped, or within brackets
         int start = position;
@@ -145,7 +145,7 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
         throw new JException("S0302", position);
     };
 
-    Token next(boolean prefix) throws JException {
+    Token next(boolean prefix) {
         if (position >= length) return null;
         char currentChar = path.charAt(position);
         // skip whitespace

@@ -10,7 +10,7 @@ import com.dashjoin.jsonata.Jsonata.JFunctionCallable;
 
 @SuppressWarnings({"rawtypes"})
 public class Utils {
-    public static boolean isNumeric(Object v) throws JException {
+    public static boolean isNumeric(Object v) {
         if (v instanceof Long) return true;
         boolean isNum = false;
         if (v instanceof Number) {
@@ -33,7 +33,7 @@ public class Utils {
         }
         return false;
     }
-    public static boolean isArrayOfNumbers(Object v) throws JException {
+    public static boolean isArrayOfNumbers(Object v) {
         boolean result = false;
         if (v instanceof Collection) {
             for (Object o : ((Collection)v))
@@ -145,7 +145,7 @@ public class Utils {
         // isPromise
 
      
-    public static Number convertNumber(Number n) throws JException {
+    public static Number convertNumber(Number n) {
         // Use long if the number is not fractional
         if (!isNumeric(n)) return null;
         if (n.longValue()==n.doubleValue()) {
@@ -158,7 +158,7 @@ public class Utils {
         return n.doubleValue();
     }
 
-    public static void checkUrl(String str) throws JException {
+    public static void checkUrl(String str) {
       boolean isHigh = false;
       for ( int i=0; i<str.length(); i++) {
         boolean wasHigh = isHigh;

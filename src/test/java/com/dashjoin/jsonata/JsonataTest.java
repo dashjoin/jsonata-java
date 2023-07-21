@@ -66,7 +66,7 @@ public class JsonataTest {
     }
 
     boolean testExpr(String expr, Object data, Map<String,Object> bindings,
-        Object expected, String code) throws JException {
+        Object expected, String code) {
         boolean success = true;
         try {
 
@@ -156,7 +156,7 @@ public class JsonataTest {
     }
 
     @Test
-    public void testSimple() throws JException {
+    public void testSimple() {
         testExpr("42", null, null, 42,null);
         testExpr("(3*(4-2)+1.01e2)/-2", null, null, -53.5,null);
     }

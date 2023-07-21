@@ -50,10 +50,9 @@ public class Functions {
     /**
      * Sum function
      * @param {Object} args - Arguments
-     * @throws JException
      * @returns {number} Total value of arguments
      */
-    public static Number sum(List<Number> args) throws JException {
+    public static Number sum(List<Number> args) {
         // undefined inputs always return undefined
         if (args == null) {
             return null;
@@ -80,10 +79,9 @@ public class Functions {
     /**
      * Max function
      * @param {Object} args - Arguments
-     * @throws JException
      * @returns {number} Max element in the array
      */
-    public static Number max(List<Number> args) throws JException {
+    public static Number max(List<Number> args) {
         // undefined inputs always return undefined
         if (args == null || args.size() == 0) {
             return null;
@@ -99,10 +97,9 @@ public class Functions {
     /**
      * Min function
      * @param {Object} args - Arguments
-     * @throws JException
      * @returns {number} Min element in the array
      */
-    public static Number min(List<Number> args) throws JException {
+    public static Number min(List<Number> args) {
         // undefined inputs always return undefined
         if (args == null || args.size() == 0) {
             return null;
@@ -118,10 +115,9 @@ public class Functions {
     /**
      * Average function
      * @param {Object} args - Arguments
-     * @throws JException
      * @returns {number} Average element in the array
      */
-    public static Number average(List<Number> args) throws JException {
+    public static Number average(List<Number> args) {
         // undefined inputs always return undefined
         if (args == null || args.size() == 0) {
             return null;
@@ -612,10 +608,9 @@ public class Functions {
      * @param {String} str - string
      * @param {String} regex - the regex applied to the string
      * @param {Integer} [limit] - max number of matches to return
-     * @throws JException
      * @returns {Array} The array of match objects
      */
-    public static List<RegexpMatch> match(String str, Pattern regex, Integer limit) throws JException {
+    public static List<RegexpMatch> match(String str, Pattern regex, Integer limit) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
@@ -792,7 +787,7 @@ public class Functions {
         return r;
     }
 
-    public static String replace(String str, Object pattern, Object replacement, Integer limit) throws JException {
+    public static String replace(String str, Object pattern, Object replacement, Integer limit) {
         if (str == null) {
             return null;
         }
@@ -865,7 +860,7 @@ public class Functions {
      * @param {String} str - String to encode
      * @returns {string} Encoded string
      */
-    public static String encodeUrlComponent(String str) throws JException {
+    public static String encodeUrlComponent(String str) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
@@ -887,7 +882,7 @@ public class Functions {
      * @param {String} str - String to encode
      * @returns {string} Encoded string
      */
-    public static String encodeUrl(String str) throws JException {
+    public static String encodeUrl(String str) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
@@ -963,7 +958,7 @@ public class Functions {
         return URLDecoder.decode(str, StandardCharsets.UTF_8);
     }
 
-    public static List<String> split(String str, Object pattern, Number limit) throws JException {
+    public static List<String> split(String str, Object pattern, Number limit) {
         if (str==null )
             return null;
 
@@ -1157,10 +1152,9 @@ public class Functions {
      * Converts a number to a string using a specified number base
      * @param {number} value - the number to convert
      * @param {number} [radix] - the number base; must be between 2 and 36. Defaults to 10
-     * @throws JException
      * @returns {string} - the converted string
      */
-    public static String formatBase(Number value, Number _radix) throws JException {
+    public static String formatBase(Number value, Number _radix) {
         // undefined inputs always return undefined
         if (value == null) {
             return null;
@@ -1191,7 +1185,6 @@ public class Functions {
     /**
      * Cast argument to number
      * @param {Object} arg - Argument
-     * @throws JException
      * @throws NumberFormatException
      * @returns {Number} numeric value of argument
      */
@@ -1227,10 +1220,9 @@ public class Functions {
     /**
      * Absolute value of a number
      * @param {Number} arg - Argument
-     * @throws JException
      * @returns {Number} absolute value of argument
      */
-    public static Number abs(Number arg) throws JException {
+    public static Number abs(Number arg) {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -1244,10 +1236,9 @@ public class Functions {
     /**
      * Rounds a number down to integer
      * @param {Number} arg - Argument
-     * @throws JException
      * @returns {Number} rounded integer
      */
-    public static Number floor(Number arg) throws JException {
+    public static Number floor(Number arg) {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -1260,10 +1251,9 @@ public class Functions {
     /**
      * Rounds a number up to integer
      * @param {Number} arg - Argument
-     * @throws JException
      * @returns {Number} rounded integer
      */
-    public static Number ceil(Number arg) throws JException {
+    public static Number ceil(Number arg) {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -1277,10 +1267,9 @@ public class Functions {
      * Round to half even
      * @param {Number} arg - Argument
      * @param {Number} [precision] - number of decimal places
-     * @throws JException
      * @returns {Number} rounded integer
      */
-    public static Number round(Number arg, Number precision) throws JException {
+    public static Number round(Number arg, Number precision) {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -1298,10 +1287,9 @@ public class Functions {
     /**
      * Square root of number
      * @param {Number} arg - Argument
-     * @throws JException
      * @returns {Number} square root
      */
-    public static Number sqrt(Number arg) throws JException {
+    public static Number sqrt(Number arg) {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -1322,10 +1310,9 @@ public class Functions {
      * Raises number to the power of the second number
      * @param {Number} arg - the base
      * @param {Number} exp - the exponent
-     * @throws JException
      * @returns {Number} rounded integer
      */
-    public static Number power(Number arg, Number exp) throws JException {
+    public static Number power(Number arg, Number exp) {
 
         // undefined inputs always return undefined
         if (arg == null) {
@@ -2201,7 +2188,6 @@ public class Functions {
      * @param {string} value - the string to parse
      * @param {string} picture - the picture string
      * @throws ParseException
-     * @throws JException
      * @returns {number} - the parsed number
      */
     public static Number parseInteger(String value, String picture) throws ParseException, JException {
@@ -2263,10 +2249,9 @@ public class Functions {
     /**
      * parses and evaluates the supplied expression
      * @param {string} expr - expression to evaluate
-     * @throws JException
      * @returns {*} - result of evaluating the expression
      */
-    public static Object functionEval(String expr, Object focus) throws JException {
+    public static Object functionEval(String expr, Object focus) {
         // undefined inputs always return undefined
         if(expr == null) {
             return null;

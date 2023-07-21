@@ -55,11 +55,11 @@ public class Jsonata {
      // Start of Evaluator code
  
     public static interface EntryCallback {
-        void callback(Symbol expr, Object input, Frame environment) throws JException;
+        void callback(Symbol expr, Object input, Frame environment);
     }
 
     public static interface ExitCallback {
-        void callback(Symbol expr, Object input, Frame environment, Object result) throws JException;
+        void callback(Symbol expr, Object input, Frame environment, Object result);
     }
 
     public static class Frame {
@@ -113,10 +113,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     Object evaluate(Symbol expr, Object input, Frame environment) throws JException {
+     Object evaluate(Symbol expr, Object input, Frame environment) {
         Object result = null;
 
         // Store the current input
@@ -229,10 +228,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluatePath(Symbol expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluatePath(Symbol expr, Object input, Frame environment) {
          List inputSequence;
          // expr is an array of steps
          // if the first step is a variable reference ($...), including root reference ($$),
@@ -327,10 +325,9 @@ public class Jsonata {
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
       * @param {boolean} lastStep - flag the last step in a path
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateStep(Symbol expr, Object input, Frame environment, boolean lastStep) throws JException {
+     /* async */ Object evaluateStep(Symbol expr, Object input, Frame environment, boolean lastStep) {
          Object result;
          if(expr.type.equals("sort")) {
               result = /* await */ evaluateSortExpression(expr, input, environment);
@@ -373,7 +370,7 @@ public class Jsonata {
          return resultSequence;
      }
  
-     /* async */ Object evaluateStages(List<Symbol> stages, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateStages(List<Symbol> stages, Object input, Frame environment) {
          var result = input;
          for(var ss = 0; ss < stages.size(); ss++) {
              var stage = stages.get(ss);
@@ -399,10 +396,9 @@ public class Jsonata {
       * @param {Object} input - Input data to evaluate against
       * @param {Object} tupleBindings - The tuple stream
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateTupleStep(Symbol expr, List input, List<Map> tupleBindings, Frame environment) throws JException {
+     /* async */ Object evaluateTupleStep(Symbol expr, List input, List<Map> tupleBindings, Frame environment) {
          List result = null;
          if(expr.type.equals("sort")) {
              if(tupleBindings!=null) {
@@ -478,10 +474,9 @@ public class Jsonata {
       * @param {Object} predicate - filter expression
       * @param {Object} input - Input data to apply predicates against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Result after applying predicates
       */
-     /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment) {
         Symbol predicate = (Symbol)_predicate;
          var results = Utils.createSequence();
          if( input instanceof JList && ((JList)input).tupleStream) {
@@ -543,10 +538,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateBinary(Symbol _expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateBinary(Symbol _expr, Object input, Frame environment) {
         Infix expr = (Infix)_expr;
          Object result = null;
          var lhs = /* await */ evaluate(expr.lhs, input, environment);
@@ -620,10 +614,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateUnary(Symbol expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateUnary(Symbol expr, Object input, Frame environment) {
          Object result = null;
  
          switch ((String)""+expr.value) { // Uli was: expr.value - where is value set???
@@ -806,10 +799,9 @@ public class Jsonata {
       * @param {Object} lhs - LHS value
       * @param {Object} rhs - RHS value
       * @param {Object} op - opcode
-     * @throws JException
       * @returns {*} Result
       */
-     Object evaluateNumericExpression(Object _lhs, Object _rhs, String op) throws JException {
+     Object evaluateNumericExpression(Object _lhs, Object _rhs, String op) {
         double result = 0;
  
          if (_lhs!=null && !Utils.isNumeric(_lhs)) {
@@ -897,7 +889,7 @@ public class Jsonata {
       * @param {Object} op - opcode
       * @returns {*} Result
       */
-     Object evaluateComparisonExpression(Object lhs, Object rhs, String op) throws JException {
+     Object evaluateComparisonExpression(Object lhs, Object rhs, String op) {
          Object result = null;
  
          // type checks
@@ -1049,7 +1041,7 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {{}} Evaluated input data
       */
-     /* async */ Object evaluateGroupExpression(Symbol expr, Object _input, Frame environment) throws JException {
+     /* async */ Object evaluateGroupExpression(Symbol expr, Object _input, Frame environment) {
          var result = new LinkedHashMap<Object,Object>();
          var groups = new LinkedHashMap<Object,GroupEntry>();
          var reduce = (_input instanceof JList) && ((JList)_input).tupleStream ? true : false;
@@ -1164,10 +1156,9 @@ public class Jsonata {
       * Evaluate range expression against input data
       * @param {Object} lhs - LHS value
       * @param {Object} rhs - RHS value
-     * @throws JException
       * @returns {Array} Resultant array
       */
-     Object evaluateRangeExpression(Object lhs, Object rhs) throws JException {
+     Object evaluateRangeExpression(Object lhs, Object rhs) {
          Object result = null;
  
          if (lhs != null && (!(lhs instanceof Long) && !(lhs instanceof Integer))) {
@@ -1217,10 +1208,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateBindExpression(Symbol expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateBindExpression(Symbol expr, Object input, Frame environment) {
          // The RHS is the expression to evaluate
          // The LHS is the name of the variable to bind to - should be a VARIABLE token (enforced by parser)
          var value = /* await */ evaluate(expr.rhs, input, environment);
@@ -1233,10 +1223,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateCondition(Symbol expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateCondition(Symbol expr, Object input, Frame environment) {
          Object result = null;
          var condition = /* await */ evaluate(expr.condition, input, environment);
          if (boolize(condition)) {
@@ -1252,10 +1241,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateBlock(Symbol expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateBlock(Symbol expr, Object input, Frame environment) {
         Object result = null;
         //Infix expr = (Infix)_expr;
          // create a new frame to limit the scope of variable assignments
@@ -1372,14 +1360,8 @@ public class Jsonata {
                      context = ((Map)a).get("@");
                      env = createFrameFromTuple(environment, (Map)a);
                  }
-                Object aa;
-                try {
-                    aa = /* await */ evaluate(term.expression, context, env);
-                } catch (JException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
+                Object aa = /* await */ evaluate(term.expression, context, env);
+
                  //evaluate the sort term in the context of b
                  context = b;
                  env = environment;
@@ -1387,14 +1369,7 @@ public class Jsonata {
                      context = ((Map)b).get("@");
                      env = createFrameFromTuple(environment, (Map)b);
                  }
-                 Object bb;
-                try {
-                    bb = /* await */ evaluate(term.expression, context, env);
-                } catch (JException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
+                 Object bb = /* await */ evaluate(term.expression, context, env);
  
                 // type checks
                 //  var atype = typeof aa;
@@ -1414,11 +1389,11 @@ public class Jsonata {
                  if(!(aa instanceof Number || aa instanceof String) ||
                  !(bb instanceof Number || bb instanceof String) 
                  ) {
-                     throw new RuntimeException(new JException("T2008",
+                     throw new JException("T2008",
                         expr.position,
                         aa,
                         bb
-                     ) );
+                     );
                  }
  
                  //if aa and bb are not of the same type
@@ -1431,11 +1406,11 @@ public class Jsonata {
                 }
 
                  if(!sameType) {
-                     throw new RuntimeException( new JException("T2007",
+                     throw new JException("T2007",
                         expr.position,
                         aa,
                         bb
-                     ) );
+                     );
                  }
                  if(aa.equals(bb)) {
                      // both the same - move on to next term
@@ -1562,7 +1537,7 @@ public class Jsonata {
  
     static Symbol chainAST; // = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
  
-    static Symbol chainAST() throws JException {
+    static Symbol chainAST() {
         if (chainAST==null) {
             // only create on demand
             chainAST = new Parser().parse("function($f, $g) { function($x){ $g($f($x)) } }");
@@ -1575,10 +1550,9 @@ public class Jsonata {
       * @param {Object} expr - JSONata expression
       * @param {Object} input - Input data to evaluate against
       * @param {Object} environment - Environment
-     * @throws JException
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateApplyExpression(Symbol expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluateApplyExpression(Symbol expr, Object input, Frame environment) {
          Object result = null;
  
  
@@ -1634,7 +1608,7 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Object applytoContext) throws JException {
+     /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Object applytoContext) {
          Object result = null;
 
          current.set(this);
@@ -1722,7 +1696,7 @@ public class Jsonata {
       * @param {Object} environment - environment
       * @returns {*} Result of procedure
       */
-     /* async */ Object apply(Object proc, Object args, Object input, Object environment) throws JException {
+     /* async */ Object apply(Object proc, Object args, Object input, Object environment) {
          var result = /* await */ applyInner(proc, args, input, environment);
          while(Functions.isLambda(result) && ((Symbol)result).thunk == true) {
              // trampoline loop - this gets invoked as a result of tail-call optimization
@@ -1753,7 +1727,7 @@ public class Jsonata {
       * @param {Object} environment - environment
       * @returns {*} Result of procedure
       */
-     /* async */ Object applyInner(Object proc, Object args, Object input, Object environment) throws JException {
+     /* async */ Object applyInner(Object proc, Object args, Object input, Object environment) {
          Object result = null;
          try {
              var validatedArgs = args;
@@ -1858,7 +1832,7 @@ public class Jsonata {
       * @param {Object} environment - Environment
       * @returns {*} Evaluated input data
       */
-     /* async */ Object evaluatePartialApplication(Symbol expr, Object input, Frame environment) throws JException {
+     /* async */ Object evaluatePartialApplication(Symbol expr, Object input, Frame environment) {
          // partially apply a function
          Object result = null;
          // evaluate the arguments
@@ -1901,10 +1875,9 @@ public class Jsonata {
       * @param {Function} signature - validator function
       * @param {Array} args - Object arguments
       * @param {*} context - context value
-     * @throws JException
       * @returns {Array} - validated arguments
       */
-     Object validateArguments(Object signature, Object args, Object context) throws JException {
+     Object validateArguments(Object signature, Object args, Object context) {
         var validatedArgs = args;
         if (Utils.isFunction(signature)) {
             validatedArgs = ((JFunction)signature).validate(args, context);
@@ -1920,10 +1893,9 @@ public class Jsonata {
       * Apply procedure
       * @param {Object} proc - Procedure
       * @param {Array} args - Arguments
-     * @throws JException
       * @returns {*} Result of procedure
       */
-     /* async */ Object applyProcedure(Object _proc, Object _args) throws JException {
+     /* async */ Object applyProcedure(Object _proc, Object _args) {
         List args = (List)_args;
         Symbol proc = (Symbol)_proc;
         Object result = null;
@@ -1977,10 +1949,9 @@ public class Jsonata {
       * Partially apply native function
       * @param {Function} native - Native function
       * @param {Array} args - Arguments
-     * @throws JException
       * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applying native function
       */
-     Object partialApplyNativeFunction(JFunction _native, List args) throws JException {
+     Object partialApplyNativeFunction(JFunction _native, List args) {
          // create a lambda Object that wraps and invokes the native function
          // get the list of declared arguments from the native function
          // this has to be picked out from the toString() value
@@ -2130,7 +2101,7 @@ public class Jsonata {
     }
 
     public static interface JFunctionSignatureValidation {
-        Object validate(Object args, Object context) throws JException;
+        Object validate(Object args, Object context);
     }
 
     /**
@@ -2157,7 +2128,7 @@ public class Jsonata {
         }
 
         @Override
-        public Object call(Object input, Object args) throws JException {
+        public Object call(Object input, Object args) {
             try {
                 if (function!=null) {
                     return function.call(input, args);
@@ -2172,7 +2143,7 @@ public class Jsonata {
         }
 
         @Override
-        public Object validate(Object args, Object context) throws JException {
+        public Object validate(Object args, Object context) {
             return signature.validate(args, context);
         }
 
@@ -2416,7 +2387,7 @@ public class Jsonata {
       * @param {Function} options.RegexEngine: RegEx class constructor to use
       * @returns {{evaluate: evaluate, assign: assign}} Evaluated expression
       */
-     public Jsonata(String expr, boolean optionsRecover) throws JException {
+     public Jsonata(String expr, boolean optionsRecover) {
          try {
              ast = parser.parse(expr);//, optionsRecover);
              errors = ast.errors;
@@ -2447,7 +2418,7 @@ public class Jsonata {
     }
 
     /* async */
-    public Object evaluate(Object input, Frame bindings) throws JException { // FIXME:, callback) {
+    public Object evaluate(Object input, Frame bindings) { // FIXME:, callback) {
                  // throw if the expression compiled with syntax errors
                  if(errors != null) {
                     //  var err = {

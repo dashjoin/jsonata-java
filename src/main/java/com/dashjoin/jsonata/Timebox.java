@@ -43,7 +43,7 @@ public class Timebox {
         });
     }
 
-    void checkRunnaway() throws JException {
+    void checkRunnaway() {
         if (depth > maxDepth) {
             // stack too deep
             throw new JException("Stack overflow error: Check for non-terminating recursive function.  Consider rewriting as tail-recursive. Depth="+depth+" max="+maxDepth,-1);

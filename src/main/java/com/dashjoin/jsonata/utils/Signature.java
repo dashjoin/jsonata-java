@@ -251,7 +251,7 @@ public class Signature implements Serializable {
         return _regex;
     }
 
-    void throwValidationError(List<?> badArgs, String badSig, String functionName) throws JException {
+    void throwValidationError(List<?> badArgs, String badSig, String functionName) {
         // to figure out where this went wrong we need apply each component of the
         // regex to each argument until we get to the one that fails to match
         String partialPattern = "^";
@@ -273,7 +273,7 @@ public class Signature implements Serializable {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Object validate(Object _args, Object context) throws JException {
+    public Object validate(Object _args, Object context) {
 
         var result = new ArrayList<>();
 
