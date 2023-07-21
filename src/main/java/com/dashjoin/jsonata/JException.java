@@ -4,7 +4,7 @@ import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.regex.Matcher;
 
-public class JException extends Exception {
+public class JException extends RuntimeException {
 
     String error;
     int location;
