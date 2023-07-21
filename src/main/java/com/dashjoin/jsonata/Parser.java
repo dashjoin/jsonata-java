@@ -38,7 +38,7 @@ public class Parser {
         HashMap<String, Symbol> symbolTable = new HashMap<>();
         List<Exception> errors = new ArrayList<>();
 
-        List<Token> remainingTokens() throws JException {
+        List<Token> remainingTokens() {
             List<Token> remaining = new ArrayList<>();
             if (!node.id.equals("(end)")) {
                 Token t = new Token();
@@ -140,7 +140,7 @@ public class Parser {
         public Symbol ancestor;
 
 
-        Symbol nud() throws JException {
+        Symbol nud() {
             // error - symbol has been invoked as a unary operator
             final JException _err = new JException("S0211", position, value);
 
@@ -159,7 +159,7 @@ public class Parser {
             }
         }
 
-        Symbol led(Symbol left) throws JException {
+        Symbol led(Symbol left) {
             throw new Error("led not implemented");
         }
 
@@ -225,7 +225,7 @@ public class Parser {
         }
     }
         
-        public Symbol handleError(JException err) throws JException {
+        public Symbol handleError(JException err) {
             if (recover) {
                 err.remaining = remainingTokens();
                 errors.add(err);
@@ -240,9 +240,9 @@ public class Parser {
         }
         //}
 
-        Symbol advance() throws JException { return advance(null); }
-        Symbol advance(String id) throws JException { return advance(id, false); }
-        Symbol advance(String id, boolean infix) throws JException {
+        Symbol advance() { return advance(null); }
+        Symbol advance(String id) { return advance(id, false); }
+        Symbol advance(String id, boolean infix) {
             if (id!=null && !node.id.equals(id)) {
                 String code;
                 if (node.id.equals("(end)")) {
@@ -306,7 +306,7 @@ public class Parser {
         }
 
         // Pratt's algorithm
-        Symbol expression(int rbp) throws JException {
+        Symbol expression(int rbp) {
             Symbol left;
             Symbol t = node;
             advance(null, true);
@@ -349,7 +349,7 @@ public class Parser {
             }
 
             @Override
-            Symbol led(Symbol left) throws JException {
+            Symbol led(Symbol left) {
                 lhs = left; rhs = expression(bp);
                 type = "binary";
                 return this;
@@ -367,7 +367,7 @@ public class Parser {
                 prefix = new Prefix(id);
             }
 
-            @Override Symbol nud() throws JException {
+            @Override Symbol nud() {
                 return prefix.nud();
                 // expression(70);
                 // type="unary";
@@ -427,7 +427,7 @@ public class Parser {
             //Symbol _expression;
 
             @Override
-            Symbol nud() throws JException {
+            Symbol nud() {
                 expression = expression(70);
                 type = "unary";
                 return this;
@@ -574,7 +574,7 @@ public class Parser {
         // function invocation
         register(new Infix("(", Tokenizer.operators.get("(")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
             // left is is what we are trying to invoke
             this.procedure = left;
             this.type = "function";
@@ -636,79 +636,11 @@ public class Parser {
             }
         //});
 
-        /*
-        infix("(", operators['('], function (left) {
-            // left is is what we are trying to invoke
-            this.procedure = left;
-            this.type = 'function';
-            this.arguments = [];
-            if (node.id !== ')') {
-                for (; ;) {
-                    if (node.type === "operator" && node.id === '?') {
-                        // partial function application
-                        this.type = 'partial';
-                        this.arguments.push(node);
-                        advance('?');
-                    } else {
-                        this.arguments.push(expression(0));
-                    }
-                    if (node.id !== ',') break;
-                    advance(',');
-                }
-            }
-            advance(")", true);
-            // if the name of the function is 'function' or λ, then this is function definition (lambda function)
-            if (left.type === 'name' && (left.value === 'function' || left.value === '\u03BB')) {
-                // all of the args must be VARIABLE tokens
-                this.arguments.forEach(function (arg, index) {
-                    if (arg.type !== 'variable') {
-                        return handleError({
-                            code: "S0208",
-                            stack: (new Error()).stack,
-                            position: arg.position,
-                            token: arg.value,
-                            value: index + 1
-                        });
-                    }
-                });
-                this.type = 'lambda';
-                // is the next token a '<' - if so, parse the function signature
-                if (node.id === '<') {
-                    var sigPos = node.position;
-                    var depth = 1;
-                    var sig = '<';
-                    while (depth > 0 && node.id !== '{' && node.id !== '(end)') {
-                        var tok = advance();
-                        if (tok.id === '>') {
-                            depth--;
-                        } else if (tok.id === '<') {
-                            depth++;
-                        }
-                        sig += tok.value;
-                    }
-                    advance('>');
-                    try {
-                        this.signature = parseSignature(sig);
-                    } catch (err) {
-                        // insert the position into this error
-                        err.position = sigPos + err.offset;
-                        return handleError(err);
-                    }
-                }
-                // parse the function body
-                advance('{');
-                this.body = expression(0);
-                advance('}');
-            }
-            return this;
-        });
-        */
-
         // parenthesis - block expression
         // Note: in Java both nud and led are in same class!
         //register(new Prefix("(") {
 
-            @Override Symbol nud() throws JException {
+            @Override Symbol nud() {
                 if (dbg) System.out.println("Prefix (");
                 List<Symbol> expressions = new ArrayList<>();
                 while (!node.id.equals(")")) {
@@ -725,31 +657,12 @@ public class Parser {
             }
         });
 
-        /*
-        prefix("(", function () {
-            var expressions = [];
-            while (node.id !== ")") {
-                expressions.push(expression(0));
-                if (node.id !== ";") {
-                    break;
-                }
-                advance(";");
-            }
-            advance(")", true);
-            this.type = 'block';
-            this.expressions = expressions;
-            return this;
-        });
-
-        */
-
-
         // array constructor
 
         // merged: register(new Prefix("[") {        
         register(new Infix("[", Tokenizer.operators.get("[")) {
 
-            @Override Symbol nud() throws JException {
+            @Override Symbol nud() {
                 List<Symbol> a = new ArrayList<>();
                 if (!node.id.equals("]")) {
                     for (; ;) {
@@ -776,39 +689,10 @@ public class Parser {
             }
         //});
 
-        /*
-        prefix("[", function () {
-            var a = [];
-            if (node.id !== "]") {
-                for (; ;) {
-                    var item = expression(0);
-                    if (node.id === "..") {
-                        // range operator
-                        var range = {type: "binary", value: "..", position: node.position, lhs: item};
-                        advance("..");
-                        range.rhs = expression(0);
-                        item = range;
-                    }
-                    a.push(item);
-                    if (node.id !== ",") {
-                        break;
-                    }
-                    advance(",");
-                }
-            }
-            advance("]", true);
-            this.expressions = a;
-            this.type = "unary";
-            return this;
-        });
-
-        */
-
-
         // filter - predicate or array index
         //register(new Infix("[", Tokenizer.operators.get("[")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
                 if (node.id.equals("]")) {
                     // empty predicate means maintain singleton arrays in the output
                     var step = left;
@@ -827,33 +711,11 @@ public class Parser {
                 }
                 }
         });
-                
-
-        /*
-        infix("[", operators['['], function (left) {
-            if (node.id === "]") {
-                // empty predicate means maintain singleton arrays in the output
-                var step = left;
-                while (step && step.type === 'binary' && step.value === '[') {
-                    step = step.lhs;
-                }
-                step.keepArray = true;
-                advance("]");
-                return left;
-            } else {
-                this.lhs = left;
-                this.rhs = expression(operators[']']);
-                this.type = 'binary';
-                advance("]", true);
-                return this;
-            }
-        });
-        */
 
         // order-by
         register(new Infix("^", Tokenizer.operators.get("^")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
                 advance("(");
                 List<Symbol> terms = new ArrayList<>();
                 for (; ;) {
@@ -885,51 +747,18 @@ public class Parser {
             }
         });
 
-        /*
-        infix("^", operators['^'], function (left) {
-            advance("(");
-            var terms = [];
-            for (; ;) {
-                var term = {
-                    descending: false
-                };
-                if (node.id === "<") {
-                    // ascending sort
-                    advance("<");
-                } else if (node.id === ">") {
-                    // descending sort
-                    term.descending = true;
-                    advance(">");
-                } else {
-                    //unspecified - default to ascending
-                }
-                term.expression = expression(0);
-                terms.push(term);
-                if (node.id !== ",") {
-                    break;
-                }
-                advance(",");
-            }
-            advance(")");
-            this.lhs = left;
-            this.rhs = terms;
-            this.type = 'binary';
-            return this;
-        });
-        */
-
         register(new Infix("{", Tokenizer.operators.get("{")) {
 
         // merged register(new Prefix("{") {
 
-            @Override Symbol nud() throws JException {
+            @Override Symbol nud() {
                 return objectParser(null);
             }
         // });
 
         // register(new Infix("{", Tokenizer.operators.get("{")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
                 return objectParser(left);
             }
         });
@@ -974,7 +803,7 @@ public class Parser {
         // bind variable
         register(new InfixR(":=", Tokenizer.operators.get(":=")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
                 if (!left.type.equals("variable")) {
                     return handleError(new JException(
                         "S0212",
@@ -989,27 +818,10 @@ public class Parser {
             }
         });
 
-        /*
-        infixr(":=", operators[':='], function (left) {
-            if (left.type !== 'variable') {
-                return handleError({
-                    code: "S0212",
-                    stack: (new Error()).stack,
-                    position: left.position,
-                    token: left.value
-                });
-            }
-            this.lhs = left;
-            this.rhs = expression(operators[':='] - 1); // subtract 1 from bindingPower for right associative operators
-            this.type = "binary";
-            return this;
-        });
-        */
-
         // focus variable bind
         register(new Infix("@", Tokenizer.operators.get("@")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
                 this.lhs = left;
                 this.rhs = expression(Tokenizer.operators.get("@"));
                 if(!this.rhs.type.equals("variable")) {
@@ -1023,27 +835,10 @@ public class Parser {
             }
         });
 
-        /*
-        infix("@", operators['@'], function (left) {
-            this.lhs = left;
-            this.rhs = expression(operators['@']);
-            if(this.rhs.type !== 'variable') {
-                return handleError({
-                    code: "S0214",
-                    stack: (new Error()).stack,
-                    position: this.rhs.position,
-                    token: "@"
-                });
-            }
-            this.type = "binary";
-            return this;
-        });
-        */
-
         // index (position) variable bind
         register(new Infix("#", Tokenizer.operators.get("#")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
                 this.lhs = left;
                 this.rhs = expression(Tokenizer.operators.get("#"));
                 if(!this.rhs.type.equals("variable")) {
@@ -1057,28 +852,10 @@ public class Parser {
             }
         });
 
-
-        /*
-        infix("#", operators['#'], function (left) {
-            this.lhs = left;
-            this.rhs = expression(operators['#']);
-            if(this.rhs.type !== 'variable') {
-                return handleError({
-                    code: "S0214",
-                    stack: (new Error()).stack,
-                    position: this.rhs.position,
-                    token: "#"
-                });
-            }
-            this.type = "binary";
-            return this;
-        });
-        */
-
         // if/then/else ternary operator ?:
         register(new Infix("?", Tokenizer.operators.get("?")) {
 
-            @Override Symbol led(Symbol left) throws JException {
+            @Override Symbol led(Symbol left) {
                 this.type = "condition";
                 this.condition = left;
                 this.then = expression(0);
@@ -1091,25 +868,10 @@ public class Parser {
             }
         });
 
-
-        /*
-        infix("?", operators['?'], function (left) {
-            this.type = 'condition';
-            this.condition = left;
-            this.then = expression(0);
-            if (node.id === ':') {
-                // else condition
-                advance(":");
-                this.else = expression(0);
-            }
-            return this;
-        });
-        */
-
         // object transformer
         register(new Prefix("|") {
 
-            @Override Symbol nud() throws JException {
+            @Override Symbol nud() {
                 this.type = "transform";
                 this.pattern = Parser.this.expression(0);
                 advance("|");
@@ -1161,7 +923,7 @@ public class Parser {
     int ancestorIndex = 0;
     List<Symbol> ancestry = new ArrayList<>();
 
-    Symbol seekParent(Symbol node, Symbol slot) throws JException {
+    Symbol seekParent(Symbol node, Symbol slot) {
         switch (node.type) {
             case "name":
             case "wildcard":
@@ -1223,7 +985,7 @@ public class Parser {
         }
     }
 
-    void resolveAncestry(Symbol path) throws JException {
+    void resolveAncestry(Symbol path) {
         var index = path.steps.size() - 1;
         var laststep = path.steps.get(index);
         var slots = (laststep.seekingParent != null) ? laststep.seekingParent : new ArrayList<Symbol>();
@@ -1259,7 +1021,7 @@ public class Parser {
     // This includes flattening the parts of the AST representing location paths,
     // converting them to arrays of steps which in turn may contain arrays of predicates.
     // following this, nodes containing '.' and '[' should be eliminated from the AST.
-    Symbol processAST(Symbol expr) throws JException {
+    Symbol processAST(Symbol expr) {
         Symbol result = expr;
         if (expr==null) return null;
         if (dbg) System.out.println(" > processAST type="+expr.type+" value='"+expr.value+"'");
@@ -1384,12 +1146,7 @@ public class Parser {
                                 final var _step = step;
                                 predicate.seekingParent.forEach(slot -> {
                                     if(slot.level == 1) {
-                                        try {
-                                            seekParent(_step, slot);
-                                        } catch (JException e) {
-                                            // TODO Auto-generated catch block
-                                            e.printStackTrace();
-                                        }
+                                        seekParent(_step, slot);
                                     } else {
                                         slot.level--;
                                     }
@@ -1425,22 +1182,8 @@ public class Parser {
                             }
                             // object constructor - process each pair
                             result.group = new Symbol();
-                            // FIXME
                             result.group.lhsObject = expr.rhsObject.stream().map(pair -> {
-                                    Symbol p0=null, p1=null;
-                                    try {
-                                        p0 = processAST(pair[0]);
-                                    } catch (JException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }
-                                    try {
-                                        p1 = processAST(pair[1]);
-                                    } catch (JException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }
-                                    return new Symbol[] {p0, p1};
+                                    return new Symbol[] {processAST(pair[0]), processAST(pair[1])};
                                 }).toList();
                             result.group.position = expr.position;
                         break;
@@ -1457,13 +1200,7 @@ public class Parser {
                         }
                         var sortStep = new Symbol(); sortStep.type = "sort"; sortStep.position = expr.position;                        
                         sortStep.terms = expr.rhsTerms.stream().map(terms -> {
-                            Symbol expression = null;
-                            try {
-                                expression = processAST(terms.expression);
-                            } catch (JException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            }
+                            Symbol expression = processAST(terms.expression);
                             pushAncestry(sortStep, expression);
                             Symbol res = new Symbol();
                             res.descending = terms.descending;
@@ -1549,8 +1286,6 @@ public class Parser {
             }
 
             case "unary": {
-                //System.out.println("case unary "+expr.value.getClass());
-                // result = {type: expr.type, value: expr.value, position: expr.position};
                 result = new Symbol();
                 result.type = expr.type; result.value = expr.value; result.position = expr.position;
                 // expr.value might be Character!
@@ -1560,13 +1295,7 @@ public class Parser {
                     // array constructor - process each item
                     final Symbol _result = result;
                     result.expressions = expr.expressions.stream().map(item -> {
-                        Symbol value = null;
-                        try {
-                            value = processAST(item);
-                        } catch (JException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
+                        Symbol value = processAST(item);
                         pushAncestry(_result, value);
                         return value;
                     }
@@ -1576,21 +1305,9 @@ public class Parser {
                     //throw new Error("processAST {} unimpl");
                     final Symbol _result = result;
                     result.lhsObject = expr.lhsObject.stream().map(pair -> {
-                        Symbol key = null;;
-                        try {
-                            key = processAST(pair[0]);
-                        } catch (JException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
+                        Symbol key = processAST(pair[0]);
                         pushAncestry(_result, key);
-                        Symbol value = null;
-                        try {
-                            value = processAST(pair[1]);
-                        } catch (JException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
+                        Symbol value = processAST(pair[1]);
                         pushAncestry(_result, value);
                         return new Symbol[] {key, value};
                     }).toList();
@@ -1615,13 +1332,7 @@ public class Parser {
                 result.type = expr.type; result.name = expr.name; result.value = expr.value; result.position = expr.position;
                 final Symbol _result = result;
                 result.arguments = expr.arguments.stream().map(arg -> {
-                    Symbol argAST = null;
-                    try {
-                        argAST = processAST(arg);
-                    } catch (JException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
+                    Symbol argAST = processAST(arg);
                     pushAncestry(_result, argAST);
                     return argAST;
                 }).toList();
@@ -1663,13 +1374,7 @@ public class Parser {
                 // array of expressions - process each one
                 final Symbol __result = result;
                 result.expressions = expr.expressions.stream().map(item -> {
-                    Symbol part = null;
-                    try {
-                        part = processAST(item);
-                    } catch (JException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
+                    Symbol part = processAST(item);
                     pushAncestry(__result, part);
                     if (part.consarray || (part.type.equals("path") && part.steps.get(0).consarray)) {
                         __result.consarray = true;
@@ -1753,514 +1458,7 @@ public class Parser {
         return result;
     }
 
-        /*
-        prefix("|", function () {
-            this.type = 'transform';
-            this.pattern = expression(0);
-            advance('|');
-            this.update = expression(0);
-            if (node.id === ',') {
-                advance(',');
-                this.delete = expression(0);
-            }
-            advance('|');
-            return this;
-        });
-
-    }
-
-        // tail call optimization
-        // this is invoked by the post parser to analyse lambda functions to see
-        // if they make a tail call.  If so, it is replaced by a thunk which will
-        // be invoked by the trampoline loop during function application.
-        // This enables tail-recursive functions to be written without growing the stack
-        var tailCallOptimize = function (expr) {
-            var result;
-            if (expr.type === 'function' && !expr.predicate) {
-                var thunk = {type: 'lambda', thunk: true, arguments: [], position: expr.position};
-                thunk.body = expr;
-                result = thunk;
-            } else if (expr.type === 'condition') {
-                // analyse both branches
-                expr.then = tailCallOptimize(expr.then);
-                if (typeof expr.else !== 'undefined') {
-                    expr.else = tailCallOptimize(expr.else);
-                }
-                result = expr;
-            } else if (expr.type === 'block') {
-                // only the last expression in the block
-                var length = expr.expressions.length;
-                if (length > 0) {
-                    expr.expressions[length - 1] = tailCallOptimize(expr.expressions[length - 1]);
-                }
-                result = expr;
-            } else {
-                result = expr;
-            }
-            return result;
-        };
-
-        var ancestorLabel = 0;
-        var ancestorIndex = 0;
-        var ancestry = [];
-
-        var seekParent = function (node, slot) {
-            switch (node.type) {
-                case 'name':
-                case 'wildcard':
-                    slot.level--;
-                    if(slot.level === 0) {
-                        if (typeof node.ancestor === 'undefined') {
-                            node.ancestor = slot;
-                        } else {
-                            // reuse the existing label
-                            ancestry[slot.index].slot.label = node.ancestor.label;
-                            node.ancestor = slot;
-                        }
-                        node.tuple = true;
-                    }
-                    break;
-                case 'parent':
-                    slot.level++;
-                    break;
-                case 'block':
-                    // look in last expression in the block
-                    if(node.expressions.length > 0) {
-                        node.tuple = true;
-                        slot = seekParent(node.expressions[node.expressions.length - 1], slot);
-                    }
-                    break;
-                case 'path':
-                    // last step in path
-                    node.tuple = true;
-                    var index = node.steps.length - 1;
-                    slot = seekParent(node.steps[index--], slot);
-                    while (slot.level > 0 && index >= 0) {
-                        // check previous steps
-                        slot = seekParent(node.steps[index--], slot);
-                    }
-                    break;
-                default:
-                    // error - can't derive ancestor
-                    throw {
-                        code: "S0217",
-                        token: node.type,
-                        position: node.position
-                    };
-            }
-            return slot;
-        };
-
-        var pushAncestry = function(result, value) {
-            if(typeof value.seekingParent !== 'undefined' || value.type === 'parent') {
-                var slots = (typeof value.seekingParent !== 'undefined') ? value.seekingParent : [];
-                if (value.type === 'parent') {
-                    slots.push(value.slot);
-                }
-                if(typeof result.seekingParent === 'undefined') {
-                    result.seekingParent = slots;
-                } else {
-                    Array.prototype.push.apply(result.seekingParent, slots);
-                }
-            }
-        };
-
-        var resolveAncestry = function(path) {
-            var index = path.steps.length - 1;
-            var laststep = path.steps[index];
-            var slots = (typeof laststep.seekingParent !== 'undefined') ? laststep.seekingParent : [];
-            if (laststep.type === 'parent') {
-                slots.push(laststep.slot);
-            }
-            for(var is = 0; is < slots.length; is++) {
-                var slot = slots[is];
-                index = path.steps.length - 2;
-                while (slot.level > 0) {
-                    if (index < 0) {
-                        if(typeof path.seekingParent === 'undefined') {
-                            path.seekingParent = [slot];
-                        } else {
-                            path.seekingParent.push(slot);
-                        }
-                        break;
-                    }
-                    // try previous step
-                    var step = path.steps[index--];
-                    // multiple contiguous steps that bind the focus should be skipped
-                    while(index >= 0 && step.focus && path.steps[index].focus) {
-                        step = path.steps[index--];
-                    }
-                    slot = seekParent(step, slot);
-                }
-            }
-        };
-
-        // post-parse stage
-        // the purpose of this is to add as much semantic value to the parse tree as possible
-        // in order to simplify the work of the evaluator.
-        // This includes flattening the parts of the AST representing location paths,
-        // converting them to arrays of steps which in turn may contain arrays of predicates.
-        // following this, nodes containing '.' and '[' should be eliminated from the AST.
-        var processAST = function (expr) {
-            var result;
-            switch (expr.type) {
-                case 'binary':
-                    switch (expr.value) {
-                        case '.':
-                            var lstep = processAST(expr.lhs);
-
-                            if (lstep.type === 'path') {
-                                result = lstep;
-                            } else {
-                                result = {type: 'path', steps: [lstep]};
-                            }
-                            if(lstep.type === 'parent') {
-                                result.seekingParent = [lstep.slot];
-                            }
-                            var rest = processAST(expr.rhs);
-                            if (rest.type === 'function' &&
-                                rest.procedure.type === 'path' &&
-                                rest.procedure.steps.length === 1 &&
-                                rest.procedure.steps[0].type === 'name' &&
-                                result.steps[result.steps.length - 1].type === 'function') {
-                                // next function in chain of functions - will override a thenable
-                                result.steps[result.steps.length - 1].nextFunction = rest.procedure.steps[0].value;
-                            }
-                            if (rest.type === 'path') {
-                                Array.prototype.push.apply(result.steps, rest.steps);
-                            } else {
-                                if(typeof rest.predicate !== 'undefined') {
-                                    rest.stages = rest.predicate;
-                                    delete rest.predicate;
-                                }
-                                result.steps.push(rest);
-                            }
-                            // any steps within a path that are string literals, should be changed to 'name'
-                            result.steps.filter(function (step) {
-                                if (step.type === 'number' || step.type === 'value') {
-                                    // don't allow steps to be numbers or the values true/false/null
-                                    throw {
-                                        code: "S0213",
-                                        stack: (new Error()).stack,
-                                        position: step.position,
-                                        value: step.value
-                                    };
-                                }
-                                return step.type === 'string';
-                            }).forEach(function (lit) {
-                                lit.type = 'name';
-                            });
-                            // any step that signals keeping a singleton array, should be flagged on the path
-                            if (result.steps.filter(function (step) {
-                                return step.keepArray === true;
-                            }).length > 0) {
-                                result.keepSingletonArray = true;
-                            }
-                            // if first step is a path constructor, flag it for special handling
-                            var firststep = result.steps[0];
-                            if (firststep.type === 'unary' && firststep.value === '[') {
-                                firststep.consarray = true;
-                            }
-                            // if the last step is an array constructor, flag it so it doesn't flatten
-                            var laststep = result.steps[result.steps.length - 1];
-                            if (laststep.type === 'unary' && laststep.value === '[') {
-                                laststep.consarray = true;
-                            }
-                            resolveAncestry(result);
-                            break;
-                        case '[':
-                            // predicated step
-                            // LHS is a step or a predicated step
-                            // RHS is the predicate expr
-                            result = processAST(expr.lhs);
-                            var step = result;
-                            var type = 'predicate';
-                            if (result.type === 'path') {
-                                step = result.steps[result.steps.length - 1];
-                                type = 'stages';
-                            }
-                            if (typeof step.group !== 'undefined') {
-                                throw {
-                                    code: "S0209",
-                                    stack: (new Error()).stack,
-                                    position: expr.position
-                                };
-                            }
-                            if (typeof step[type] === 'undefined') {
-                                step[type] = [];
-                            }
-                            var predicate = processAST(expr.rhs);
-                            if(typeof predicate.seekingParent !== 'undefined') {
-                                predicate.seekingParent.forEach(slot => {
-                                    if(slot.level === 1) {
-                                        seekParent(step, slot);
-                                    } else {
-                                        slot.level--;
-                                    }
-                                });
-                                pushAncestry(step, predicate);
-                            }
-                            step[type].push({type: 'filter', expr: predicate, position: expr.position});
-                            break;
-                        case '{':
-                            // group-by
-                            // LHS is a step or a predicated step
-                            // RHS is the object constructor expr
-                            result = processAST(expr.lhs);
-                            if (typeof result.group !== 'undefined') {
-                                throw {
-                                    code: "S0210",
-                                    stack: (new Error()).stack,
-                                    position: expr.position
-                                };
-                            }
-                            // object constructor - process each pair
-                            result.group = {
-                                lhs: expr.rhs.map(function (pair) {
-                                    return [processAST(pair[0]), processAST(pair[1])];
-                                }),
-                                position: expr.position
-                            };
-                            break;
-                        case '^':
-                            // order-by
-                            // LHS is the array to be ordered
-                            // RHS defines the terms
-                            result = processAST(expr.lhs);
-                            if (result.type !== 'path') {
-                                result = {type: 'path', steps: [result]};
-                            }
-                            var sortStep = {type: 'sort', position: expr.position};
-                            sortStep.terms = expr.rhs.map(function (terms) {
-                                var expression = processAST(terms.expression);
-                                pushAncestry(sortStep, expression);
-                                return {
-                                    descending: terms.descending,
-                                    expression: expression
-                                };
-                            });
-                            result.steps.push(sortStep);
-                            resolveAncestry(result);
-                            break;
-                        case ':=':
-                            result = {type: 'bind', value: expr.value, position: expr.position};
-                            result.lhs = processAST(expr.lhs);
-                            result.rhs = processAST(expr.rhs);
-                            pushAncestry(result, result.rhs);
-                            break;
-                        case '@':
-                            result = processAST(expr.lhs);
-                            step = result;
-                            if (result.type === 'path') {
-                                step = result.steps[result.steps.length - 1];
-                            }
-                            // throw error if there are any predicates defined at this point
-                            // at this point the only type of stages can be predicates
-                            if(typeof step.stages !== 'undefined' || typeof step.predicate !== 'undefined') {
-                                throw {
-                                    code: "S0215",
-                                    stack: (new Error()).stack,
-                                    position: expr.position
-                                };
-                            }
-                            // also throw if this is applied after an 'order-by' clause
-                            if(step.type === 'sort') {
-                                throw {
-                                    code: "S0216",
-                                    stack: (new Error()).stack,
-                                    position: expr.position
-                                };
-                            }
-                            if(expr.keepArray) {
-                                step.keepArray = true;
-                            }
-                            step.focus = expr.rhs.value;
-                            step.tuple = true;
-                            break;
-                        case '#':
-                            result = processAST(expr.lhs);
-                            step = result;
-                            if (result.type === 'path') {
-                                step = result.steps[result.steps.length - 1];
-                            } else {
-                                result = {type: 'path', steps: [result]};
-                                if (typeof step.predicate !== 'undefined') {
-                                    step.stages = step.predicate;
-                                    delete step.predicate;
-                                }
-                            }
-                            if (typeof step.stages === 'undefined') {
-                                step.index = expr.rhs.value;
-                            } else {
-                                step.stages.push({type: 'index', value: expr.rhs.value, position: expr.position});
-                            }
-                            step.tuple = true;
-                            break;
-                        case '~>':
-                            result = {type: 'apply', value: expr.value, position: expr.position};
-                            result.lhs = processAST(expr.lhs);
-                            result.rhs = processAST(expr.rhs);
-                            break;
-                        default:
-                            result = {type: expr.type, value: expr.value, position: expr.position};
-                            result.lhs = processAST(expr.lhs);
-                            result.rhs = processAST(expr.rhs);
-                            pushAncestry(result, result.lhs);
-                            pushAncestry(result, result.rhs);
-                    }
-                    break;
-                case 'unary':
-                    result = {type: expr.type, value: expr.value, position: expr.position};
-                    if (expr.value === '[') {
-                        // array constructor - process each item
-                        result.expressions = expr.expressions.map(function (item) {
-                            var value = processAST(item);
-                            pushAncestry(result, value);
-                            return value;
-                        });
-                    } else if (expr.value === '{') {
-                        // object constructor - process each pair
-                        result.lhs = expr.lhs.map(function (pair) {
-                            var key = processAST(pair[0]);
-                            pushAncestry(result, key);
-                            var value = processAST(pair[1]);
-                            pushAncestry(result, value);
-                            return [key, value];
-                        });
-                    } else {
-                        // all other unary expressions - just process the expression
-                        result.expression = processAST(expr.expression);
-                        // if unary minus on a number, then pre-process
-                        if (expr.value === '-' && result.expression.type === 'number') {
-                            result = result.expression;
-                            result.value = -result.value;
-                        } else {
-                            pushAncestry(result, result.expression);
-                        }
-                    }
-                    break;
-                case 'function':
-                case 'partial':
-                    result = {type: expr.type, name: expr.name, value: expr.value, position: expr.position};
-                    result.arguments = expr.arguments.map(function (arg) {
-                        var argAST = processAST(arg);
-                        pushAncestry(result, argAST);
-                        return argAST;
-                    });
-                    result.procedure = processAST(expr.procedure);
-                    break;
-                case 'lambda':
-                    result = {
-                        type: expr.type,
-                        arguments: expr.arguments,
-                        signature: expr.signature,
-                        position: expr.position
-                    };
-                    var body = processAST(expr.body);
-                    result.body = tailCallOptimize(body);
-                    break;
-                case 'condition':
-                    result = {type: expr.type, position: expr.position};
-                    result.condition = processAST(expr.condition);
-                    pushAncestry(result, result.condition);
-                    result.then = processAST(expr.then);
-                    pushAncestry(result, result.then);
-                    if (typeof expr.else !== 'undefined') {
-                        result.else = processAST(expr.else);
-                        pushAncestry(result, result.else);
-                    }
-                    break;
-                case 'transform':
-                    result = {type: expr.type, position: expr.position};
-                    result.pattern = processAST(expr.pattern);
-                    result.update = processAST(expr.update);
-                    if (typeof expr.delete !== 'undefined') {
-                        result.delete = processAST(expr.delete);
-                    }
-                    break;
-                case 'block':
-                    result = {type: expr.type, position: expr.position};
-                    // array of expressions - process each one
-                    result.expressions = expr.expressions.map(function (item) {
-                        var part = processAST(item);
-                        pushAncestry(result, part);
-                        if (part.consarray || (part.type === 'path' && part.steps[0].consarray)) {
-                            result.consarray = true;
-                        }
-                        return part;
-                    });
-                    // TODO scan the array of expressions to see if any of them assign variables
-                    // if so, need to mark the block as one that needs to create a new frame
-                    break;
-                case 'name':
-                    result = {type: 'path', steps: [expr]};
-                    if (expr.keepArray) {
-                        result.keepSingletonArray = true;
-                    }
-                    break;
-                case 'parent':
-                    result = {type: 'parent', slot: { label: '!' + ancestorLabel++, level: 1, index: ancestorIndex++ } };
-                    ancestry.push(result);
-                    break;
-                case 'string':
-                case 'number':
-                case 'value':
-                case 'wildcard':
-                case 'descendant':
-                case 'variable':
-                case 'regex':
-                    result = expr;
-                    break;
-                case "operator":
-                    // the tokens 'and' and 'or' might have been used as a name rather than an operator
-                    if (expr.value === 'and' || expr.value === 'or' || expr.value === 'in') {
-                        expr.type = 'name';
-                        result = processAST(expr);
-                    } else if (expr.value === '?') { // istanbul ignore else 
-                        // partial application
-                        result = expr;
-                    } else {
-                        throw {
-                            code: "S0201",
-                            stack: (new Error()).stack,
-                            position: expr.position,
-                            token: expr.value
-                        };
-                    }
-                    break;
-                case 'error':
-                    result = expr;
-                    if (expr.lhs) {
-                        result = processAST(expr.lhs);
-                    }
-                    break;
-                default:
-                    var code = "S0206";
-                    // istanbul ignore else
-                    if (expr.id === '(end)') {
-                        code = "S0207";
-                    }
-                    var err = {
-                        code: code,
-                        position: expr.position,
-                        token: expr.value
-                    };
-                    if (recover) {
-                        errors.push(err);
-                        return {type: 'error', error: err};
-                    } else {
-                        err.stack = (new Error()).stack;
-                        throw err;
-                    }
-            }
-            if (expr.keepArray) {
-                result.keepArray = true;
-            }
-            return result;
-        };
-    */
-
-    Symbol objectParser(Symbol left) throws JException {
+    Symbol objectParser(Symbol left) {
 
         Symbol res = left!=null ? new Infix("{") : new Prefix("{");
 
@@ -2292,8 +1490,7 @@ public class Parser {
         return res;
     }
 
-
-    public Symbol parse(String jsonata) throws JException {
+    public Symbol parse(String jsonata) {
         source = jsonata;
 
         // now invoke the tokenizer and the parser and return the syntax tree
