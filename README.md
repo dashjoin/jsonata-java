@@ -64,3 +64,32 @@ We conducted some experiments to measure performance, but it's not an 'overall b
 | hof-zip-map 0 | 16.0 / 57.3 | 12.6 / 227.7 (wrong) | 58.3 / 323.6 | 4.6 / 1.4 |
 | partial-application 2 | 26.1 / 29.1 | parser error | 162.3 / 133.4 | ? / ? |
 | [1..500].($*$)~>$sum | 24.4 / 1.8 | 159.6 / exception | 286.4 / 9.0 | 1.8 / ? |
+
+## Getting Started
+The project uses the repository of the reference implementation as a submodule.
+This allows referencing the current version of the unit tests.
+To clone the this repository, run:
+
+```
+git clone https://github.com/dashjoin/jsonata-java
+cd jsonata-java
+git submodule init
+git submodule update
+```
+
+To compile, generate / run the unit tests, and create the jar file, run:
+
+```
+mvn compile exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.dashjoin.jsonata.Generate
+mvn install
+```
+
+## Contribute
+
+We welcome contributions. If you are interested in contributing to Dashjoin, let us know!
+You'll get to know an open-minded and motivated team working together to build the next generation platform.
+
+* [Join our Slack](https://join.slack.com/t/dashjoin/shared_invite/zt-1274qbzq9-mwxBq4WwSTJsITjrvYV4pA) and say hello
+* [Follow us](https://twitter.com/dashjoin) on Twitter
+* [Submit](https://github.com/dashjoin/jsonata-java/issues) your ideas by opening an issue with the enhancement label
+* [Help out](https://github.com/dashjoin/jsonata-java/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) by fixing "a good first issue"
