@@ -104,18 +104,18 @@ public class Jsonata {
         public void setEvaluateExitCallback(ExitCallback cb) {
             bind("__evaluate_exit", cb);
         }
-     }
+    }
 
     static Frame staticFrame;// = createFrame(null);
  
-     /**
-      * Evaluate expression against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     Object evaluate(Symbol expr, Object input, Frame environment) {
+    /**
+     * Evaluate expression against input data
+     * @param {Object} expr - JSONata expression
+     * @param {Object} input - Input data to evaluate against
+     * @param {Object} environment - Environment
+     * @returns {*} Evaluated input data
+     */
+    Object evaluate(Symbol expr, Object input, Frame environment) {
         Object result = null;
 
         // Store the current input
@@ -124,91 +124,88 @@ public class Jsonata {
 
         if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
-         var entryCallback = environment.lookup("__evaluate_entry");
-         if(entryCallback!=null) {
+        var entryCallback = environment.lookup("__evaluate_entry");
+        if(entryCallback!=null) {
             ((EntryCallback)entryCallback).callback(expr, input, environment);
-         }
+        }
  
         if (expr.type!=null)
-         switch (expr.type) {
-             case "path":
-                 result = /* await */ evaluatePath(expr, input, environment);
-                 break;
-             case "binary":
-                 result = /* await */ evaluateBinary(expr, input, environment);
-                 break;
-             case "unary":
-                 result = /* await */ evaluateUnary(expr, input, environment);
-                 break;
-             case "name":
-                 result = evaluateName(expr, input, environment);
-                 if (parser.dbg) System.out.println("evalName "+result);
-                 break;
-             case "string":
-             case "number":
-             case "value":
-                 result = evaluateLiteral(expr); //, input, environment);
-                 break;
-             case "wildcard":
-                 result = evaluateWildcard(expr, input); //, environment);
-                 break;
-             case "descendant":
-                 result = evaluateDescendants(expr, input); //, environment);
-                 break;
-             case "parent":
-                 result = environment.lookup(expr.slot.label);
-                 break;
-             case "condition":
-                 result = /* await */ evaluateCondition(expr, input, environment);
-                 break;
-             case "block":
-                 result = /* await */ evaluateBlock(expr, input, environment);
-                 break;
-             case "bind":
-                 result = /* await */ evaluateBindExpression(expr, input, environment);
-                 break;
-             case "regex":
-                 result = evaluateRegex(expr); //, input, environment);
-                 break;
-             case "function":
-                 result = /* await */ evaluateFunction(expr, input, environment, null);
-                 break;
-             case "variable":
-                 result = evaluateVariable(expr, input, environment);
-                 break;
-             case "lambda":
-                 result = evaluateLambda(expr, input, environment);
-                 break;
-             case "partial":
-                 result = /* await */ evaluatePartialApplication(expr, input, environment);
-                 break;
-             case "apply":
-                 result = /* await */ evaluateApplyExpression(expr, input, environment);
-                 break;
-             case "transform":
-                 result = evaluateTransformExpression(expr, input, environment);
-                 break;
-         }
+        switch (expr.type) {
+            case "path":
+                result = /* await */ evaluatePath(expr, input, environment);
+                break;
+            case "binary":
+                result = /* await */ evaluateBinary(expr, input, environment);
+                break;
+            case "unary":
+                result = /* await */ evaluateUnary(expr, input, environment);
+                break;
+            case "name":
+                result = evaluateName(expr, input, environment);
+                if (parser.dbg) System.out.println("evalName "+result);
+                break;
+            case "string":
+            case "number":
+            case "value":
+                result = evaluateLiteral(expr); //, input, environment);
+                break;
+            case "wildcard":
+                result = evaluateWildcard(expr, input); //, environment);
+                break;
+            case "descendant":
+                result = evaluateDescendants(expr, input); //, environment);
+                break;
+            case "parent":
+                result = environment.lookup(expr.slot.label);
+                break;
+            case "condition":
+                result = /* await */ evaluateCondition(expr, input, environment);
+                break;
+            case "block":
+                result = /* await */ evaluateBlock(expr, input, environment);
+                break;
+            case "bind":
+                result = /* await */ evaluateBindExpression(expr, input, environment);
+                break;
+            case "regex":
+                result = evaluateRegex(expr); //, input, environment);
+                break;
+            case "function":
+                result = /* await */ evaluateFunction(expr, input, environment, null);
+                break;
+            case "variable":
+                result = evaluateVariable(expr, input, environment);
+                break;
+            case "lambda":
+                result = evaluateLambda(expr, input, environment);
+                break;
+            case "partial":
+                result = /* await */ evaluatePartialApplication(expr, input, environment);
+                break;
+            case "apply":
+                result = /* await */ evaluateApplyExpression(expr, input, environment);
+                break;
+            case "transform":
+                result = evaluateTransformExpression(expr, input, environment);
+                break;
+        }
  
-
-        // FIXME predicate
         if (expr.predicate!=null)
             for(var ii = 0; ii < expr.predicate.size(); ii++) {
-                 result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
-             }
+                result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
+            }
  
         if (!expr.type.equals("path") && expr.group!=null) {
             result = /* await */ evaluateGroupExpression(expr.group, result, environment);
         }
  
-         var exitCallback = environment.lookup("__evaluate_exit");
-         if(exitCallback!=null) {
+        var exitCallback = environment.lookup("__evaluate_exit");
+        if(exitCallback!=null) {
             ((ExitCallback)exitCallback).callback(expr, input, environment, result);
-         }
-
+        }
         
         // mangle result (list of 1 element -> 1 element, empty list -> null)
-         if(result!=null && Utils.isSequence(result) && !((JList)result).tupleStream) {
+        if(result!=null && Utils.isSequence(result) && !((JList)result).tupleStream) {
             JList _result = (JList)result;
             if(expr.keepArray) {
                 _result.keepSingleton = true;
@@ -218,75 +215,75 @@ public class Jsonata {
             } else if(_result.size() == 1) {
                 result =  _result.keepSingleton ? _result : _result.get(0);
             }
-         }
+        }
+
+        return result;
+    }
  
-         return result;
-     }
- 
-     /**
-      * Evaluate path expression against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     /* async */ Object evaluatePath(Symbol expr, Object input, Frame environment) {
-         List inputSequence;
-         // expr is an array of steps
-         // if the first step is a variable reference ($...), including root reference ($$),
-         //   then the path is absolute rather than relative
-         if (input instanceof List && !expr.steps.get(0).type.equals("variable")) {
-             inputSequence = (List)input;
-         } else {
-             // if input is not an array, make it so
+    /**
+     * Evaluate path expression against input data
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @param {Object} environment - Environment
+    * @returns {*} Evaluated input data
+    */
+    /* async */ Object evaluatePath(Symbol expr, Object input, Frame environment) {
+        List inputSequence;
+        // expr is an array of steps
+        // if the first step is a variable reference ($...), including root reference ($$),
+        //   then the path is absolute rather than relative
+        if (input instanceof List && !expr.steps.get(0).type.equals("variable")) {
+            inputSequence = (List)input;
+        } else {
+            // if input is not an array, make it so
             inputSequence = Utils.createSequence(input);
-         }
- 
-         Object resultSequence = null;
-         var isTupleStream = false;
-         List<Map> tupleBindings = null;
- 
-         // evaluate each step in turn
-         for(var ii = 0; ii < expr.steps.size(); ii++) {
-             var step = expr.steps.get(ii);
- 
-             if(step.tuple!=null) {
-                 isTupleStream = true;
-             }
- 
-             // if the first step is an explicit array constructor, then just evaluate that (i.e. don"t iterate over a context array)
-             if(ii == 0 && step.consarray) {
-                 resultSequence = (List)/* await */ evaluate(step, inputSequence, environment);
-             } else {
-                 if(isTupleStream) {
-                     tupleBindings = (List)/* await */ evaluateTupleStep(step, (List)inputSequence, (List)tupleBindings, environment);
-                 } else {
-                     resultSequence = /* await */ evaluateStep(step, inputSequence, environment, ii == expr.steps.size() - 1);
-                 }
-             }
- 
-             if (!isTupleStream && (resultSequence == null || ((List)resultSequence).size() == 0)) {
-                 break;
-             }
- 
-            if(step.focus == null) {
-                  inputSequence = (List)resultSequence;
+        }
+
+        Object resultSequence = null;
+        var isTupleStream = false;
+        List<Map> tupleBindings = null;
+
+        // evaluate each step in turn
+        for(var ii = 0; ii < expr.steps.size(); ii++) {
+            var step = expr.steps.get(ii);
+
+            if(step.tuple!=null) {
+                isTupleStream = true;
             }
- 
-         }
- 
-         if(isTupleStream) {
-             if(expr.tuple!=null) {
-                 // tuple stream is carrying ancestry information - keep this
-                 resultSequence = tupleBindings;
-             } else {
-                 resultSequence = Utils.createSequence();
-                 for (int ii = 0; ii < tupleBindings.size(); ii++) {
-                     ((List)resultSequence).add(tupleBindings.get(ii).get("@"));
-                 }
-             }
-         }
- 
+
+            // if the first step is an explicit array constructor, then just evaluate that (i.e. don"t iterate over a context array)
+            if(ii == 0 && step.consarray) {
+                resultSequence = (List)/* await */ evaluate(step, inputSequence, environment);
+            } else {
+                if(isTupleStream) {
+                    tupleBindings = (List)/* await */ evaluateTupleStep(step, (List)inputSequence, (List)tupleBindings, environment);
+                } else {
+                    resultSequence = /* await */ evaluateStep(step, inputSequence, environment, ii == expr.steps.size() - 1);
+                }
+            }
+
+            if (!isTupleStream && (resultSequence == null || ((List)resultSequence).size() == 0)) {
+                break;
+            }
+
+            if(step.focus == null) {
+                    inputSequence = (List)resultSequence;
+            }
+
+        }
+
+        if(isTupleStream) {
+            if(expr.tuple!=null) {
+                // tuple stream is carrying ancestry information - keep this
+                resultSequence = tupleBindings;
+            } else {
+                resultSequence = Utils.createSequence();
+                for (int ii = 0; ii < tupleBindings.size(); ii++) {
+                    ((List)resultSequence).add(tupleBindings.get(ii).get("@"));
+                }
+            }
+        }
+
         if(expr.keepSingletonArray) {
 
             // If we only got an ArrayList, convert it so we can set the keepSingleton flag
@@ -299,62 +296,58 @@ public class Jsonata {
             }
             ((JList)resultSequence).keepSingleton = true;
         }
- 
+
         if (expr.group != null) {
             resultSequence = /* await */ evaluateGroupExpression(expr.group, isTupleStream ? tupleBindings : resultSequence, environment);
         }
+
+        return resultSequence;
+    }
  
-         return resultSequence;
-     }
- 
-     Frame createFrameFromTuple(Frame environment, Map<String, Object> tuple) {
+    Frame createFrameFromTuple(Frame environment, Map<String, Object> tuple) {
         var frame = createFrame(environment);
         if (tuple!=null) for (var prop : tuple.keySet()) {
             frame.bind(prop, tuple.get(prop));
         }
-        //  for(const prop in tuple) {
-        //      frame.bind(prop, tuple[prop]);
-        //  }
-        //  return frame;
         return frame;
-     }
+    }
  
-     /**
-      * Evaluate a step within a path
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @param {boolean} lastStep - flag the last step in a path
-      * @returns {*} Evaluated input data
-      */
-     /* async */ Object evaluateStep(Symbol expr, Object input, Frame environment, boolean lastStep) {
-         Object result;
-         if(expr.type.equals("sort")) {
-              result = /* await */ evaluateSortExpression(expr, input, environment);
-              if(expr.stages!=null) {
-                  result = /* await */ evaluateStages(expr.stages, result, environment);
-              }
-              return result;
-         }
- 
-         result = Utils.createSequence();
- 
-         for(var ii = 0; ii < ((List)input).size(); ii++) {
-             var res = /* await */ evaluate(expr, ((List)input).get(ii), environment);
-             if(expr.stages!=null) {
-                 for(var ss = 0; ss < expr.stages.size(); ss++) {
-                     res = /* await */ evaluateFilter(expr.stages.get(ss).expr, res, environment);
-                 }
-             }
-             if(res != null) {
-                 ((List) result).add(res);
-             }
-         }
- 
-         var resultSequence = Utils.createSequence();
-         if(lastStep && ((List)result).size()==1 && (((List)result).get(0) instanceof List) && !Utils.isSequence(((List)result).get(0))) {
-             resultSequence = (List) ((List) result).get(0);
-         } else {
+    /**
+     * Evaluate a step within a path
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @param {Object} environment - Environment
+    * @param {boolean} lastStep - flag the last step in a path
+    * @returns {*} Evaluated input data
+    */
+    /* async */ Object evaluateStep(Symbol expr, Object input, Frame environment, boolean lastStep) {
+        Object result;
+        if(expr.type.equals("sort")) {
+            result = /* await */ evaluateSortExpression(expr, input, environment);
+            if(expr.stages!=null) {
+                result = /* await */ evaluateStages(expr.stages, result, environment);
+            }
+            return result;
+        }
+
+        result = Utils.createSequence();
+
+        for(var ii = 0; ii < ((List)input).size(); ii++) {
+            var res = /* await */ evaluate(expr, ((List)input).get(ii), environment);
+            if(expr.stages!=null) {
+                for(var ss = 0; ss < expr.stages.size(); ss++) {
+                    res = /* await */ evaluateFilter(expr.stages.get(ss).expr, res, environment);
+                }
+            }
+            if(res != null) {
+                ((List) result).add(res);
+            }
+        }
+
+        var resultSequence = Utils.createSequence();
+        if(lastStep && ((List)result).size()==1 && (((List)result).get(0) instanceof List) && !Utils.isSequence(((List)result).get(0))) {
+            resultSequence = (List) ((List) result).get(0);
+        } else {
             // flatten the sequence
             for (Object res : (List)result) {
                 if (!(res instanceof List) || (res instanceof JList && ((JList)res).cons)) {
@@ -365,483 +358,481 @@ public class Jsonata {
                     resultSequence.addAll((List)res);
                 }
             }
-         }
- 
-         return resultSequence;
-     }
- 
-     /* async */ Object evaluateStages(List<Symbol> stages, Object input, Frame environment) {
-         var result = input;
-         for(var ss = 0; ss < stages.size(); ss++) {
-             var stage = stages.get(ss);
-             switch(stage.type) {
-                 case "filter":
-                     result = /* await */ evaluateFilter(stage.expr, result, environment);
-                     break;
-                 case "index":
-                     for(var ee = 0; ee < ((List)result).size(); ee++) {
-                        var tuple = ((List)result).get(ee);
-                        ((Map)tuple).put(""+stage.value, ee);
-                     }
-                     break;
-             }
-         }
-         return result;
-     }
- 
-     /**
-      * Evaluate a step within a path
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} tupleBindings - The tuple stream
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     /* async */ Object evaluateTupleStep(Symbol expr, List input, List<Map> tupleBindings, Frame environment) {
-         List result = null;
-         if(expr.type.equals("sort")) {
-             if(tupleBindings!=null) {
-                 result = (List) /* await */ evaluateSortExpression(expr, tupleBindings, environment);
-             } else {
-                 List sorted = (List) /* await */ evaluateSortExpression(expr, input, environment);
-                 result = Utils.createSequence();
-                 ((JList)result).tupleStream = true;
-                 for(var ss = 0; ss < ((List)sorted).size(); ss++) {
-                     var tuple = Map.of("@", sorted.get(ss),
-                        expr.index, ss);
-                    result.add(tuple);
-                 }
-             }
-             if(expr.stages!=null) {
-                 result = /* await */ (List)evaluateStages(expr.stages, result, environment);
-             }
-             return result;
-         }
- 
-         result = Utils.createSequence();
-         ((JList)result).tupleStream = true;
-         var stepEnv = environment;
-         if(tupleBindings == null) {
-             tupleBindings = input.stream().filter(item -> item!=null).map(item -> Map.of("@", item)).toList();
-         }
- 
-         for(var ee = 0; ee < tupleBindings.size(); ee++) {
-             stepEnv = createFrameFromTuple(environment, tupleBindings.get(ee));
-             Object _res = /* await */ evaluate(expr, tupleBindings.get(ee).get("@"), stepEnv);
-             // res is the binding sequence for the output tuple stream
-             if (_res!=null) { //(typeof res !== "undefined") {
-                 List res;
-                 if (!(_res instanceof List)) {
-                    res = new ArrayList<>(); res.add(_res);
-                 } else {
-                    res = (List)_res;
-                 }
-                 for (var bb = 0; bb < res.size(); bb++) {
-                     Map tuple = new LinkedHashMap<>();
-                     tuple.putAll(tupleBindings.get(ee));
-                     //Object.assign(tuple, tupleBindings[ee]);
-                     if((res instanceof JList) && ((JList)res).tupleStream) {
-                        tuple.putAll((Map)res.get(bb));
-                     } else {
-                         if (expr.focus!=null) {
-                             tuple.put(expr.focus, res.get(bb));
-                             tuple.put("@", tupleBindings.get(ee).get("@"));
-                         } else {
-                             tuple.put("@", res.get(bb));
-                         }
-                         if (expr.index!=null) {
-                             tuple.put(expr.index, bb);
-                         }
-                         if (expr.ancestor!=null) {
-                             tuple.put(expr.ancestor.label, tupleBindings.get(ee).get("@"));
-                         }
-                     }
-                     result.add(tuple);
-                 }
-             }
-         }
- 
-         if(expr.stages!=null) {
-             result = (List) /* await */ evaluateStages(expr.stages, result, environment);
-         }
- 
-         return result;
-     }
- 
-     /**
-      * Apply filter predicate to input data
-      * @param {Object} predicate - filter expression
-      * @param {Object} input - Input data to apply predicates against
-      * @param {Object} environment - Environment
-      * @returns {*} Result after applying predicates
-      */
-     /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment) {
-        Symbol predicate = (Symbol)_predicate;
-         var results = Utils.createSequence();
-         if( input instanceof JList && ((JList)input).tupleStream) {
-             ((JList)results).tupleStream = true;
-         }
-         if (!(input instanceof List)) { // isArray
-             input = Utils.createSequence(input);
-         }
-         if (predicate.type.equals("number")) {
-             var index = ((Number)predicate.value).intValue();  // round it down - was Math.floor
-             if (index < 0) {
-                 // count in from end of array
-                 index = ((List)input).size() + index;
-             }
-             var item = index<((List)input).size() ? ((List)input).get(index) : null;
-             if(item != null) {
-                 if(item instanceof List) {
-                     results = (List)item;
-                 } else {
-                     results.add(item);
-                 }
-             }
-         } else {
-             for (int index = 0; index < ((List)input).size(); index++) {
-                 var item = ((List)input).get(index);
-                 var context = item;
-                 var env = environment;
-                 if(input instanceof JList && ((JList)input).tupleStream) {
-                      context = ((Map)item).get("@");
-                      env = createFrameFromTuple(environment, (Map)item);
-                 }
-                 var res = /* await */ evaluate(predicate, context, env);
-                 if (Utils.isNumeric(res)) {
-                     res = Utils.createSequence(res);
-                 }
-                 if (Utils.isArrayOfNumbers(res)) {
-                    for (Object ires : ((List)res)) {
-//                     res.forEach(Object (ires) {
-                         // round it down
-                         var ii = ((Number)ires).intValue(); // Math.floor(ires);
-                         if (ii < 0) {
-                             // count in from end of array
-                             ii = ((List)input).size() + ii;
-                         }
-                         if (ii == index) {
-                             results.add(item);
-                         }
-                     }
-                 } else if (boolize(res)) { // truthy
-                     results.add(item);
-                 }
-             }
-         }
-         return results;
-     }
- 
-     /**
-      * Evaluate binary expression against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     /* async */ Object evaluateBinary(Symbol _expr, Object input, Frame environment) {
-        Infix expr = (Infix)_expr;
-         Object result = null;
-         var lhs = /* await */ evaluate(expr.lhs, input, environment);
-         String op = ""+expr.value;
-  
-         if (op.equals("and") || op.equals("or")) {
+        }
 
-            //defer evaluation of RHS to allow short-circuiting
-            var evalrhs = /* async */ new Callable() {
-                public Object call() throws Exception {
-                    return evaluate(expr.rhs, input, environment);
+        return resultSequence;
+    }
+ 
+    /* async */ Object evaluateStages(List<Symbol> stages, Object input, Frame environment) {
+        var result = input;
+        for(var ss = 0; ss < stages.size(); ss++) {
+            var stage = stages.get(ss);
+            switch(stage.type) {
+                case "filter":
+                    result = /* await */ evaluateFilter(stage.expr, result, environment);
+                    break;
+                case "index":
+                    for(var ee = 0; ee < ((List)result).size(); ee++) {
+                    var tuple = ((List)result).get(ee);
+                    ((Map)tuple).put(""+stage.value, ee);
+                    }
+                    break;
+            }
+        }
+        return result;
+    }
+ 
+    /**
+     * Evaluate a step within a path
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @param {Object} tupleBindings - The tuple stream
+    * @param {Object} environment - Environment
+    * @returns {*} Evaluated input data
+    */
+    /* async */ Object evaluateTupleStep(Symbol expr, List input, List<Map> tupleBindings, Frame environment) {
+        List result = null;
+        if(expr.type.equals("sort")) {
+            if(tupleBindings!=null) {
+                result = (List) /* await */ evaluateSortExpression(expr, tupleBindings, environment);
+            } else {
+                List sorted = (List) /* await */ evaluateSortExpression(expr, input, environment);
+                result = Utils.createSequence();
+                ((JList)result).tupleStream = true;
+                for(var ss = 0; ss < ((List)sorted).size(); ss++) {
+                    var tuple = Map.of("@", sorted.get(ss),
+                    expr.index, ss);
+                result.add(tuple);
                 }
-            };
+            }
+            if(expr.stages!=null) {
+                result = /* await */ (List)evaluateStages(expr.stages, result, environment);
+            }
+            return result;
+        }
 
-             try {
-                 return /* await */ evaluateBooleanExpression(lhs, evalrhs, op);
-             } catch(Exception err) {
-                if (!(err instanceof JException))
-                    throw new JException("Unexpected", expr.position);
-                 //err.position = expr.position;
-                 //err.token = op;
-                 throw (JException)err;
-             }
-         }
+        result = Utils.createSequence();
+        ((JList)result).tupleStream = true;
+        var stepEnv = environment;
+        if(tupleBindings == null) {
+            tupleBindings = input.stream().filter(item -> item!=null).map(item -> Map.of("@", item)).toList();
+        }
 
-        var rhs = /* await */ evaluate(expr.rhs, input, environment); //evalrhs();
-        try {
-             switch (op) {
-                 case "+":
-                 case "-":
-                 case "*":
-                 case "/":
-                 case "%":
-                     result = evaluateNumericExpression(lhs, rhs, op);
-                     break;
-                 case "=":
-                 case "!=":
-                     result = evaluateEqualityExpression(lhs, rhs, op);
-                     break;
-                 case "<":
-                 case "<=":
-                 case ">":
-                 case ">=":
-                     result = evaluateComparisonExpression(lhs, rhs, op);
-                     break;
-                 case "&":
-                     result = evaluateStringConcat(lhs, rhs);
-                     break;
-                 case "..":
-                     result = evaluateRangeExpression(lhs, rhs);
-                     break;
-                 case "in":
-                     result = evaluateIncludesExpression(lhs, rhs);
-                     break;
-                default:
-                    throw new JException("Unexpected operator "+op, expr.position);
-             }
-         } catch(Exception err) {
-             //err.position = expr.position;
-             //err.token = op;
-             throw err;
-         }
-         return result;
-     }
+        for(var ee = 0; ee < tupleBindings.size(); ee++) {
+            stepEnv = createFrameFromTuple(environment, tupleBindings.get(ee));
+            Object _res = /* await */ evaluate(expr, tupleBindings.get(ee).get("@"), stepEnv);
+            // res is the binding sequence for the output tuple stream
+            if (_res!=null) { //(typeof res !== "undefined") {
+                List res;
+                if (!(_res instanceof List)) {
+                res = new ArrayList<>(); res.add(_res);
+                } else {
+                res = (List)_res;
+                }
+                for (var bb = 0; bb < res.size(); bb++) {
+                    Map tuple = new LinkedHashMap<>();
+                    tuple.putAll(tupleBindings.get(ee));
+                    //Object.assign(tuple, tupleBindings[ee]);
+                    if((res instanceof JList) && ((JList)res).tupleStream) {
+                    tuple.putAll((Map)res.get(bb));
+                    } else {
+                        if (expr.focus!=null) {
+                            tuple.put(expr.focus, res.get(bb));
+                            tuple.put("@", tupleBindings.get(ee).get("@"));
+                        } else {
+                            tuple.put("@", res.get(bb));
+                        }
+                        if (expr.index!=null) {
+                            tuple.put(expr.index, bb);
+                        }
+                        if (expr.ancestor!=null) {
+                            tuple.put(expr.ancestor.label, tupleBindings.get(ee).get("@"));
+                        }
+                    }
+                    result.add(tuple);
+                }
+            }
+        }
+
+        if(expr.stages!=null) {
+            result = (List) /* await */ evaluateStages(expr.stages, result, environment);
+        }
+
+        return result;
+    }
+ 
+    /**
+     * Apply filter predicate to input data
+    * @param {Object} predicate - filter expression
+    * @param {Object} input - Input data to apply predicates against
+    * @param {Object} environment - Environment
+    * @returns {*} Result after applying predicates
+    */
+    /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment) {
+    Symbol predicate = (Symbol)_predicate;
+        var results = Utils.createSequence();
+        if( input instanceof JList && ((JList)input).tupleStream) {
+            ((JList)results).tupleStream = true;
+        }
+        if (!(input instanceof List)) { // isArray
+            input = Utils.createSequence(input);
+        }
+        if (predicate.type.equals("number")) {
+            var index = ((Number)predicate.value).intValue();  // round it down - was Math.floor
+            if (index < 0) {
+                // count in from end of array
+                index = ((List)input).size() + index;
+            }
+            var item = index<((List)input).size() ? ((List)input).get(index) : null;
+            if(item != null) {
+                if(item instanceof List) {
+                    results = (List)item;
+                } else {
+                    results.add(item);
+                }
+            }
+        } else {
+            for (int index = 0; index < ((List)input).size(); index++) {
+                var item = ((List)input).get(index);
+                var context = item;
+                var env = environment;
+                if(input instanceof JList && ((JList)input).tupleStream) {
+                    context = ((Map)item).get("@");
+                    env = createFrameFromTuple(environment, (Map)item);
+                }
+                var res = /* await */ evaluate(predicate, context, env);
+                if (Utils.isNumeric(res)) {
+                    res = Utils.createSequence(res);
+                }
+                if (Utils.isArrayOfNumbers(res)) {
+                for (Object ires : ((List)res)) {
+//                     res.forEach(Object (ires) {
+                        // round it down
+                        var ii = ((Number)ires).intValue(); // Math.floor(ires);
+                        if (ii < 0) {
+                            // count in from end of array
+                            ii = ((List)input).size() + ii;
+                        }
+                        if (ii == index) {
+                            results.add(item);
+                        }
+                    }
+                } else if (boolize(res)) { // truthy
+                    results.add(item);
+                }
+            }
+        }
+        return results;
+    }
+ 
+    /**
+     * Evaluate binary expression against input data
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @param {Object} environment - Environment
+    * @returns {*} Evaluated input data
+    */
+    /* async */ Object evaluateBinary(Symbol _expr, Object input, Frame environment) {
+    Infix expr = (Infix)_expr;
+        Object result = null;
+        var lhs = /* await */ evaluate(expr.lhs, input, environment);
+        String op = ""+expr.value;
+
+        if (op.equals("and") || op.equals("or")) {
+
+        //defer evaluation of RHS to allow short-circuiting
+        var evalrhs = /* async */ new Callable() {
+            public Object call() throws Exception {
+                return evaluate(expr.rhs, input, environment);
+            }
+        };
+
+            try {
+                return /* await */ evaluateBooleanExpression(lhs, evalrhs, op);
+            } catch(Exception err) {
+            if (!(err instanceof JException))
+                throw new JException("Unexpected", expr.position);
+                //err.position = expr.position;
+                //err.token = op;
+                throw (JException)err;
+            }
+        }
+
+    var rhs = /* await */ evaluate(expr.rhs, input, environment); //evalrhs();
+    try {
+            switch (op) {
+                case "+":
+                case "-":
+                case "*":
+                case "/":
+                case "%":
+                    result = evaluateNumericExpression(lhs, rhs, op);
+                    break;
+                case "=":
+                case "!=":
+                    result = evaluateEqualityExpression(lhs, rhs, op);
+                    break;
+                case "<":
+                case "<=":
+                case ">":
+                case ">=":
+                    result = evaluateComparisonExpression(lhs, rhs, op);
+                    break;
+                case "&":
+                    result = evaluateStringConcat(lhs, rhs);
+                    break;
+                case "..":
+                    result = evaluateRangeExpression(lhs, rhs);
+                    break;
+                case "in":
+                    result = evaluateIncludesExpression(lhs, rhs);
+                    break;
+            default:
+                throw new JException("Unexpected operator "+op, expr.position);
+            }
+        } catch(Exception err) {
+            //err.position = expr.position;
+            //err.token = op;
+            throw err;
+        }
+        return result;
+    }
  
     final public static Object UNDEFINED = new Object();
     final public static Object NULL_VALUE = new Object() { public String toString() { return "null"; }};
 
-     /**
-      * Evaluate unary expression against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     /* async */ Object evaluateUnary(Symbol expr, Object input, Frame environment) {
-         Object result = null;
- 
-         switch ((String)""+expr.value) { // Uli was: expr.value - where is value set???
-             case "-":
-                 result = /* await */ evaluate(expr.expression, input, environment);
-                 if (result==null) { //(typeof result === "undefined") {
-                     result = null;
-                 } else if (Utils.isNumeric(result)) {
-                     result = Utils.convertNumber( -((Number)result).doubleValue() );
-                 } else {
-                     throw new JException(
-                         "D1002",
-                         //stack: (new Error()).stack,
-                         expr.position,
-                         expr.value,
-                         result
-                     );
-                 }
-                 break;
-             case "[":
-                // array constructor - evaluate each item
-                result = new JList<>(); // [];
-                int idx = 0;
-                for (var item : expr.expressions) {
-                    environment.isParallelCall = idx > 0;
-                    Object value = evaluate(item, input, environment);
-                    if (value!=null) {
-                        if ((""+item.value).equals("["))
-                            ((List)result).add(value);
-                        else
-                            result = Functions.append(result, value);
-                    }
-                    idx++;
-                }
-                if(expr.consarray) {
-                    if (!(result instanceof JList))
-                        result = new JList((List)result);
-                    //System.out.println("const "+result);
-                    ((JList)result).cons = true; 
+    /**
+     * Evaluate unary expression against input data
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @param {Object} environment - Environment
+    * @returns {*} Evaluated input data
+    */
+    /* async */ Object evaluateUnary(Symbol expr, Object input, Frame environment) {
+        Object result = null;
+
+        switch ((String)""+expr.value) { // Uli was: expr.value - where is value set???
+            case "-":
+                result = /* await */ evaluate(expr.expression, input, environment);
+                if (result==null) { //(typeof result === "undefined") {
+                    result = null;
+                } else if (Utils.isNumeric(result)) {
+                    result = Utils.convertNumber( -((Number)result).doubleValue() );
+                } else {
+                    throw new JException(
+                        "D1002",
+                        //stack: (new Error()).stack,
+                        expr.position,
+                        expr.value,
+                        result
+                    );
                 }
                 break;
-             case "{":
-                 // object constructor - apply grouping
-                 result = /* await */ evaluateGroupExpression(expr, input, environment);
-                 break;
+            case "[":
+            // array constructor - evaluate each item
+            result = new JList<>(); // [];
+            int idx = 0;
+            for (var item : expr.expressions) {
+                environment.isParallelCall = idx > 0;
+                Object value = evaluate(item, input, environment);
+                if (value!=null) {
+                    if ((""+item.value).equals("["))
+                        ((List)result).add(value);
+                    else
+                        result = Functions.append(result, value);
+                }
+                idx++;
+            }
+            if(expr.consarray) {
+                if (!(result instanceof JList))
+                    result = new JList((List)result);
+                //System.out.println("const "+result);
+                ((JList)result).cons = true; 
+            }
+            break;
+            case "{":
+                // object constructor - apply grouping
+                result = /* await */ evaluateGroupExpression(expr, input, environment);
+                break;
+
+        }
+        return result;
+    }
  
-         }
-         return result;
-     }
- 
-     /**
-      * Evaluate name object against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     Object evaluateName(Symbol expr, Object input, Frame environment) {
-         // lookup the "name" item in the input
-        //return ((Map)input).get(expr.value);
+    /**
+     * Evaluate name object against input data
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @param {Object} environment - Environment
+    * @returns {*} Evaluated input data
+    */
+    Object evaluateName(Symbol expr, Object input, Frame environment) {
+        // lookup the "name" item in the input
         return Functions.lookup(input, (String)expr.value);
-        //return fn.lookup(input, expr.value);
-     }
+    }
+
+    /**
+     * Evaluate literal against input data
+     * @param {Object} expr - JSONata expression
+     * @returns {*} Evaluated input data
+     */
+    Object evaluateLiteral(Symbol expr) {
+        return expr.value!=null ? expr.value : NULL_VALUE;
+    }
  
-     /**
-      * Evaluate literal against input data
-      * @param {Object} expr - JSONata expression
-      * @returns {*} Evaluated input data
-      */
-     Object evaluateLiteral(Symbol expr) {
-         return expr.value!=null ? expr.value : NULL_VALUE;
-     }
- 
-     /**
-      * Evaluate wildcard against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @returns {*} Evaluated input data
-      */
-     Object evaluateWildcard(Symbol expr, Object input) {
-         var results = Utils.createSequence();
-         if ((input instanceof JList) && ((JList)input).outerWrapper && ((JList)input).size() > 0) {
-             input = ((JList)input).get(0);
-         }
-         if (input != null && input instanceof Map) { // typeof input === "object") {
-            for (Object key : ((Map)input).keySet()) {
-            // Object.keys(input).forEach(Object (key) {
-                 var value = ((Map)input).get(key);
-                 if((value instanceof List)) {
-                     value = flatten(value, null);
-                     results = (List)Functions.append(results, value);
-                 } else {
-                     results.add(value);
-                 }
-             }
-         } else if (input instanceof List) {
+    /**
+     * Evaluate wildcard against input data
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @returns {*} Evaluated input data
+    */
+    Object evaluateWildcard(Symbol expr, Object input) {
+        var results = Utils.createSequence();
+        if ((input instanceof JList) && ((JList)input).outerWrapper && ((JList)input).size() > 0) {
+            input = ((JList)input).get(0);
+        }
+        if (input != null && input instanceof Map) { // typeof input === "object") {
+        for (Object key : ((Map)input).keySet()) {
+        // Object.keys(input).forEach(Object (key) {
+                var value = ((Map)input).get(key);
+                if((value instanceof List)) {
+                    value = flatten(value, null);
+                    results = (List)Functions.append(results, value);
+                } else {
+                    results.add(value);
+                }
+            }
+        } else if (input instanceof List) {
             // Java: need to handle List separately
             for (Object value : ((List)input)) {
-                 if((value instanceof List)) {
-                     value = flatten(value, null);
-                     results = (List)Functions.append(results, value);
-                 } else if (value instanceof Map) {
-                    // Call recursively do decompose the map
-                    results.addAll((List)evaluateWildcard(expr, value));
-                 } else {
-                     results.add(value);
-                 }
+                if((value instanceof List)) {
+                    value = flatten(value, null);
+                    results = (List)Functions.append(results, value);
+                } else if (value instanceof Map) {
+                // Call recursively do decompose the map
+                results.addAll((List)evaluateWildcard(expr, value));
+                } else {
+                    results.add(value);
+                }
             }
-         }
+        }
+
+        // result = normalizeSequence(results);
+        return results;
+    }
+
+    /**
+     * Returns a flattened array
+    * @param {Array} arg - the array to be flatten
+    * @param {Array} flattened - carries the flattened array - if not defined, will initialize to []
+    * @returns {Array} - the flattened array
+    */
+    Object flatten(Object arg, List flattened) {
+        if(flattened == null) {
+            flattened = new ArrayList<>();
+        }
+        if(arg instanceof List) {
+            for (Object item : ((List)arg)) {
+                flatten(item, flattened);
+            }
+        } else {
+            flattened.add(arg);
+        }
+        return flattened;
+    }
  
-         //        result = normalizeSequence(results);
-         return results;
-     }
+    /**
+     * Evaluate descendants against input data
+    * @param {Object} expr - JSONata expression
+    * @param {Object} input - Input data to evaluate against
+    * @returns {*} Evaluated input data
+    */
+    Object evaluateDescendants(Symbol expr, Object input) {
+        Object result = null;
+        var resultSequence = Utils.createSequence();
+        if (input != null) {
+            // traverse all descendants of this object/array
+            recurseDescendants(input, resultSequence);
+            if (resultSequence.size() == 1) {
+                result = resultSequence.get(0);
+            } else {
+                result = resultSequence;
+            }
+        }
+        return result;
+    }
  
-     /**
-      * Returns a flattened array
-      * @param {Array} arg - the array to be flatten
-      * @param {Array} flattened - carries the flattened array - if not defined, will initialize to []
-      * @returns {Array} - the flattened array
-      */
-     Object flatten(Object arg, List flattened) {
-         if(flattened == null) {
-             flattened = new ArrayList<>();
-         }
-         if(arg instanceof List) {
-             for (Object item : ((List)arg)) {
-                 flatten(item, flattened);
-             }
-         } else {
-             flattened.add(arg);
-         }
-         return flattened;
-     }
- 
-     /**
-      * Evaluate descendants against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @returns {*} Evaluated input data
-      */
-     Object evaluateDescendants(Symbol expr, Object input) {
-         Object result = null;
-         var resultSequence = Utils.createSequence();
-         if (input != null) {
-             // traverse all descendants of this object/array
-             recurseDescendants(input, resultSequence);
-             if (resultSequence.size() == 1) {
-                 result = resultSequence.get(0);
-             } else {
-                 result = resultSequence;
-             }
-         }
-         return result;
-     }
- 
-     /**
-      * Recurse through descendants
-      * @param {Object} input - Input data
-      * @param {Object} results - Results
-      */
-     void recurseDescendants(Object input, List results) {
-         // this is the equivalent of //* in XPath
-         if (!(input instanceof List)) {
-             results.add(input);
-         }
-         if (input instanceof List) {
+    /**
+     * Recurse through descendants
+    * @param {Object} input - Input data
+    * @param {Object} results - Results
+    */
+    void recurseDescendants(Object input, List results) {
+        // this is the equivalent of //* in XPath
+        if (!(input instanceof List)) {
+            results.add(input);
+        }
+        if (input instanceof List) {
             for (Object member : ((List)input)) { //input.forEach(Object (member) {
-                 recurseDescendants(member, results);
+                    recurseDescendants(member, results);
             }
-         } else if (input != null && input instanceof Map) {
+        } else if (input != null && input instanceof Map) {
             //Object.keys(input).forEach(Object (key) {
             for (Object key : ((Map)input).keySet()) {
-                 recurseDescendants(((Map)input).get(key), results);
+                    recurseDescendants(((Map)input).get(key), results);
             }
-         }
-     }
+        }
+    }
 
-     /**
-      * Evaluate numeric expression against input data
-      * @param {Object} lhs - LHS value
-      * @param {Object} rhs - RHS value
-      * @param {Object} op - opcode
-      * @returns {*} Result
-      */
-     Object evaluateNumericExpression(Object _lhs, Object _rhs, String op) {
+    /**
+     * Evaluate numeric expression against input data
+     * @param {Object} lhs - LHS value
+     * @param {Object} rhs - RHS value
+     * @param {Object} op - opcode
+     * @returns {*} Result
+     */
+    Object evaluateNumericExpression(Object _lhs, Object _rhs, String op) {
         double result = 0;
- 
-         if (_lhs!=null && !Utils.isNumeric(_lhs)) {
-             throw new JException("T2001", -1,
-                op, _lhs
-             );
-         }
-         if (_rhs!=null && !Utils.isNumeric(_rhs)) {
-             throw new JException("T2002", -1,
-                op, _rhs
-             );
-         }
- 
+
+        if (_lhs!=null && !Utils.isNumeric(_lhs)) {
+            throw new JException("T2001", -1,
+            op, _lhs
+            );
+        }
+        if (_rhs!=null && !Utils.isNumeric(_rhs)) {
+            throw new JException("T2002", -1,
+            op, _rhs
+            );
+        }
+
         if (_lhs == null || _rhs == null) {
             // if either side is undefined, the result is undefined
             return null;
         }
- 
+
         //System.out.println("op22 "+op+" "+_lhs+" "+_rhs);
         double lhs = ((Number)_lhs).doubleValue();
         double rhs = ((Number)_rhs).doubleValue();
 
-         switch (op) {
-             case "+":
-                 result = lhs + rhs;
-                 break;
-             case "-":
-                 result = lhs - rhs;
-                 break;
-             case "*":
-                 result = lhs * rhs;
-                 break;
-             case "/":
-                 result = lhs / rhs;
-                 break;
-             case "%":
-                 result = lhs % rhs;
-                 break;
-         }
-         return Utils.convertNumber(result);
-     }
+        switch (op) {
+            case "+":
+                result = lhs + rhs;
+                break;
+            case "-":
+                result = lhs - rhs;
+                break;
+            case "*":
+                result = lhs * rhs;
+                break;
+            case "/":
+                result = lhs / rhs;
+                break;
+            case "%":
+                result = lhs % rhs;
+                break;
+        }
+        return Utils.convertNumber(result);
+    }
  
      /**
       * Evaluate equality expression against input data
@@ -850,18 +841,18 @@ public class Jsonata {
       * @param {Object} op - opcode
       * @returns {*} Result
       */
-     Object evaluateEqualityExpression(Object lhs, Object rhs, String op) {
-         Object result = null;
- 
-         // type checks
-         var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
-         var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
- 
-         if (ltype == null || rtype == null) {
-             // if either side is undefined, the result is false
-             return false;
-         }
- 
+    Object evaluateEqualityExpression(Object lhs, Object rhs, String op) {
+        Object result = null;
+
+        // type checks
+        var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
+        var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
+
+        if (ltype == null || rtype == null) {
+            // if either side is undefined, the result is false
+            return false;
+        }
+
         // JSON might come with integers,
         // convert all to double...
         // FIXME: semantically OK?
@@ -870,16 +861,16 @@ public class Jsonata {
         if (rhs instanceof Number)
             rhs = ((Number)rhs).doubleValue();
 
-         switch (op) {
-             case "=":
-                 result = lhs.equals(rhs); // isDeepEqual(lhs, rhs);
-                 break;
-             case "!=":
-                 result = !lhs.equals(rhs); // !isDeepEqual(lhs, rhs);
-                 break;
-         }
-         return result;
-     }
+        switch (op) {
+            case "=":
+                result = lhs.equals(rhs); // isDeepEqual(lhs, rhs);
+                break;
+            case "!=":
+                result = !lhs.equals(rhs); // !isDeepEqual(lhs, rhs);
+                break;
+        }
+        return result;
+    }
  
      /**
       * Evaluate comparison expression against input data
@@ -888,66 +879,66 @@ public class Jsonata {
       * @param {Object} op - opcode
       * @returns {*} Result
       */
-     Object evaluateComparisonExpression(Object lhs, Object rhs, String op) {
-         Object result = null;
- 
-         // type checks
-         var lcomparable = lhs == null || lhs instanceof String || lhs instanceof Number;
-         var rcomparable = rhs == null || rhs instanceof String || rhs instanceof Number;
- 
-         // if either aa or bb are not comparable (string or numeric) values, then throw an error
+    Object evaluateComparisonExpression(Object lhs, Object rhs, String op) {
+        Object result = null;
+
+        // type checks
+        var lcomparable = lhs == null || lhs instanceof String || lhs instanceof Number;
+        var rcomparable = rhs == null || rhs instanceof String || rhs instanceof Number;
+
+        // if either aa or bb are not comparable (string or numeric) values, then throw an error
         if (!lcomparable || !rcomparable) {
-             throw new JException(
+            throw new JException(
                 "T2010",
                 0, //position,
                 //stack: (new Error()).stack,
                 op, lhs!=null ? lhs : rhs
-             );
-         }
+            );
+        }
 
-         // if either side is undefined, the result is undefined
-         if (lhs == null || rhs==null) {
-             return null;
-         }
-         
-         //if aa and bb are not of the same type
-         if (!lhs.getClass().equals(rhs.getClass())) {
+        // if either side is undefined, the result is undefined
+        if (lhs == null || rhs==null) {
+            return null;
+        }
+        
+        //if aa and bb are not of the same type
+        if (!lhs.getClass().equals(rhs.getClass())) {
 
-            if (lhs instanceof Number && rhs instanceof Number) {
-                // Java : handle Double / Integer / Long comparisons
-                // convert all to double -> loss of precision (64-bit long to double) be a problem here?
-                lhs = ((Number)lhs).doubleValue();
-                rhs = ((Number)rhs).doubleValue();
+        if (lhs instanceof Number && rhs instanceof Number) {
+            // Java : handle Double / Integer / Long comparisons
+            // convert all to double -> loss of precision (64-bit long to double) be a problem here?
+            lhs = ((Number)lhs).doubleValue();
+            rhs = ((Number)rhs).doubleValue();
 
-            } else
+        } else
 
-             throw new JException(
+            throw new JException(
                 "T2009",
                 0, // location?
                 // stack: (new Error()).stack,
                 lhs,
                 rhs
-             );
-         }
- 
-         Comparable _lhs = (Comparable)lhs;
+            );
+        }
 
-         switch (op) {
-             case "<":
-                 result = _lhs.compareTo(rhs) < 0;
-                 break;
-             case "<=":
-                 result = _lhs.compareTo(rhs) <= 0; //lhs <= rhs;
-                 break;
-             case ">":
-                 result = _lhs.compareTo(rhs) > 0; // lhs > rhs;
-                 break;
-             case ">=":
-                 result = _lhs.compareTo(rhs) >= 0; // lhs >= rhs;
-                 break;
-         }
-         return result;
-     }
+        Comparable _lhs = (Comparable)lhs;
+
+        switch (op) {
+            case "<":
+                result = _lhs.compareTo(rhs) < 0;
+                break;
+            case "<=":
+                result = _lhs.compareTo(rhs) <= 0; //lhs <= rhs;
+                break;
+            case ">":
+                result = _lhs.compareTo(rhs) > 0; // lhs > rhs;
+                break;
+            case ">=":
+                result = _lhs.compareTo(rhs) >= 0; // lhs >= rhs;
+                break;
+        }
+        return result;
+    }
  
      /**
       * Inclusion operator - in
@@ -956,157 +947,158 @@ public class Jsonata {
       * @param {Object} rhs - RHS value
       * @returns {boolean} - true if lhs is a member of rhs
       */
-     Object evaluateIncludesExpression(Object lhs, Object rhs) {
-         var result = false;
- 
-         if (lhs == null || rhs == null) {
-             // if either side is undefined, the result is false
-             return false;
-         }
- 
-         if(!(rhs instanceof List)) {
+    Object evaluateIncludesExpression(Object lhs, Object rhs) {
+        var result = false;
+
+        if (lhs == null || rhs == null) {
+            // if either side is undefined, the result is false
+            return false;
+        }
+
+        if(!(rhs instanceof List)) {
             var _rhs = new ArrayList<>(); _rhs.add(rhs);
             rhs = _rhs;
-         }
+        }
+
+        for(var i = 0; i < ((List)rhs).size(); i++) {
+            if(((List)rhs).get(i).equals(lhs)) {
+                result = true;
+                break;
+            }
+        }
+
+        return result;
+    }
  
-         for(var i = 0; i < ((List)rhs).size(); i++) {
-             if(((List)rhs).get(i).equals(lhs)) {
-                 result = true;
-                 break;
-             }
-         }
+    /**
+     * Evaluate boolean expression against input data
+     * @param {Object} lhs - LHS value
+     * @param {Function} evalrhs - Object to evaluate RHS value
+     * @param {Object} op - opcode
+     * @returns {*} Result
+     */
+    /* async */ Object evaluateBooleanExpression(Object lhs, Callable evalrhs, String op) throws Exception {
+        Object result = null;
+
+        var lBool = boolize(lhs);
+
+        switch (op) {
+            case "and":
+                result = lBool && boolize(/* await */ evalrhs.call());
+                break;
+            case "or":
+                result = lBool || boolize(/* await */ evalrhs.call());
+                break;
+        }
+        return result;
+    }
+
+    public static boolean boolize(Object value) {
+        var booledValue = Functions.toBoolean(value);
+        return booledValue == null ? false : booledValue;
+    }
  
-         return result;
-     }
+    /**
+     * Evaluate string concatenation against input data
+     * @param {Object} lhs - LHS value
+     * @param {Object} rhs - RHS value
+     * @returns {string|*} Concatenated string
+     */
+    Object evaluateStringConcat(Object lhs, Object rhs) {
+        String result;
+
+        var lstr = "";
+        var rstr = "";
+        if (lhs != null) {
+            lstr = Functions.string(lhs,null);
+        }
+        if (rhs != null) {
+            rstr = Functions.string(rhs,null);
+        }
+
+        result = lstr + rstr;
+        return result;
+    }
  
-     /**
-      * Evaluate boolean expression against input data
-      * @param {Object} lhs - LHS value
-      * @param {Function} evalrhs - Object to evaluate RHS value
-      * @param {Object} op - opcode
-      * @returns {*} Result
-      */
-     /* async */ Object evaluateBooleanExpression(Object lhs, Callable evalrhs, String op) throws Exception {
-         Object result = null;
- 
-         var lBool = boolize(lhs);
- 
-         switch (op) {
-             case "and":
-                 result = lBool && boolize(/* await */ evalrhs.call());
-                 break;
-             case "or":
-                 result = lBool || boolize(/* await */ evalrhs.call());
-                 break;
-         }
-         return result;
-     }
- 
-     public static boolean boolize(Object value) {
-         var booledValue = Functions.toBoolean(value);
-         return booledValue == null ? false : booledValue;
-     }
- 
-     /**
-      * Evaluate string concatenation against input data
-      * @param {Object} lhs - LHS value
-      * @param {Object} rhs - RHS value
-      * @returns {string|*} Concatenated string
-      */
-     Object evaluateStringConcat(Object lhs, Object rhs) {
-         String result;
- 
-         var lstr = "";
-         var rstr = "";
-         if (lhs != null) {
-             lstr = Functions.string(lhs,null);
-         }
-         if (rhs != null) {
-             rstr = Functions.string(rhs,null);
-         }
- 
-         result = lstr + rstr;
-         return result;
-     }
- 
-     static class GroupEntry {
+    static class GroupEntry {
         Object data;
         int exprIndex;
-     }
-     /**
-      * Evaluate group expression against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {{}} Evaluated input data
-      */
-     /* async */ Object evaluateGroupExpression(Symbol expr, Object _input, Frame environment) {
-         var result = new LinkedHashMap<Object,Object>();
-         var groups = new LinkedHashMap<Object,GroupEntry>();
-         var reduce = (_input instanceof JList) && ((JList)_input).tupleStream ? true : false;
-         // group the input sequence by "key" expression
-         if (!(_input instanceof List)) {
-             _input = Utils.createSequence(_input);
-         }
-         List input = (List)_input;
+    }
+     
+    /**
+     * Evaluate group expression against input data
+     * @param {Object} expr - JSONata expression
+     * @param {Object} input - Input data to evaluate against
+     * @param {Object} environment - Environment
+     * @returns {{}} Evaluated input data
+     */
+    /* async */ Object evaluateGroupExpression(Symbol expr, Object _input, Frame environment) {
+        var result = new LinkedHashMap<Object,Object>();
+        var groups = new LinkedHashMap<Object,GroupEntry>();
+        var reduce = (_input instanceof JList) && ((JList)_input).tupleStream ? true : false;
+        // group the input sequence by "key" expression
+        if (!(_input instanceof List)) {
+            _input = Utils.createSequence(_input);
+        }
+        List input = (List)_input;
 
-         // if the array is empty, add an undefined entry to enable literal JSON object to be generated
-         if (input.isEmpty()) {
+        // if the array is empty, add an undefined entry to enable literal JSON object to be generated
+        if (input.isEmpty()) {
             input.add(null);
-         }
- 
-         for(var itemIndex = 0; itemIndex < input.size(); itemIndex++) {
-             var item = input.get(itemIndex);
-             var env = reduce ? createFrameFromTuple(environment, (Map)item) : environment;
-             for(var pairIndex = 0; pairIndex < expr.lhsObject.size(); pairIndex++) {
-                 var pair = expr.lhsObject.get(pairIndex);
-                 var key = /* await */ evaluate(pair[0], reduce ? ((Map)item).get("@") : item, env);
-                 // key has to be a string
-                 if (key!=null && !(key instanceof String)) {
-                     throw new JException("T1003",
-                         //stack: (new Error()).stack,
-                         expr.position,
-                         key
-                     );
-                 }
- 
-                 if (key != null) {
-                     var entry = new GroupEntry();
-                     entry.data = item; entry.exprIndex = pairIndex;
-                     if (groups.get(key)!=null) {
-                         // a value already exists in this slot
-                         if(groups.get(key).exprIndex != pairIndex) {
-                             // this key has been generated by another expression in this group
-                             // when multiple key expressions evaluate to the same key, then error D1009 must be thrown
-                             throw new JException("D1009",
-                                 //stack: (new Error()).stack,
-                                 expr.position,
-                                 key
-                             );
-                         }
- 
-                         // append it as an array
-                         groups.get(key).data = Functions.append(groups.get(key).data, item);
-                     } else {
-                         groups.put(key, entry);
-                     }
-                 }
-             }
-         }
- 
-         // iterate over the groups to evaluate the "value" expression
+        }
+
+        for(var itemIndex = 0; itemIndex < input.size(); itemIndex++) {
+            var item = input.get(itemIndex);
+            var env = reduce ? createFrameFromTuple(environment, (Map)item) : environment;
+            for(var pairIndex = 0; pairIndex < expr.lhsObject.size(); pairIndex++) {
+                var pair = expr.lhsObject.get(pairIndex);
+                var key = /* await */ evaluate(pair[0], reduce ? ((Map)item).get("@") : item, env);
+                // key has to be a string
+                if (key!=null && !(key instanceof String)) {
+                    throw new JException("T1003",
+                        //stack: (new Error()).stack,
+                        expr.position,
+                        key
+                    );
+                }
+
+                if (key != null) {
+                    var entry = new GroupEntry();
+                    entry.data = item; entry.exprIndex = pairIndex;
+                    if (groups.get(key)!=null) {
+                        // a value already exists in this slot
+                        if(groups.get(key).exprIndex != pairIndex) {
+                            // this key has been generated by another expression in this group
+                            // when multiple key expressions evaluate to the same key, then error D1009 must be thrown
+                            throw new JException("D1009",
+                                //stack: (new Error()).stack,
+                                expr.position,
+                                key
+                            );
+                        }
+
+                        // append it as an array
+                        groups.get(key).data = Functions.append(groups.get(key).data, item);
+                    } else {
+                        groups.put(key, entry);
+                    }
+                }
+            }
+        }
+
+        // iterate over the groups to evaluate the "value" expression
         //let generators = /* await */ Promise.all(Object.keys(groups).map(/* async */ (key, idx) => {
         int idx = 0;
         for (Entry<Object,GroupEntry> e : groups.entrySet()) {
-             var entry = e.getValue();
-             var context = entry.data;
-             var env = environment;
-             if (reduce) {
-                 var tuple = reduceTupleStream(entry.data);
-                 context = ((Map)tuple).get("@");
-                 ((Map)tuple).remove("@");
-                 env = createFrameFromTuple(environment, (Map)tuple);
-             }
+            var entry = e.getValue();
+            var context = entry.data;
+            var env = environment;
+            if (reduce) {
+                var tuple = reduceTupleStream(entry.data);
+                context = ((Map)tuple).get("@");
+                ((Map)tuple).remove("@");
+                env = createFrameFromTuple(environment, (Map)tuple);
+            }
             env.isParallelCall = idx > 0;
             //return [key, /* await */ evaluate(expr.lhs[entry.exprIndex][1], context, env)];
             Object res = evaluate(expr.lhsObject.get(entry.exprIndex)[1], context, env);
@@ -1114,126 +1106,126 @@ public class Jsonata {
                 result.put(e.getKey(), res);
 
             idx++;
-         }
- 
-        //  for (let generator of generators) {
-        //      var [key, value] = /* await */ generator;
-        //      if(typeof value !== "undefined") {
-        //          result[key] = value;
-        //      }
-        //  }
- 
-         return result;
-     }
- 
-     Object reduceTupleStream(Object _tupleStream) {
-         if(!(_tupleStream instanceof List)) {
-             return _tupleStream;
-         }
-         List<Map> tupleStream = (List)_tupleStream;
+        }
 
-         var result = new LinkedHashMap<>();
-         result.putAll(tupleStream.get(0));
+    //  for (let generator of generators) {
+    //      var [key, value] = /* await */ generator;
+    //      if(typeof value !== "undefined") {
+    //          result[key] = value;
+    //      }
+    //  }
 
-         //Object.assign(result, tupleStream[0]);
-         for(var ii = 1; ii < tupleStream.size(); ii++) {
+        return result;
+    }
 
-            Map el = tupleStream.get(ii);
-            for (var prop : el.keySet()) {
+    Object reduceTupleStream(Object _tupleStream) {
+        if(!(_tupleStream instanceof List)) {
+            return _tupleStream;
+        }
+        List<Map> tupleStream = (List)_tupleStream;
+
+        var result = new LinkedHashMap<>();
+        result.putAll(tupleStream.get(0));
+
+        //Object.assign(result, tupleStream[0]);
+        for(var ii = 1; ii < tupleStream.size(); ii++) {
+
+        Map el = tupleStream.get(ii);
+        for (var prop : el.keySet()) {
 
 //             for(const prop in tupleStream[ii]) {
 
-                result.put(prop, Functions.append(result.get(prop), el.get(prop)));
+            result.put(prop, Functions.append(result.get(prop), el.get(prop)));
 
 //               result[prop] = fn.append(result[prop], tupleStream[ii][prop]);
-             }
-         }
-         return result;
-     }
- 
-     /**
-      * Evaluate range expression against input data
-      * @param {Object} lhs - LHS value
-      * @param {Object} rhs - RHS value
-      * @returns {Array} Resultant array
-      */
-     Object evaluateRangeExpression(Object lhs, Object rhs) {
-         Object result = null;
- 
-         if (lhs != null && (!(lhs instanceof Long) && !(lhs instanceof Integer))) {
-             throw new JException("T2003",
-                 //stack: (new Error()).stack,
-                 -1,
-                 lhs
-             );
-         }
-         if (rhs != null && (!(rhs instanceof Long) && !(rhs instanceof Integer))) {
-             throw new JException("T2004",
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Evaluate range expression against input data
+     * @param {Object} lhs - LHS value
+     * @param {Object} rhs - RHS value
+     * @returns {Array} Resultant array
+     */
+    Object evaluateRangeExpression(Object lhs, Object rhs) {
+        Object result = null;
+
+        if (lhs != null && (!(lhs instanceof Long) && !(lhs instanceof Integer))) {
+            throw new JException("T2003",
                 //stack: (new Error()).stack,
                 -1,
-                rhs
-             );
-         }
- 
-         if (rhs==null || lhs==null) {
-             // if either side is undefined, the result is undefined
-             return result;
-         }
- 
-         long _lhs = ((Number)lhs).longValue(), _rhs = ((Number)rhs).longValue();
+                lhs
+            );
+        }
+        if (rhs != null && (!(rhs instanceof Long) && !(rhs instanceof Integer))) {
+            throw new JException("T2004",
+            //stack: (new Error()).stack,
+            -1,
+            rhs
+            );
+        }
 
-         if (_lhs > _rhs) {
-             // if the lhs is greater than the rhs, return undefined
-             return result;
-         }
- 
-         // limit the size of the array to ten million entries (1e7)
-         // this is an implementation defined limit to protect against
-         // memory and performance issues.  This value may increase in the future.
-         var size = _rhs - _lhs + 1;
-         if(size > 1e7) {
-             throw new JException("D2014",
-                 //stack: (new Error()).stack,
-                 -1,
-                 size
-             );
-         }
- 
+        if (rhs==null || lhs==null) {
+            // if either side is undefined, the result is undefined
+            return result;
+        }
+
+        long _lhs = ((Number)lhs).longValue(), _rhs = ((Number)rhs).longValue();
+
+        if (_lhs > _rhs) {
+            // if the lhs is greater than the rhs, return undefined
+            return result;
+        }
+
+        // limit the size of the array to ten million entries (1e7)
+        // this is an implementation defined limit to protect against
+        // memory and performance issues.  This value may increase in the future.
+        var size = _rhs - _lhs + 1;
+        if(size > 1e7) {
+            throw new JException("D2014",
+                //stack: (new Error()).stack,
+                -1,
+                size
+            );
+        }
+
         return new Utils.RangeList(_lhs, _rhs);
     }
  
-     /**
-      * Evaluate bind expression against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     /* async */ Object evaluateBindExpression(Symbol expr, Object input, Frame environment) {
-         // The RHS is the expression to evaluate
-         // The LHS is the name of the variable to bind to - should be a VARIABLE token (enforced by parser)
-         var value = /* await */ evaluate(expr.rhs, input, environment);
-         environment.bind(""+expr.lhs.value, value);
-         return value;
-     }
+    /**
+     * Evaluate bind expression against input data
+     * @param {Object} expr - JSONata expression
+     * @param {Object} input - Input data to evaluate against
+     * @param {Object} environment - Environment
+     * @returns {*} Evaluated input data
+     */
+    /* async */ Object evaluateBindExpression(Symbol expr, Object input, Frame environment) {
+        // The RHS is the expression to evaluate
+        // The LHS is the name of the variable to bind to - should be a VARIABLE token (enforced by parser)
+        var value = /* await */ evaluate(expr.rhs, input, environment);
+        environment.bind(""+expr.lhs.value, value);
+        return value;
+    }
  
-     /**
-      * Evaluate condition against input data
-      * @param {Object} expr - JSONata expression
-      * @param {Object} input - Input data to evaluate against
-      * @param {Object} environment - Environment
-      * @returns {*} Evaluated input data
-      */
-     /* async */ Object evaluateCondition(Symbol expr, Object input, Frame environment) {
-         Object result = null;
-         var condition = /* await */ evaluate(expr.condition, input, environment);
-         if (boolize(condition)) {
-             result = /* await */ evaluate(expr.then, input, environment);
-         } else if (expr._else != null) {
-             result = /* await */ evaluate(expr._else, input, environment);
-         }
-         return result;
-     }
+    /**
+     * Evaluate condition against input data
+     * @param {Object} expr - JSONata expression
+     * @param {Object} input - Input data to evaluate against
+     * @param {Object} environment - Environment
+     * @returns {*} Evaluated input data
+     */
+    /* async */ Object evaluateCondition(Symbol expr, Object input, Frame environment) {
+        Object result = null;
+        var condition = /* await */ evaluate(expr.condition, input, environment);
+        if (boolize(condition)) {
+            result = /* await */ evaluate(expr.then, input, environment);
+        } else if (expr._else != null) {
+            result = /* await */ evaluate(expr._else, input, environment);
+        }
+        return result;
+    }
  
      /**
       * Evaluate block against input data
@@ -2069,6 +2061,7 @@ public class Jsonata {
 
         return new Frame(enclosingEnvironment);
 
+        // The following logic is in class Frame:
         //  var bindings = {};
         //  return {
         //      bind: Object (name, value) {
@@ -2418,54 +2411,49 @@ public class Jsonata {
 
     /* async */
     public Object evaluate(Object input, Frame bindings) { // FIXME:, callback) {
-                 // throw if the expression compiled with syntax errors
-                 if(errors != null) {
-                    //  var err = {
-                    //      code: "S0500",
-                    //      position: 0
-                    //  };
-                    //populateMessage(err); // possible side-effects on `err`
-                    throw new JException("S0500", 0);
-                 }
- 
-                 Frame exec_env;
-                 if (bindings != null) {
-                     //var exec_env;
-                     // the variable bindings have been passed in - create a frame to hold these
-                     exec_env = createFrame(environment);
-                     for (var v : bindings.bindings.keySet()) {
-                         exec_env.bind(v, bindings.lookup(v));
-                     }
-                 } else {
-                     exec_env = environment;
-                 }
-                 // put the input document into the environment as the root object
-                 exec_env.bind("$", input);
- 
-                 // capture the timestamp and put it in the execution environment
-                 // the $now() and $millis() functions will return this value - whenever it is called
-                 //timestamp = new Date();
-                 //exec_env.timestamp = timestamp;
- 
-                 // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
-                 if((input instanceof List) && !Utils.isSequence(input)) {
-                     input = Utils.createSequence(input);
-                     ((JList)input).outerWrapper = true;
-                 }
- 
-                 Object it;
-                 try {
-                     it = /* await */ evaluate(ast, input, exec_env);
-                    //  if (typeof callback === "function") {
-                    //      callback(null, it);
-                    //  }
-                     return it;
-                 } catch (Exception err) {
-                     // insert error message into structure
-                     populateMessage(err); // possible side-effects on `err`
-                     throw err;
-                 }
-             }
+        // throw if the expression compiled with syntax errors
+        if(errors != null) {
+            throw new JException("S0500", 0);
+        }
+
+        Frame exec_env;
+        if (bindings != null) {
+            //var exec_env;
+            // the variable bindings have been passed in - create a frame to hold these
+            exec_env = createFrame(environment);
+            for (var v : bindings.bindings.keySet()) {
+                exec_env.bind(v, bindings.lookup(v));
+            }
+        } else {
+            exec_env = environment;
+        }
+        // put the input document into the environment as the root object
+        exec_env.bind("$", input);
+
+        // capture the timestamp and put it in the execution environment
+        // the $now() and $millis() functions will return this value - whenever it is called
+        //timestamp = new Date();
+        //exec_env.timestamp = timestamp;
+
+        // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
+        if((input instanceof List) && !Utils.isSequence(input)) {
+            input = Utils.createSequence(input);
+            ((JList)input).outerWrapper = true;
+        }
+
+        Object it;
+        try {
+            it = /* await */ evaluate(ast, input, exec_env);
+        //  if (typeof callback === "function") {
+        //      callback(null, it);
+        //  }
+            return it;
+        } catch (Exception err) {
+            // insert error message into structure
+            populateMessage(err); // possible side-effects on `err`
+            throw err;
+        }
+    }
     
     public void assign(String name, Object value) {
                  environment.bind(name, value);
