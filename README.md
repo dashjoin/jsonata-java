@@ -71,10 +71,7 @@ This allows referencing the current version of the unit tests.
 To clone the this repository, run:
 
 ```
-git clone https://github.com/dashjoin/jsonata-java
-cd jsonata-java
-git submodule init
-git submodule update
+git clone --recurse-submodules https://github.com/dashjoin/jsonata-java
 ```
 
 To compile, generate / run the unit tests, and create the jar file, run:
