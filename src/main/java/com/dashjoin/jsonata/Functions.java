@@ -2054,11 +2054,6 @@ public class Functions {
         Class<?>[] types = m.getParameterTypes();
         int nargs = m.getParameterTypes().length;
 
-        // If function needs args, but none were provided
-        // TODO: better check with all signature metadata
-        if (nargs>0 && args.size()==0)
-            throw new JException("T0410", -1);
-
         List<Object> callArgs = new ArrayList<>(args);
         while (callArgs.size()<nargs) {
             // Add default arg null if not enough args were provided
