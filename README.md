@@ -68,7 +68,7 @@ We conducted some experiments to measure performance, but it's not an 'overall b
 ## Getting Started
 The project uses the repository of the reference implementation as a submodule.
 This allows referencing the current version of the unit tests.
-To clone the this repository, run:
+To clone this repository, run:
 
 ```
 git clone --recurse-submodules https://github.com/dashjoin/jsonata-java
