@@ -16,7 +16,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import com.dashjoin.jsonata.Parser.Infix;
@@ -76,6 +78,8 @@ public class Jsonata {
         public void bind(String name, Object val) {
             bindings.put(name, val);
         }
+        public<A,R> void bind(String name, Fn1<A,R> lambda) { bind(name, (Object)lambda); }
+        public<A,B,R> void bind(String name, Fn2<A,B,R> lambda) { bind(name, (Object)lambda); }
 
         public Object lookup(String name) {
             // Important: if we have a null value,
@@ -1743,10 +1747,18 @@ public class Jsonata {
                     //validatedArgs = null;
                 }
 
-                 result = ((JFunction)proc).call(input, validatedArgs);
+                 result = ((JFunction)proc).call(input, (List)validatedArgs);
                 //  if (isPromise(result)) {
                 //      result = /* await */ result;
                 //  }
+             } else if (proc instanceof JLambda) {
+                System.err.println("Lambda "+proc);
+                List _args = (List)validatedArgs;
+                if (proc instanceof Fn1) {
+                    result = ((Fn1)proc).apply(_args.get(0));
+                } else if (proc instanceof Fn2) {
+                    result = ((Fn2)proc).apply(_args.get(0), _args.get(1));
+                }
              } else if (proc instanceof Pattern) {
                 List _res = new ArrayList<>();
                 for (String s : (List<String>)validatedArgs) {
@@ -1997,11 +2009,46 @@ public class Jsonata {
         return defineFunction(func, signature, func);
     }
     static JFunction defineFunction(String func, String signature, String funcImplMethod) {
-        JFunction fn = new JFunction(func, signature, funcImplMethod);
+        JFunction fn = new JFunction(func, signature, Functions.class, null, funcImplMethod);
         staticFrame.bind(func, fn);
         return fn;
     }
- 
+
+    public static JFunction function(String name, String signature, Class clazz, Object instance, String methodName) {
+        return new JFunction(name, signature, clazz, instance, methodName);
+    }
+
+    public static<A,B,R> JFunction function(String name, FnVarArgs<R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,R> JFunction function(String name, Fn0<R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,R> JFunction function(String name, Fn1<A,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,R> JFunction function(String name, Fn2<A,B,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,C,R> JFunction function(String name, Fn3<A,B,C,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,C,D,R> JFunction function(String name, Fn4<A,B,C,D,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,C,D,E,R> JFunction function(String name, Fn5<A,B,C,D,E,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,C,D,E,F,R> JFunction function(String name, Fn6<A,B,C,D,E,F,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,C,D,E,F,G,R> JFunction function(String name, Fn7<A,B,C,D,E,F,G,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+    public static<A,B,C,D,E,F,G,H,R> JFunction function(String name, Fn8<A,B,C,D,E,F,G,H,R> func, String signature) {
+        return new JFunction(func.getJFunctionCallable(), signature);
+    }
+
      /**
       * parses and evaluates the supplied expression
       * @param {string} expr - expression to evaluate
@@ -2026,7 +2073,8 @@ public class Jsonata {
       * @param {Object} enclosingEnvironment - Enclosing environment
       * @returns {{bind: bind, lookup: lookup}} Created frame
       */
-    Frame createFrame(Frame enclosingEnvironment) {
+    public Frame createFrame() { return createFrame(null); }
+    public Frame createFrame(Frame enclosingEnvironment) {
         return new Frame(enclosingEnvironment);
 
         // The following logic is in class Frame:
@@ -2053,11 +2101,82 @@ public class Jsonata {
         //  };
     }
 
+    public static interface JLambda {
+    }
+
+    public static interface FnVarArgs<R> extends JLambda, Function<List<?>, R> {
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> {
+                    return apply((List<?>) args);
+            };
+        }
+    }
+    public static interface Fn0<R> extends JLambda, Supplier<R> {
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> get();
+        }
+    }
+    public static interface Fn1<A,R> extends JLambda, Function<A,R> {
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0));
+        }
+    }
+    public static interface Fn2<A,B,R> extends JLambda, BiFunction<A,B,R> {
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0), (B) args.get(1));
+        }
+    }
+    public static interface Fn3<A,B,C,R> extends JLambda {
+        R apply(A a, B b, C c);
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0), (B) args.get(1),
+                (C) args.get(2));
+        }
+    }
+    public static interface Fn4<A,B,C,D,R> extends JLambda {
+        R apply(A a, B b, C c, D d);
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0), (B) args.get(1),
+                (C) args.get(2), (D) args.get(3));
+        }
+    }
+    public static interface Fn5<A,B,C,D,E,R> extends JLambda {
+        R apply(A a, B b, C c, D d, E e);
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0), (B) args.get(1),
+                (C) args.get(2), (D) args.get(3), (E) args.get(4));
+        }
+    }
+    public static interface Fn6<A,B,C,D,E,F,R> extends JLambda {
+        R apply(A a, B b, C c, D d, E e, F f);
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0), (B) args.get(1),
+                (C) args.get(2), (D) args.get(3), (E) args.get(4),
+                (F) args.get(5));
+        }
+    }
+    public static interface Fn7<A,B,C,D,E,F,G,R> extends JLambda {
+        R apply(A a, B b, C c, D d, E e, F f, G g);
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0), (B) args.get(1),
+                (C) args.get(2), (D) args.get(3), (E) args.get(4),
+                (F) args.get(5), (G) args.get(6));
+        }
+    }
+    public static interface Fn8<A,B,C,D,E,F,G,H,R> extends JLambda {
+        R apply(A a, B b, C c, D d, E e, F f, G g, H h);
+        default JFunctionCallable getJFunctionCallable() {
+            return (input, args) -> apply((A) args.get(0), (B) args.get(1),
+                (C) args.get(2), (D) args.get(3), (E) args.get(4),
+                (F) args.get(5), (G) args.get(6), (H) args.get(7));
+        }
+    }
+
     /**
      * JFunction callable Lambda interface
      */
     public static interface JFunctionCallable {
-        Object call(Object input, Object args) throws Throwable;
+        Object call(Object input, List args) throws Throwable;
     }
 
     public static interface JFunctionSignatureValidation {
@@ -2072,28 +2191,31 @@ public class Jsonata {
         String functionName;
         Signature signature;
         Method method;
+        Object methodInstance;
 
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
-            this.signature = new Signature(signature, function.getClass().getName());
+            if (signature!=null)
+                this.signature = new Signature(signature, function.getClass().getName());
         }
 
-        public JFunction(String functionName, String signature, String implMethodName) {
+        public JFunction(String functionName, String signature, Class clz, Object instance, String implMethodName) {
             this.functionName = functionName;
             this.signature = new Signature(signature, functionName);
-            this.method = Functions.getFunction(implMethodName);
+            this.method = Functions.getFunction(clz, implMethodName);
+            this.methodInstance = instance;
             if (method==null) {
                 System.err.println("Function not implemented: "+functionName+" impl="+implMethodName);
             }
         }
 
         @Override
-        public Object call(Object input, Object args) {
+        public Object call(Object input, List args) {
             try {
                 if (function!=null) {
                     return function.call(input, args);
                 } else {
-                    return Functions.call(method, (List)args);
+                    return Functions.call(methodInstance, method, args);
                 }
             } catch (JException e) {
                 throw e;
@@ -2104,7 +2226,10 @@ public class Jsonata {
 
         @Override
         public Object validate(Object args, Object context) {
-            return signature.validate(args, context);
+            if (signature!=null)
+                return signature.validate(args, context);
+            else
+                return args;
         }
 
         public int getNumberOfArgs() {

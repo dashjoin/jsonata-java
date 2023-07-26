@@ -2032,7 +2032,7 @@ public class Functions {
         return a+b;
     }
 
-    public static Method getFunction(String name) {
+    public static Method getFunction(Class clz, String name) {
         Method[] methods = Functions.class.getMethods();
         for (Method m : methods) {
             // if (m.getModifiers() == (Modifier.STATIC | Modifier.PUBLIC) ) {
@@ -2046,11 +2046,11 @@ public class Functions {
         return null;
     }
 
-    public static Object call(String name, List<Object> args) throws Throwable {
-        return call(getFunction(name), args);
+    public static Object call(Class clz, Object instance, String name, List<Object> args) throws Throwable {
+        return call(instance, getFunction(clz, name), args);
     }
 
-    public static Object call(Method m, List<Object> args) throws Throwable {
+    public static Object call(Object instance, Method m, List<Object> args) throws Throwable {
         Class<?>[] types = m.getParameterTypes();
         int nargs = m.getParameterTypes().length;
 
