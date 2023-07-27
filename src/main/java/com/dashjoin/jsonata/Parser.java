@@ -401,19 +401,6 @@ public class Parser {
             }
         }
 
-        /*
-        var infix = function (id, bp, led) {
-            var bindingPower = bp || operators[id];
-            var s = symbol(id, bindingPower);
-            s.led = led || function (left) {
-                this.lhs = left;
-                this.rhs = expression(bindingPower);
-                this.type = "binary";
-                return this;
-            };
-            return s;
-        };
-*/
         // match infix operators
         // <expression> <operator> <expression>
         // right associative
@@ -425,13 +412,6 @@ public class Parser {
 
             //abstract Object led();
         }
-        /* 
-        var infixr = function (id, bp, led) {
-            var s = symbol(id, bp);
-            s.led = led;
-            return s;
-        };
-        */
 
         // match prefix operators
         // <operator> <expression>
@@ -452,18 +432,6 @@ public class Parser {
                 return this;
             }
         }
-
-        /* 
-        var prefix = function (id, nud) {
-            var s = symbol(id);
-            s.nud = nud || function () {
-                this.expression = expression(70);
-                this.type = "unary";
-                return this;
-            };
-            return s;
-        };
-        */
 
     public Parser() {
 
@@ -530,16 +498,6 @@ public class Parser {
                 throw new UnsupportedOperationException("TODO", null);
             }
         });
-/* 
-        , function (left) {
-            this.lhs = left;
-
-            this.error = node.error;
-            this.remaining = remainingTokens();
-            this.type = 'error';
-            return this;
-        });
-*/
 
         // field wildcard (single level)
         // merged with Infix *
@@ -550,13 +508,6 @@ public class Parser {
         //     }
         // });
 
-        /*
-            function () {
-            this.type = "wildcard";
-            return this;
-        });
-        */
-
         // descendant wildcard (multi-level)
 
         register(new Prefix("**") {
@@ -566,13 +517,6 @@ public class Parser {
             }
         });
 
-        /*
-        prefix('**', function () {
-            this.type = "descendant";
-            return this;
-        });
-        */
-
         // parent operator
         // merged with Infix %
         // register(new Prefix("%") {
@@ -581,14 +525,6 @@ public class Parser {
         //         return this;
         //     }
         // });
-
-        /*
-        prefix('%', function () {
-            this.type = "parent";
-            return this;
-        });
-        */
-
 
         // function invocation
         register(new Infix("(", Tokenizer.operators.get("(")) {
@@ -781,43 +717,6 @@ public class Parser {
                 return objectParser(left);
             }
         });
-
-        /*
-        var objectParser = function (left) {
-            var a = [];
-            if (node.id !== "}") {
-                for (; ;) {
-                    var n = expression(0);
-                    advance(":");
-                    var v = expression(0);
-                    a.push([n, v]); // holds an array of name/value expression pairs
-                    if (node.id !== ",") {
-                        break;
-                    }
-                    advance(",");
-                }
-            }
-            advance("}", true);
-            if (typeof left === 'undefined') {
-                // NUD - unary prefix form
-                this.lhs = a;
-                this.type = "unary";
-            } else {
-                // LED - binary infix form
-                this.lhs = left;
-                this.rhs = a;
-                this.type = 'binary';
-            }
-            return this;
-        };
-
-        // object constructor
-        prefix("{", objectParser);
-
-        // object grouping
-        infix("{", operators['{'], objectParser);
-
-        */
 
         // bind variable
         register(new InfixR(":=", Tokenizer.operators.get(":=")) {
@@ -1098,20 +997,6 @@ public class Parser {
                                 // }
                         }
                                 
-                        // result.steps.filter(function (step) {
-                        //     if (step.type === 'number' || step.type === 'value') {
-                        //         // don't allow steps to be numbers or the values true/false/null
-                        //         throw {
-                        //             code: "S0213",
-                        //             stack: (new Error()).stack,
-                        //             position: step.position,
-                        //             value: step.value
-                        //         };
-                        //     }
-                        //     return step.type === 'string';
-                        // }).forEach(function (lit) {
-                        //     lit.type = 'name';
-                        // });
                         // any step that signals keeping a singleton array, should be flagged on the path
                         if (result.steps.stream().filter(step ->
                             step.keepArray == true
@@ -1175,7 +1060,7 @@ public class Parser {
                             Symbol s = new Symbol();
                             s.type = "filter"; s.expr = predicate; s.position = expr.position;
 
-                            // FIXME:
+                            // FIXED:
                             // this logic is required in Java to fix
                             // for example test: flattening case 045
                             // otherwise we lose the keepArray flag
@@ -1539,30 +1424,5 @@ public class Parser {
         }
 
         return expr;
-    }
-    
-    public static void main(String[] args) throws Throwable {
-        Parser parser = new Parser();
-        // String s1 = "$sin := function($x){ /* define sine in terms of cosine */\n"+
-        // "    $cos($x - $pi/2)\n"+
-        // "}";
-        // String s2 = "$pi = 3.14159 ";
-        // String s3 = "$sum(Account.Order.Product.(Price * Quantity))";
-        // String s4 = "(Account)";
-        // String s5 = "(in.(-3+and*or-5))";
-        // String s6 = "{'v':(-or-(-and)*in in b)}";
-        String s7 = "((1*2)-3=4)";
-
-        String s = args.length>0 ? args[0] : s7;
-System.out.println("Parsing "+s);
-        
-        Symbol sym = parser.parse(s);
-        System.out.println(sym);
-
-        // parser.source = s3; // "name.value(x/y)";
-        // parser.lexer = new Tokenizer(parser.source);
-        // parser.advance(null, false);
-        // System.out.println(parser.symbolTable);
-        // parser.expression(0);
     }
 }
