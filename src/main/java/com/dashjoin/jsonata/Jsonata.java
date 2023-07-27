@@ -2480,7 +2480,7 @@ public class Jsonata {
       * @param {Function} options.RegexEngine: RegEx class constructor to use
       * @returns {{evaluate: evaluate, assign: assign}} Evaluated expression
       */
-    public Jsonata(String expr, boolean optionsRecover) {
+    public Jsonata(String expr) { // boolean optionsRecover) {
         try {
             ast = parser.parse(expr);//, optionsRecover);
             errors = ast.errors;

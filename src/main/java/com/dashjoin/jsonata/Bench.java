@@ -78,7 +78,7 @@ public class Bench {
         Jsonata jsonata = null;
         int i, count1, count2;
         for (i=0; ; i++) {
-            jsonata = new Jsonata(s, false);
+            jsonata = new Jsonata(s);
             if ((i%10)==0) {
                 if ((System.currentTimeMillis()-t0)>duration)
                     break;

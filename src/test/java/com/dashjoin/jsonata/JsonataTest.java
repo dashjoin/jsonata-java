@@ -82,7 +82,7 @@ public class JsonataTest {
             }
         }
 
-        Jsonata jsonata = new Jsonata(expr, false);
+        Jsonata jsonata = new Jsonata(expr);
         if (bindingFrame!=null)
             bindingFrame.setRuntimeBounds(debug ? 500000L : 1000L, 303);
         Object result = jsonata.evaluate(data, bindingFrame);
@@ -314,8 +314,13 @@ public class JsonataTest {
                 code = to.alternateCode;
             }
         }
-
-        boolean res = testExpr(expr, data, bindings, result, code);
+        boolean res;
+        if (debug && expr.equals("(  $inf := function(){$inf()};  $inf())")) {
+            System.err.println("DEBUG MODE: skipping infinity test: "+expr);
+            res = true;
+        }
+        else
+            res = testExpr(expr, data, bindings, result, code);
 
         if (to!=null) {
             // There is an override/alternate result for this defined...

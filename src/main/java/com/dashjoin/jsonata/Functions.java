@@ -2263,7 +2263,7 @@ public class Functions {
 
         Jsonata ast;
         try {
-            ast = new Jsonata(expr, false);
+            ast = new Jsonata(expr);
         } catch(Throwable err) {
             // error parsing the expression passed to $eval
             //populateMessage(err);

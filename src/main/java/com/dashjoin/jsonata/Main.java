@@ -1,60 +1,62 @@
 package com.dashjoin.jsonata;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
+import com.dashjoin.jsonata.Jsonata.Fn2;
+import com.dashjoin.jsonata.Jsonata.FnVarArgs;
+import com.dashjoin.jsonata.Jsonata.JLambda;
+import com.dashjoin.jsonata.Utils.JList;
 
 //import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Main {
+
+
+    Number sub(Number a, Number b) {
+        return a.doubleValue()-b.doubleValue();
+    }
+
+    String doubleMe(String s) {
+        return s+s;
+    }
+
+    Number cos(Number n) {
+        return Math.cos(n.doubleValue());
+    }
+
     public static void main(String[] args) throws Throwable {
-
-        String s = "$join(['a','b','c'], '#')";
-        //s = "$count([1..(1e4-1)])";
-        //s = "{ 'number': [1..10].$string() }"; // FIXME
-        //s = "[1..10].($ * $).$sum()";
-        // s = "($a := [1..10].($ * $); $sum($a) )";
-        // s = "$substringBefore(\"Alalala\", \"la\")";
-        // s = "$substring(\"Alalala\", 1,4)";
-        // s = "$pad('xxx', -5, 'abrac')";
-        // // group matches:
-        // s = "$match(\"Alalalcl\", /l(a|c)/)";
-        // s = "$match(\"Alalalcl\", /l(a|c)(l|x)/)";
-
-        // s = "[0,1,2].$boolean()";
-
-        s = "$replace('abcdef', /c.*/, 'xy')";
-        s = "$replace('mad hatter', /hat/i, function($match) { 'foo' })";
-        // s = "$split('abcdef', /c./)";
-        // s = "$split('abcdef', 'cd')";
-
-        //s = "[1,2,3,4].($*$) ~> $sum";
-        //s = "$string({'a':[1,2]}, true)";
-        //s = "$number('3.1e1')";
-
-        //s = "$map(['11','1e5','0.00001'], $number ~> $sqrt )";
-
-        //s = "(  $data := {    \"one\": [1,2,3,4,5],    \"two\": [5,4,3,2,1]  };  $add := function($x){$x*$x};  $map($data.two, $add) ~> $sum )  ";
-        //s = "(  $data := {    \"one\": [1,2,3,4,5],    \"two\": [5,4,3,2,1]  };  $add := function($x){$x*$x};  $data.one )  ";
-
-        //s = "$zip([1,2], [3,4])";
-        //s = "$zip([1,2], [3,4,5], [-1])";
-
-        //s = "$keys([{'a':true},{'b':true}])";
-
-        //s = "$each({'a':1, 'b':2}, $string)";
-
-        //s = "$formatBase(100*$random(), 2)";
-
-        //s = "$clone({'a':[1.0,2,3.5]}).a";
-
-        //s = "$eval('[1,2].$string()')";
-        //s = "false > 5";
-        //s = "10e300 * 10e100";
-        //s="{'a':()}";
-        s = "2*$power(2,6e2/10.0)+1";
+        //String s = "$doubleStr('hello')";
+        //String s = "$cosSquare(1)";
+        String s = "$doit3([1,2,3],[4,5])";
+        //s = "$obj2({'a':42, 'b':$},true)";
+        //s = "$sum([1,2])";
         if (args.length>0) s=args[0];
         //s = "$ = [1..4]";
-        Jsonata jsonata = new Jsonata(s, false);
-        Object result = jsonata.evaluate(List.of(1,2,3,4), null);
+        Jsonata jsonata = new Jsonata(s);
+        Jsonata.Frame bindings = new Jsonata.Frame(null);
+        Main main = new Main();
+        bindings.bind("ext1", (Fn2<Number,Number,Number>) (a,b)-> { return  a.doubleValue()+b.doubleValue(); } );
+        bindings.bind("ext1b", (Number a, Number b)-> { return  a.doubleValue()+b.doubleValue(); } );
+        bindings.bind("ext2", main::sub );
+        bindings.bind("doubleStr", main::doubleMe);
+        bindings.bind("mycos", main::cos);
+        bindings.bind("cosSquare", (Number n)-> Math.pow(Math.cos(n.doubleValue()), 2.0) );
+        bindings.bind("PI", Math.PI);
+        bindings.bind("doit", (List<?> a, List<?> b)-> a.size()+b.size());
+        
+        bindings.bind("doit2", Jsonata.function("doit2", (List<?> a, List<?> b)-> a.size()+(b!=null ? b.size() : 0), "<xx?:n>"));
+
+        bindings.bind("doit3", Jsonata.function("doit3", (FnVarArgs<Number>) (params) -> { System.out.println(params); return params.size(); }, null));
+
+        bindings.bind("obj1", (Map<?,?> a) -> Functions.string(a,false) );
+        bindings.bind("obj2", (Fn2<Object,Boolean,String>)Functions::string );
+
+
+        //bindings.bind("ext2", (FnVar) (params)-> { return ((Number)params[0]).doubleValue()+((Number)params[1]).doubleValue(); } );
+        Object result = jsonata.evaluate(List.of(1,2,3,4), bindings);
         System.out.println("Result = "+Functions.string(result, false));    
     }
 }
