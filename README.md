@@ -54,7 +54,7 @@ public class Main {
 ```
 
 ## History
-We needed a high performance and 100% compatible engine for the ETL and data transformations of the Dashjoin Low Code platform. Being a JSON full stack based on Quarkus/Java, JSONata was a very good fit and is even more today.
+We needed a high performance and 100% compatible engine for the ETL and data transformations of the [Dashjoin Low Code platform](https://github.com/dashjoin/platform). Being a JSON full stack based on Quarkus/Java, JSONata was a very good fit and is even more today.
 
 In the beginning we used the original Java port, but quickly got lots of issues due to unsupported features and errors that we could not reproduce easily.
 The next solution which was running quite well and stable was to use GraalVM's Javascript engine to run the jsonata-js reference implementation in process of the Java backend. This works OK, but there are performance compromises, especially when there are many switches between the Javascript and the Java context (as is the case with ETL and data transformations).
