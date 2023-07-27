@@ -14,6 +14,48 @@
         <mainClass>com.dashjoin.jsonata.Bench</mainClass>
     </properties>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+	<description>JSONata Java reference port</description>
+    <url>https://github.com/dashjoin/jsonata-java</url>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Uli Walther</name>
+			<email>uli@dashjoin.com</email>
+			<organization>Dashjoin GmbH</organization>
+			<organizationUrl>https://dashjoin.com</organizationUrl>
+		</developer>
+		<developer>
+			<name>Andi Eberhart</name>
+			<email>andi@dashjoin.com</email>
+			<organization>Dashjoin GmbH</organization>
+			<organizationUrl>https://dashjoin.com</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>https://github.com/dashjoin/jsonata-java.git</connection>
+		<developerConnection>https://github.com/dashjoin/jsonata-java.git</developerConnection>
+		<url>https://github.com/dashjoin/jsonata-java</url>
+	</scm>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -153,6 +195,55 @@
                     </descriptorRefs>
                 </configuration>
             </plugin>
+
+            <!-- Plugins for mvn central -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <!--additionalparam>-Xdoclint:none</additionalparam-->
+                    <failOnError>false</failOnError>
+                    <failOnWarnings>false</failOnWarnings>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                    <id>sign-artifacts</id>
+                    <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
 
         </plugins>
     </build>
