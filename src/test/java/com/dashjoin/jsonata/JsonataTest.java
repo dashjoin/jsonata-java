@@ -15,6 +15,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import static com.dashjoin.jsonata.Jsonata.jsonata;
 import com.dashjoin.jsonata.Jsonata.Frame;
 import com.dashjoin.jsonata.json.Json;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -82,7 +83,7 @@ public class JsonataTest {
             }
         }
 
-        Jsonata jsonata = new Jsonata(expr);
+        Jsonata jsonata = jsonata(expr);
         if (bindingFrame!=null)
             bindingFrame.setRuntimeBounds(debug ? 500000L : 1000L, 303);
         Object result = jsonata.evaluate(data, bindingFrame);

@@ -51,27 +51,6 @@ import com.dashjoin.jsonata.utils.Signature;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Jsonata {
-
- /**
-  * jsonata
-  * @function
-  * @param {Object} expr - JSONata expression
-  * @returns {{evaluate: evaluate, assign: assign}} Evaluated expression
-  */
-// var jsonata = (function() {
-//     "use strict";
- 
-    //  var isNumeric = utils.isNumeric;
-    //  var isArrayOfStrings = utils.isArrayOfStrings;
-    //  var isArrayOfNumbers = utils.isArrayOfNumbers;
-    //  var createSequence = utils.createSequence;
-    //  var isSequence = utils.isSequence;
-    //  var isFunction = utils.isFunction;
-    //  var isLambda = utils.isLambda;
-    //  var isIterable = utils.isIterable;
-    //  var isPromise = utils.isPromise;
-    //  var getFunctionArity = utils.getFunctionArity;
-    //  var isDeepEqual = utils.isDeepEqual;
  
      // Start of Evaluator code
  
@@ -620,7 +599,6 @@ public class Jsonata {
         return result;
     }
  
-    final public static Object UNDEFINED = new Object();
     final public static Object NULL_VALUE = new Object() { public String toString() { return "null"; }};
 
     /**
@@ -1276,47 +1254,9 @@ public class Jsonata {
       * @returns {Function} Higher order Object representing prepared regex
       */
      Object evaluateRegex(Symbol expr) {
+        // Note: in Java we just use the compiled regex Pattern
+        // The apply functions need to take care to evaluate
         return expr.value;
-
-        //  var re = new jsonata.RegexEngine(expr.value);
-        //  var closure = function(str, fromIndex) {
-        //      var result;
-        //      re.lastIndex = fromIndex || 0;
-        //      var match = re.exec(str);
-        //      if(match !== null) {
-        //          result = {
-        //              match: match[0],
-        //              start: match.index,
-        //              end: match.index + match[0].length,
-        //              groups: []
-        //          };
-        //          if(match.length > 1) {
-        //              for(var i = 1; i < match.length; i++) {
-        //                  result.groups.push(match[i]);
-        //              }
-        //          }
-        //          result.next = function() {
-        //              if(re.lastIndex >= str.length) {
-        //                  return undefined;
-        //              } else {
-        //                  var next = closure(str, re.lastIndex);
-        //                  if(next && next.match === "") {
-        //                      // matches zero length string; this will never progress
-        //                      throw {
-        //                          code: "D1004",
-        //                          stack: (new Error()).stack,
-        //                          position: expr.position,
-        //                          value: expr.value.source
-        //                      };
-        //                  }
-        //                  return next;
-        //              }
-        //          };
-        //      }
- 
-        //      return result;
-        //  };
-        //  return closure;
      }
  
      /**
@@ -2490,19 +2430,21 @@ public class Jsonata {
         registerFunctions();
     }
 
+     /**
+      * JSONata
+      * @param {Object} expr - JSONata expression
+      * @returns Evaluated expression
+      * @throws JException An exception if an error occured.
+      */
     public static Jsonata jsonata(String expression) {
         return new Jsonata(expression);
     }
 
-     /**
-      * JSONata
-      * @param {Object} expr - JSONata expression
-      * @param {Object} options
-      * @param {boolean} options.recover: attempt to recover on parse error
-      * @param {Function} options.RegexEngine: RegEx class constructor to use
-      * @returns {{evaluate: evaluate, assign: assign}} Evaluated expression
-      */
-    public Jsonata(String expr) { // boolean optionsRecover) {
+    /**
+     * Internal constructor
+     * @param expr
+     */
+    Jsonata(String expr) { // boolean optionsRecover) {
         try {
             ast = parser.parse(expr);//, optionsRecover);
             errors = ast.errors;
@@ -2524,13 +2466,15 @@ public class Jsonata {
         //      return timestamp.getTime();
         //  }, "<:n>"));
 
-        // FIXME: options.RegexEngine not impl
+        // FIXED: options.RegexEngine not implemented in Java
         //  if(options && options.RegexEngine) {
         //      jsonata.RegexEngine = options.RegexEngine;
         //  } else {
         //      jsonata.RegexEngine = RegExp;
         //  }
     }
+
+    public Object evaluate(Object input) { return evaluate(input,null); }
 
     /* async */
     public Object evaluate(Object input, Frame bindings) { // FIXME:, callback) {
@@ -2579,17 +2523,11 @@ public class Jsonata {
     }
     
     public void assign(String name, Object value) {
-                 environment.bind(name, value);
+        environment.bind(name, value);
     }
     
-    public void registerFunction(String name, Function implementation, String signature) {
-        throw new Error("not implemented");
-            //      var func = defineFunction(implementation, signature);
-            //      environment.bind(name, func);
-            //  },
-            //  ast: function() {
-            //      return ast;
-            //  },
+    public void registerFunction(String name, JFunction implementation) {
+        environment.bind(name, implementation);
     }
 
     public List<Exception> getErrors() {
@@ -2597,11 +2535,4 @@ public class Jsonata {
     }
  
     static Parser parser = new Parser();
-//      jsonata.parser = parser; // TODO remove this in a future release - use ast() instead
- 
-//      return jsonata;
- 
-//  })();
- 
-//  module.exports = jsonata;
 }

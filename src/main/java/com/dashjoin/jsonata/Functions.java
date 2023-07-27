@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static com.dashjoin.jsonata.Jsonata.jsonata;
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Parser.Symbol;
 import com.dashjoin.jsonata.Utils.JList;
@@ -2280,7 +2281,7 @@ public class Functions {
 
         Jsonata ast;
         try {
-            ast = new Jsonata(expr);
+            ast = jsonata(expr);
         } catch(Throwable err) {
             // error parsing the expression passed to $eval
             //populateMessage(err);
