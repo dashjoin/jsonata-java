@@ -6,6 +6,7 @@
 
 package com.dashjoin.jsonata;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -1653,19 +1654,21 @@ public class Jsonata {
              }
              result = /* await */ apply(proc, evaluatedArgs, input, environment);
          } catch (JException jex) {
+            if (jex.location<0) {
+                // add the position field to the error
+                jex.location = expr.position;
+            }
+            if (jex.current==null) {
+                // and the Object identifier
+                jex.current = expr.token;
+            }
             throw jex;
          } catch (Exception err) {
-            //  if(!err.position) {
-            //      // add the position field to the error
-            //      err.position = expr.position;
-            //  }
-            //  if (!err.token) {
-            //      // and the Object identifier
-            //      err.token = procName;
-            //  }
-            //if (parser.dbg) 
-            err.printStackTrace();
-            throw new JException("Error calling function "+procName, expr.position); //err;
+            if (!(err instanceof RuntimeException))
+                throw new RuntimeException(err);
+            //err.printStackTrace();
+            throw err;
+            // new JException(err, "Error calling function "+procName, expr.position, null, null); //err;
          }
          return result;
      }
@@ -2219,8 +2222,13 @@ public class Jsonata {
                 }
             } catch (JException e) {
                 throw e;
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e.getTargetException());
             } catch (Throwable e) {
-                throw new JException(e, "T0410", -1, args, functionName);
+                if (e instanceof RuntimeException)
+                    throw (RuntimeException)e;
+                throw new RuntimeException(e);
+                //throw new JException(e, "T0410", -1, args, functionName);
             }
         }
 
