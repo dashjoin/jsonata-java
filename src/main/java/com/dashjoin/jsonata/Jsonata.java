@@ -1,9 +1,27 @@
 /**
+ * jsonata-java is the JSONata Java reference port
+ * 
+ * Copyright Dashjoin GmbH. https://dashjoin.com
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Derived from Javascript code under this license:
+/**
  * © Copyright IBM Corp. 2016, 2017 All Rights Reserved
  *   Project name: JSONata
  *   This project is licensed under the MIT License, see LICENSE
  */
-
 package com.dashjoin.jsonata;
 
 import java.lang.reflect.InvocationTargetException;
@@ -2199,7 +2217,7 @@ public class Jsonata {
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
             if (signature!=null)
-                this.signature = new Signature(signature, function.getClass().getName());
+                this.signature = new Signature(signature, "ext2b");//function.getClass().getName());
         }
 
         public JFunction(String functionName, String signature, Class clz, Object instance, String implMethodName) {
@@ -2470,6 +2488,10 @@ public class Jsonata {
     static {
         staticFrame = new Frame(null);
         registerFunctions();
+    }
+
+    public static Jsonata jsonata(String expression) {
+        return new Jsonata(expression);
     }
 
      /**
