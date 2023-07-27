@@ -99,10 +99,6 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
         String id;
     }
 
-//        var create = function (type, value) {
-//            var obj = {type: type, value: value, position: position};
-//            return obj;
-//        };
     Token create(String type, Object value) {
         Token t = new Token();
         t.type = type; t.value = value; t.position = position;
@@ -345,14 +341,6 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
             } else {
                 i++;
             }
-        }
-    }
-
-    public static void main(String[] args) throws Throwable {
-        Tokenizer t = new Tokenizer("name.value\n/* yo */ {x*y}\n/* comment */");
-        Token to;
-        while ( (to= t.next(true))!=null ) {
-            System.out.println("Token "+to.type+"="+to.value+" pos="+to.position);
         }
     }
 }
