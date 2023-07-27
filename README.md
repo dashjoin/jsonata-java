@@ -18,6 +18,41 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
 * Enterprise support
     - [Premium support available from the original developers](https://dashjoin.com)
 
+## Quick Start
+```Java
+import static com.dashjoin.jsonata.Jsonata.jsonata;
+
+public class Main {
+    public static void main(String[] args) {
+
+        var data = Map.of("example",
+            List.of(
+                Map.of("value", 4),
+                Map.of("value", 7),
+                Map.of("value", 13)
+            )
+        );
+        
+        var expression = jsonata("$sum(example.value)");
+        var result = expression.evaluate(data);  // returns 24
+        System.out.println(result);
+    }
+}
+```
+
+### Custom Functions
+
+```Java
+        var expression = jsonata("$sum(example.value) + $sin($PI/2)");
+
+        // Default JSONata has no $sin function and no $PI, so define it
+        var env = expression.createFrame();
+        env.bind("sin", (Number n) -> Math.sin( n.doubleValue() ) );
+        env.bind("PI", Math.PI);
+
+        var result = expression.evaluate(null, env);  // returns 25
+```
+
 ## History
 We needed a high performance and 100% compatible engine for the ETL and data transformations of the Dashjoin Low Code platform. Being a JSON full stack based on Quarkus/Java, JSONata was a very good fit and is even more today.
 
