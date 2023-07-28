@@ -2534,6 +2534,14 @@ public class Jsonata {
     public List<Exception> getErrors() {
         return errors;
     }
- 
-    static Parser parser = new Parser();
+
+    static ThreadLocal<Parser> _parser = new ThreadLocal<>();
+    static synchronized Parser getParser() {
+        Parser p = _parser.get();
+        if (p!=null)
+            return p;
+        _parser.set(p = new Parser());
+        return p;
+    }
+    Parser parser = getParser();
 }
