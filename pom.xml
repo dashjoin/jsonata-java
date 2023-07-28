@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.dashjoin</groupId>
     <artifactId>jsonata</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <native.maven.plugin.version>0.9.23</native.maven.plugin.version>

@@ -6,6 +6,7 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
 ## Goals
 * 100% feature compatibility
     - All JSONata language features supported
+    - 100% reference test coverage [with well justified exceptions](https://github.com/dashjoin/jsonata-java/blob/main/test/test-overrides.json)
 * Error messages matching the reference
     - Even stack traces are comparable
 * Zero dependency and small
@@ -14,11 +15,21 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
     - use with Jackson, GSon, ...
     - comes with integrated vanilla parser
 * Performance optimized
-* Native tool & native compilation
 * Enterprise support
     - [Premium support available from the original developers](https://dashjoin.com)
 
 ## Quick Start
+
+Add the dependency in pom.xml:
+```xml
+<dependency>
+    <groupId>com.dashjoin</groupId>
+    <artifactId>jsonata</artifactId>
+    <version>0.9.1</version>
+</dependency>
+```
+
+Main.java program:
 ```Java
 import java.util.List; import java.util.Map;
 import static com.dashjoin.jsonata.Jsonata.jsonata;
@@ -106,19 +117,7 @@ We conducted some experiments to measure performance, but it's not an 'overall b
 - Performance measured in kiloOps/s (thousands of operations per second), higher means faster.
 - Speedup factor compared to JSONata4Java (2.0 means "twice as fast").
 
-## Getting Started
-
-### Users: just add the dependency in pom.xml
-
-```xml
-<dependency>
-    <groupId>com.dashjoin</groupId>
-    <artifactId>jsonata</artifactId>
-    <version>0.9.0</version>
-</dependency>
-```
-
-### Developers: check out + compile the source code
+## Developers: getting started
 
 The project uses the repository of the reference implementation as a submodule.
 This allows referencing the current version of the unit tests.
