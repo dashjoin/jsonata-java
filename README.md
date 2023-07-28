@@ -62,7 +62,7 @@ public class Main {
         env.bind("sin", (Number n) -> Math.sin( n.doubleValue() ) );
         env.bind("PI", Math.PI);
 
-        var result = expression.evaluate(null, env);  // returns 25
+        var result = expression.evaluate(data, env);  // returns 25
 ```
 
 ## History
