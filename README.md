@@ -20,6 +20,7 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
 
 ## Quick Start
 ```Java
+import java.util.List; import java.util.Map;
 import static com.dashjoin.jsonata.Jsonata.jsonata;
 
 public class Main {
@@ -91,7 +92,7 @@ After review, it turned out that we can stay as near as possible to the original
 ## Performance
 We conducted some experiments to measure performance, but it's not an 'overall benchmark' yet. Your mileage may vary...
 
-|Expression| jsonata-js | JSONata4Java | jsonata-java | speedup x |
+|Expression| jsonata-js | JSONata4Java | jsonata-java | speedup factor |
 |----------|------------|--------------|---|---|
 | function-sift 4 | 26.1 / 109.6 | 36.1 / 144.8 | 140.8 / 348.2 | 3.9 / 2.3 |
 | hof-map 0 | 16.4 / 62.2 | 17.7 / 352.8 | 66.2 / 295.2 | 3.7 / 0.8 |
@@ -100,7 +101,25 @@ We conducted some experiments to measure performance, but it's not an 'overall b
 | partial-application 2 | 26.1 / 29.1 | parser error | 162.3 / 133.4 | ? / ? |
 | [1..500].($*$)~>$sum | 24.4 / 1.8 | 159.6 / exception | 286.4 / 9.0 | 1.8 / ? |
 
+- Expression denotes the test suite name and case.
+- First figure = parse operations, second figure = evaluate operations.
+- Performance measured in kiloOps/s (thousands of operations per second), higher means faster.
+- Speedup factor compared to JSONata4Java (2.0 means "twice as fast").
+
 ## Getting Started
+
+### Users: just add the dependency in pom.xml
+
+```xml
+<dependency>
+    <groupId>com.dashjoin</groupId>
+    <artifactId>jsonata</artifactId>
+    <version>0.9.0</version>
+</dependency>
+```
+
+### Developers: check out + compile the source code
+
 The project uses the repository of the reference implementation as a submodule.
 This allows referencing the current version of the unit tests.
 To clone this repository, run:
