@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.dashjoin</groupId>
     <artifactId>jsonata</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.9.0</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <native.maven.plugin.version>0.9.23</native.maven.plugin.version>
@@ -27,14 +27,8 @@
 
 	<developers>
 		<developer>
-			<name>Uli Walther</name>
-			<email>uli@dashjoin.com</email>
-			<organization>Dashjoin GmbH</organization>
-			<organizationUrl>https://dashjoin.com</organizationUrl>
-		</developer>
-		<developer>
-			<name>Andi Eberhart</name>
-			<email>andi@dashjoin.com</email>
+			<name>Dashjoin Dev Team</name>
+			<email>info@dashjoin.com</email>
 			<organization>Dashjoin GmbH</organization>
 			<organizationUrl>https://dashjoin.com</organizationUrl>
 		</developer>
@@ -172,7 +166,7 @@
                 </configuration>
             </plugin>
 
-            <plugin>
+            <!-- Currently not needed as we have no dependencies : plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
@@ -194,7 +188,7 @@
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
                 </configuration>
-            </plugin>
+            </plugin-->
 
             <!-- Plugins for mvn central -->
             <plugin>
@@ -237,9 +231,13 @@
                     <execution>
                     <id>sign-artifacts</id>
                     <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
+                    <goals>
+                        <goal>sign</goal>
+                    </goals>
+                    <configuration>
+                        <keyname>${gpg.keyname}</keyname>
+                        <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                    </configuration>
                     </execution>
                 </executions>
             </plugin>
