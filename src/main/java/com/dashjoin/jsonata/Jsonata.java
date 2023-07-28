@@ -2514,6 +2514,7 @@ public class Jsonata {
         //  if (typeof callback === "function") {
         //      callback(null, it);
         //  }
+            it = Utils.convertNulls(it);
             return it;
         } catch (Exception err) {
             // insert error message into structure

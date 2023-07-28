@@ -21,6 +21,8 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Jsonata.JFunctionCallable;
@@ -150,17 +152,6 @@ public class Utils {
             throw new IndexOutOfBoundsException(index);
         }        
     }
-
-        // createSequence,
-        // isSequence,
-        // isFunction,
-        // isLambda,
-        // isIterable,
-        // getFunctionArity,
-        // isDeepEqual,
-        // stringToArray,
-        // isPromise
-
      
     public static Number convertNumber(Number n) {
         // Use long if the number is not fractional
@@ -185,5 +176,41 @@ public class Utils {
       }
       if (isHigh)
         throw new JException("Malformed URL", 0);
+    }
+
+    static Object convertValue(Object val) {
+        return val != Jsonata.NULL_VALUE ? val : null;
+    }
+
+    static void convertNulls(Map<String, Object> res) {
+        for (Entry<String, Object> e : res.entrySet()) {
+            Object val = e.getValue();
+            Object l = convertValue(val);
+            if (l!=val)
+                e.setValue(l);
+            recurse(val);
+        }
+    }
+
+    static void convertNulls(List<Object> res) {
+        for (int i=0; i<res.size(); i++) {
+            Object val = res.get(i);
+            Object l = convertValue(val);
+            if (l!=val)
+                res.set(i, l);
+            recurse(val);
+        }
+    }
+
+    static void recurse(Object val) {
+        if (val instanceof Map)
+            convertNulls((Map)val);
+        if (val instanceof List)
+            convertNulls((List)val);
+    }
+
+    public static Object convertNulls(Object res) {
+        recurse(res);
+        return convertValue(res);
     }
 }

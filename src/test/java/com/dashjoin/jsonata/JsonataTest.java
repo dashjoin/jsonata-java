@@ -30,42 +30,6 @@ import static com.dashjoin.jsonata.Jsonata.NULL_VALUE;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class JsonataTest {
 
-    Object convertValue(Object val) {
-        return val != NULL_VALUE ? val : null;
-    }
-
-    void convertNulls(Map<String, Object> res) {
-        for (Entry<String, Object> e : res.entrySet()) {
-            Object val = e.getValue();
-            Object l = convertValue(val);
-            if (l!=val)
-                e.setValue(l);
-            recurse(val);
-        }
-    }
-
-    void convertNulls(List<Object> res) {
-        for (int i=0; i<res.size(); i++) {
-            Object val = res.get(i);
-            Object l = convertValue(val);
-            if (l!=val)
-                res.set(i, l);
-            recurse(val);
-        }
-    }
-
-    void recurse(Object val) {
-        if (val instanceof Map)
-            convertNulls((Map)val);
-        if (val instanceof List)
-            convertNulls((List)val);
-    }
-
-    Object convertNulls(Object res) {
-        recurse(res);
-        return convertValue(res);
-    }
-
     boolean testExpr(String expr, Object data, Map<String,Object> bindings,
         Object expected, String code) {
         boolean success = true;
@@ -87,9 +51,6 @@ public class JsonataTest {
         if (bindingFrame!=null)
             bindingFrame.setRuntimeBounds(debug ? 500000L : 1000L, 303);
         Object result = jsonata.evaluate(data, bindingFrame);
-        //if (result==Jsonata.NULL_VALUE)
-        //    result = null;
-        result = convertNulls(result);
         if (code!=null)
             success = false;
         
