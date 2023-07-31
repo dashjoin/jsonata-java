@@ -29,7 +29,6 @@ jobs:
         mvn compile exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.dashjoin.jsonata.Generate
         mvn package -DskipTests -Dmaven.javadoc.skip=true
         mvn test
-        ls -l . && ls jsonata/test/test-suite/groups && cat jsonata/test/test-suite/groups/array-constructor/array-sequences.json
 
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
