@@ -943,7 +943,7 @@ public class Parser {
         Symbol result = expr;
         if (expr==null) return null;
         if (dbg) System.out.println(" > processAST type="+expr.type+" value='"+expr.value+"'");
-        switch (expr.type) {
+        switch (expr.type != null ? expr.type : "(null)") {
             case "binary": {
                 switch (""+expr.value) {
                     case ".":
