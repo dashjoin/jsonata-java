@@ -6,8 +6,6 @@
     <version>0.9.1</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <native.maven.plugin.version>0.9.23</native.maven.plugin.version>
-        <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>20</maven.compiler.target>
         <imageName>djsonata</imageName>
@@ -54,7 +52,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit.jupiter.version}</version>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -77,53 +75,16 @@
 		</dependency>
     </dependencies>
 
-        <profiles>
-            <profile>
-            <id>native</id>
-            <build>
-                <plugins>
-                <plugin>
-                    <groupId>org.graalvm.buildtools</groupId>
-                    <artifactId>native-maven-plugin</artifactId>
-                    <version>${native.maven.plugin.version}</version>
-                    <extensions>true</extensions>
-                    <executions>
-                    <execution>
-                        <id>build-native</id>
-                        <goals>
-                        <goal>compile-no-fork</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                    <execution>
-                        <id>test-native</id>
-                        <goals>
-                        <goal>test</goal>
-                        </goals>
-                        <phase>test</phase>
-                    </execution>
-                    </executions>
-                    <configuration>
-                        <imageName>djsonata</imageName>
-                        <mainClass>com.dashjoin.jsonata.Main</mainClass>
-                        <buildArgs>
-                            <arg>-H:DashboardDump=jsonata -H:+DashboardAll -H:ReflectionConfigurationFiles=reflect-config.json</arg>
-                        </buildArgs>
-                    </configuration>
-                    <dependencies>
-                        <dependency>
-                        <groupId>org.codehaus.plexus</groupId>
-                        <artifactId>plexus-utils</artifactId>
-                        <version>3.5.1</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-                </plugins>
-            </build>
-            </profile>
-        </profiles>
-
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
