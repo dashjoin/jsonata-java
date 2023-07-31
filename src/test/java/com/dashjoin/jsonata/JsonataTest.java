@@ -328,7 +328,7 @@ public class JsonataTest {
 
     boolean ignoreOverrides = false;
 
-    @Disabled @Test
+    // For local dev: @Test
     public void testSuite() throws Exception {
         //runTestSuite("jsonata/test/test-suite/groups/boolean-expresssions/test.jsonx");
         //runTestSuite("jsonata/test/test-suite/groups/boolean-expresssions/case017.json");
