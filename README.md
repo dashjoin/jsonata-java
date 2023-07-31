@@ -6,7 +6,7 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
 ## Goals
 * 100% feature compatibility
     - All JSONata language features supported
-    - 100% reference test coverage [with well justified exceptions](https://github.com/dashjoin/jsonata-java/blob/main/test/test-overrides.json)
+    - [100% reference test coverage](https://github.com/dashjoin/jsonata-java/actions/runs/5717119540/job/15490217787) [with well justified exceptions](https://github.com/dashjoin/jsonata-java/blob/main/test/test-overrides.json)
 * Error messages matching the reference
     - Even stack traces are comparable
 * Zero dependency and small
