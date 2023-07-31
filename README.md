@@ -11,7 +11,7 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
     - Even stack traces are comparable
 * Zero dependency and small
     - Only 160 kB total size
-* JSON parser agnostic
+* [JSON parser agnostic](https://github.com/dashjoin/jsonata-java/blob/main/samples/json-interop.md)
     - use with Jackson, GSon, ...
     - comes with integrated vanilla parser
 * Performance optimized
