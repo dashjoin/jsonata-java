@@ -29,3 +29,4 @@ jobs:
         mvn compile exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.dashjoin.jsonata.Generate
         mvn package -DskipTests -Dmaven.javadoc.skip=true
         mvn test
+        ls -l . && ls jsonata/test/test-suite/groups
