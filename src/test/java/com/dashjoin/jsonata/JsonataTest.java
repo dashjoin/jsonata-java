@@ -235,7 +235,7 @@ public class JsonataTest {
     boolean runTestCase(String name, Map<String, Object> testDef) throws Exception {
 
         testCases++;
-        System.out.println("\nRunning test "+name);
+        if (debug) System.out.println("\nRunning test "+name);
 
         String expr = (String)testDef.get("expr");
 
