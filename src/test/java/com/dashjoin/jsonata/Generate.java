@@ -12,9 +12,14 @@ public class Generate {
 
   public static void main(String[] args) throws IOException {
 
+    boolean verbose = args.length>0 && args[0].startsWith("-v");
+
     new File("src/test/java/com/dashjoin/jsonata/gen").mkdirs();
     File suites = new File("jsonata/test/test-suite/groups");
-    for (File suite : suites.listFiles()) {
+    int total = 0, testSuites = 0;
+    File[] listSuites = suites.listFiles();
+    Arrays.sort(listSuites);
+    for (File suite : listSuites) {
 
       StringBuffer b = new StringBuffer();
       b.append("package com.dashjoin.jsonata.gen;\n");
@@ -24,6 +29,7 @@ public class Generate {
 
       File[] cases = suite.listFiles();
       Arrays.sort(cases);
+      int count = 0;
       for (File cas : cases) {
         // Skip all non-JSON
         if (!cas.getName().endsWith(".json")) continue;
@@ -39,6 +45,7 @@ public class Generate {
         b.append("  new JsonataTest().runSubCase(\"jsonata/test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\", "+i+");\n");
         b.append("}\n");
+        count++; total++;
           }
         }
         else {
@@ -47,13 +54,18 @@ public class Generate {
         b.append("  new JsonataTest().runCase(\"jsonata/test/test-suite/groups/" + suite.getName()
             + "/" + name + ".json\");\n");
         b.append("}\n");
+        count++; total++;
         }
       }
       b.append("}\n");
       Files.write(Path.of("src/test/java/com/dashjoin/jsonata/gen/"
           + suite.getName().replace('-', '_') + "Test.java"), b.toString().getBytes());
-      System.out.println(b);
+      if (verbose)
+        System.out.println(b);
+      System.out.println("Generated suite '"+suite.getName()+"' tests=" + count);
+      testSuites++;
     }
+    System.out.println("Generated SUITES="+testSuites+" TOTAL="+total);
   }
   
   static String s(Object o) {
