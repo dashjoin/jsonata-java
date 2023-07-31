@@ -25,6 +25,7 @@ jobs:
 
     - name: Build with Maven
       run: |
+        mvn package -DskipTests -Dmaven.javadoc.skip=true
         mvn compile exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.dashjoin.jsonata.Generate
-        mvn install
-        mvn -B package --file pom.xml -Dmaven.javadoc.skip=true
+        mvn test
+  
