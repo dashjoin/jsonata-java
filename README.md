@@ -4,7 +4,7 @@ JSONata reference ported to Java
 This is a 1:1 Java port of the [JSONata reference implementation](https://github.com/jsonata-js/jsonata)
 
 ## Features
-* 100% feature compatibility
+* [100% JSONata feature compatibility](https://github.com/dashjoin/jsonata-java/actions/runs/5717119540/job/15490217787)
     - All JSONata language features supported
     - [100% reference test coverage](https://github.com/dashjoin/jsonata-java/actions/runs/5717119540/job/15490217787) [with well justified exceptions](https://github.com/dashjoin/jsonata-java/blob/main/test/test-overrides.json)
 * Error messages matching the reference
