@@ -261,7 +261,7 @@ public class Functions {
         }
 
         // Throw error for unknown types
-        throw new IllegalArgumentException(arg.getClass().getName());
+        throw new IllegalArgumentException("Only JSON types (values, Map, List) can be stringified. Unsupported type: "+arg.getClass().getName());
     }
 
     /**
