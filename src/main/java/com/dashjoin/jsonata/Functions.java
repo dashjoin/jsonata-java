@@ -234,8 +234,6 @@ public class Functions {
             if (((List) arg).isEmpty())
                 return "[]";
             StringBuffer b = new StringBuffer();
-            if (prettify)
-                b.append(indent);
             b.append('[');
             if (prettify)
                 b.append('\n');
