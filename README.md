@@ -26,9 +26,10 @@ Add the dependency in pom.xml:
 <dependency>
     <groupId>com.dashjoin</groupId>
     <artifactId>jsonata</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
 </dependency>
 ```
+Here is the [release change log](changelog.md)
 
 Main.java program:
 ```Java
