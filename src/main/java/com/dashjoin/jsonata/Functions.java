@@ -1915,20 +1915,12 @@ public class Functions {
 
         var results = (arr instanceof JList/*sequence*/) ? Utils.createSequence() : new ArrayList<>();
 
-        for(var ii = 0; ii < arr.size(); ii++) {
-            var value = arr.get(ii);
-            // is this value already in the result sequence?
-            var includes = false;
-            for(var jj = 0; jj < results.size(); jj++) {
-                if (value.equals(results.get(jj))) {
-                    includes = true;
-                    break;
-                }
-            }
-            if(!includes) {
-                results.add(value);
-            }
-        }
+        // Create distinct list of elements by adding all to a set,
+        // and then adding the set to the result
+        var set = new LinkedHashSet(arr.size());
+        set.addAll(arr);
+        results.addAll(set);
+
         return results;
     }
 
