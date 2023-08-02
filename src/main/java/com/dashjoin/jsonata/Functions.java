@@ -160,21 +160,33 @@ public class Functions {
         if (((JList)arg).outerWrapper)
           arg = ((JList)arg).get(0);
       
-      return string(arg, prettify != null && prettify, "");
-    }
-      
-    static String string(Object arg, boolean prettify, String indent) {
         if (arg == null)
           return null;
+
+        StringBuilder sb = new StringBuilder();
+        string(sb, arg, prettify!=null && prettify, "");
+        return sb.toString();
+    }
+
+    /**
+     * Internal recursive string function based on StringBuilder.
+     * Avoids creation of intermediate String objects
+     */    
+    static void string(StringBuilder b, Object arg, boolean prettify, String indent) {
+        // if (arg == null)
+        //   return null;
         
-        if (arg == Jsonata.NULL_VALUE)
-          return "null";
+        if (arg==null || arg == Jsonata.NULL_VALUE) {
+          b.append("null"); return;
+        }
         
-        if (arg instanceof JFunction)
-          return "";
+        if (arg instanceof JFunction) {
+            return;
+        }
       
-        if (arg instanceof Symbol)
-          return "";
+        if (arg instanceof Symbol) {
+            return;
+        }
 
         if (arg instanceof Double) {
           // TODO: this really should be in the jackson serializer
@@ -182,21 +194,22 @@ public class Functions {
           String res = bd.stripTrailingZeros().toString();
           
           if (res.indexOf("E+") > 0)
-            return res.replace("E+", "e+");
+            res = res.replace("E+", "e+");
           if (res.indexOf("E-") > 0)
-            return res.replace("E-", "e-");
-          return res;
+            res = res.replace("E-", "e-");
+          
+            b.append(res); return;
         }
 
         if (arg instanceof Number || arg instanceof Boolean) {
-            return ""+arg;
+            b.append(arg); return;
         }
         
-        if (arg instanceof String)
-            return (String) arg;
+        if (arg instanceof String) {
+            b.append(arg); return;
+        }
 
         if (arg instanceof Map) {
-            StringBuffer b = new StringBuffer();
             b.append('{');
             if (prettify)
                 b.append('\n');
@@ -211,13 +224,14 @@ public class Functions {
                 b.append(':');
                 if (prettify)
                     b.append(' ');
-                if (e.getValue() instanceof String || e.getValue() instanceof Symbol
-                        || e.getValue() instanceof JFunction) {
+                final Object v = e.getValue();
+                if (v instanceof String || v instanceof Symbol
+                        || v instanceof JFunction) {
                     b.append('"');
-                    b.append(string(e.getValue(), prettify, indent + "  "));
+                    string(b, v, prettify, indent + "  ");
                     b.append('"');
                 } else
-                    b.append(string(e.getValue(), prettify, indent + "  "));
+                    string(b, v, prettify, indent + "  ");
                 b.append(',');
                 if (prettify)
                     b.append('\n');
@@ -227,13 +241,13 @@ public class Functions {
             if (prettify)
                 b.append(indent);
             b.append('}');
-            return b.toString();
+            return;
         }
 
         if ((arg instanceof List)) {
-            if (((List) arg).isEmpty())
-                return "[]";
-            StringBuffer b = new StringBuffer();
+            if (((List) arg).isEmpty()) {
+                b.append("[]"); return;
+            }
             b.append('[');
             if (prettify)
                 b.append('\n');
@@ -244,10 +258,10 @@ public class Functions {
                 }
                 if (v instanceof String || v instanceof Symbol || v instanceof JFunction) {
                     b.append('"');
-                    b.append(string(v, prettify, indent + "  "));
+                    string(b, v, prettify, indent + "  ");
                     b.append('"');
                 } else
-                    b.append(string(v, prettify, indent + "  "));
+                    string(b, v, prettify, indent + "  ");
                 b.append(',');
                 if (prettify)
                     b.append('\n');
@@ -257,7 +271,7 @@ public class Functions {
             if (prettify)
                 b.append(indent);
             b.append(']');
-            return b.toString();
+            return;
         }
 
         // Throw error for unknown types
