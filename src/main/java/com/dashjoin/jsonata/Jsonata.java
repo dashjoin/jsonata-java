@@ -39,6 +39,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.dashjoin.jsonata.Parser.Infix;
 import com.dashjoin.jsonata.Parser.Symbol;
@@ -417,7 +418,7 @@ public class Jsonata {
         ((JList)result).tupleStream = true;
         var stepEnv = environment;
         if(tupleBindings == null) {
-            tupleBindings = input.stream().filter(item -> item!=null).map(item -> Map.of("@", item)).toList();
+            tupleBindings = (List<Map>) input.stream().filter(item -> item!=null).map(item -> Map.of("@", item)). collect(Collectors.toList());
         }
 
         for(var ee = 0; ee < tupleBindings.size(); ee++) {

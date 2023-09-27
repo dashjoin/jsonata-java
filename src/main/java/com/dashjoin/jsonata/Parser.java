@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
 import com.dashjoin.jsonata.Tokenizer.Token;
@@ -1088,7 +1089,7 @@ public class Parser {
                             result.group = new Symbol();
                             result.group.lhsObject = expr.rhsObject.stream().map(pair -> {
                                     return new Symbol[] {processAST(pair[0]), processAST(pair[1])};
-                                }).toList();
+                                }).collect(Collectors.toList());
                             result.group.position = expr.position;
                         break;
                     
@@ -1110,7 +1111,7 @@ public class Parser {
                             res.descending = terms.descending;
                             res.expression = expression;
                             return res;
-                        }).toList();
+                        }).collect(Collectors.toList());
                         result.steps.add(sortStep);
                         resolveAncestry(result);
                         break;
@@ -1203,7 +1204,7 @@ public class Parser {
                         pushAncestry(_result, value);
                         return value;
                     }
-                    ).toList();
+                    ).collect(Collectors.toList());
                 } else if (exprValue.equals("{")) {
                     // object constructor - process each pair
                     //throw new Error("processAST {} unimpl");
@@ -1214,7 +1215,7 @@ public class Parser {
                         Symbol value = processAST(pair[1]);
                         pushAncestry(_result, value);
                         return new Symbol[] {key, value};
-                    }).toList();
+                    }).collect(Collectors.toList());
                 } else {
                     // all other unary expressions - just process the expression
                     result.expression = processAST(expr.expression);
@@ -1239,7 +1240,7 @@ public class Parser {
                     Symbol argAST = processAST(arg);
                     pushAncestry(_result, argAST);
                     return argAST;
-                }).toList();
+                }).collect(Collectors.toList());
                 result.procedure = processAST(expr.procedure);
                 break;
             case "lambda":
@@ -1284,7 +1285,7 @@ public class Parser {
                         __result.consarray = true;
                     }
                     return part;
-                }).toList();
+                }).collect(Collectors.toList());
                 // TODO scan the array of expressions to see if any of them assign variables
                 // if so, need to mark the block as one that needs to create a new frame
                 break;
