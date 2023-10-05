@@ -1784,9 +1784,8 @@ public class Functions {
      * @throws custom error with code 'D3137'
      */
     public static void error(String message) throws Throwable {
-        throw new JException("D3137", -1 // FIXME: message
-        //             message: message || "$error() function evaluated"
-        );
+        throw new JException("D3137", -1,
+            message!=null ? message : "$error() function evaluated");
     }
 
     /**
