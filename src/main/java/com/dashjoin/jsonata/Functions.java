@@ -1985,12 +1985,6 @@ public class Functions {
             return arg1;
         }
 
-        // New Java case: if both args are "string-like"
-        if ((arg1 instanceof Character || arg1 instanceof String) &&
-        (arg2 instanceof Character || arg2 instanceof String)) {
-            return ""+arg1+arg2;
-        }
-
         // if either argument is not an array, make it so
         if (!(arg1 instanceof List)) {
             arg1 = Utils.createSequence(arg1);
