@@ -163,6 +163,10 @@ public class Functions {
         if (arg == null)
           return null;
 
+        // see https://docs.jsonata.org/string-functions#string: Strings are unchanged
+        if (arg instanceof String)
+          return (String) arg;
+        
         StringBuilder sb = new StringBuilder();
         string(sb, arg, prettify!=null && prettify, "");
         return sb.toString();
@@ -206,7 +210,8 @@ public class Functions {
         }
         
         if (arg instanceof String) {
-            b.append(arg); return;
+            // quotes within strings must be escaped
+            b.append(((String)arg).replace("\"", "\\\"")); return;
         }
 
         if (arg instanceof Map) {
