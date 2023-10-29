@@ -77,6 +77,8 @@ public class Jsonata {
         public void bind(String name, Object val) {
             bindings.put(name, val);
         }
+
+        public<R> void bind(String name, Fn0<R> lambda) { bind(name, (Object) lambda); }
         public<A,R> void bind(String name, Fn1<A,R> lambda) { bind(name, (Object)lambda); }
         public<A,B,R> void bind(String name, Fn2<A,B,R> lambda) { bind(name, (Object)lambda); }
 
@@ -1714,9 +1716,11 @@ public class Jsonata {
                 //      result = /* await */ result;
                 //  }
              } else if (proc instanceof JLambda) {
-                System.err.println("Lambda "+proc);
+                // System.err.println("Lambda "+proc);
                 List _args = (List)validatedArgs;
-                if (proc instanceof Fn1) {
+                if (proc instanceof Fn0) {
+                    result = ((Fn0)proc).get();
+                } else if (proc instanceof Fn1) {
                     result = ((Fn1)proc).apply(_args.get(0));
                 } else if (proc instanceof Fn2) {
                     result = ((Fn2)proc).apply(_args.get(0), _args.get(1));
@@ -2531,6 +2535,18 @@ public class Jsonata {
     public void registerFunction(String name, JFunction implementation) {
         environment.bind(name, implementation);
     }
+
+    public<R> void registerFunction(String name, Fn0<R> implementation) {
+      environment.bind(name, implementation);
+  }
+
+    public<A,R> void registerFunction(String name, Fn1<A,R> implementation) {
+      environment.bind(name, implementation);
+  }
+
+    public<A,B,R> void registerFunction(String name, Fn2<A,B,R> implementation) {
+      environment.bind(name, implementation);
+  }
 
     public List<Exception> getErrors() {
         return errors;
