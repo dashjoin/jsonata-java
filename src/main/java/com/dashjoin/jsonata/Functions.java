@@ -211,7 +211,7 @@ public class Functions {
         
         if (arg instanceof String) {
             // quotes within strings must be escaped
-            b.append(((String)arg).replace("\"", "\\\"")); return;
+            Utils.quote((String)arg, b); return;
         }
 
         if (arg instanceof Map) {

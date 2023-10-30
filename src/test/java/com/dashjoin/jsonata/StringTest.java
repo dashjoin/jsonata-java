@@ -46,5 +46,11 @@ public class StringTest {
   public void escapeTest() {
     Assertions.assertEquals("{\"a\":\"\\\"\"}",
         jsonata("$string($)").evaluate(Map.of("a", "" + '"')));
+    Assertions.assertEquals("{\"a\":\"\\\\\"}",
+        jsonata("$string($)").evaluate(Map.of("a", "" + '\\')));
+    Assertions.assertEquals("{\"a\":\"\\t\"}",
+        jsonata("$string($)").evaluate(Map.of("a", "" + '\t')));
+    Assertions.assertEquals("{\"a\":\"\\n\"}",
+        jsonata("$string($)").evaluate(Map.of("a", "" + '\n')));
   }
 }

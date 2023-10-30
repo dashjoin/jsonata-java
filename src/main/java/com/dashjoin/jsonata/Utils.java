@@ -213,4 +213,58 @@ public class Utils {
         recurse(res);
         return convertValue(res);
     }
+    
+    /**
+     * adapted from org.json.JSONObject https://github.com/stleary/JSON-java
+     */
+    public static void quote(String string, StringBuilder w) {
+      char b;
+      char c = 0;
+      String hhhh;
+      int i;
+      int len = string.length();
+
+      for (i = 0; i < len; i += 1) {
+          b = c;
+          c = string.charAt(i);
+          switch (c) {
+          case '\\':
+          case '"':
+              w.append('\\');
+              w.append(c);
+              break;
+          case '/':
+              if (b == '<') {
+                  w.append('\\');
+              }
+              w.append(c);
+              break;
+          case '\b':
+              w.append("\\b");
+              break;
+          case '\t':
+              w.append("\\t");
+              break;
+          case '\n':
+              w.append("\\n");
+              break;
+          case '\f':
+              w.append("\\f");
+              break;
+          case '\r':
+              w.append("\\r");
+              break;
+          default:
+              if (c < ' ' || (c >= '\u0080' && c < '\u00a0')
+                      || (c >= '\u2000' && c < '\u2100')) {
+                  w.append("\\u");
+                  hhhh = Integer.toHexString(c);
+                  w.append("0000", 0, 4 - hhhh.length());
+                  w.append(hhhh);
+              } else {
+                  w.append(c);
+              }
+          }
+      }
+  }
 }
