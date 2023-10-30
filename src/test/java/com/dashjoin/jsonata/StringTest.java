@@ -52,5 +52,7 @@ public class StringTest {
         jsonata("$string($)").evaluate(Map.of("a", "" + '\t')));
     Assertions.assertEquals("{\"a\":\"\\n\"}",
         jsonata("$string($)").evaluate(Map.of("a", "" + '\n')));
+    Assertions.assertEquals("{\"a\":\"</\"}",
+        jsonata("$string($)").evaluate(Map.of("a", "</")));
   }
 }

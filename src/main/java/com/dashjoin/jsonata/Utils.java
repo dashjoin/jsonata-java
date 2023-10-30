@@ -233,12 +233,14 @@ public class Utils {
               w.append('\\');
               w.append(c);
               break;
+          /*
           case '/':
               if (b == '<') {
                   w.append('\\');
               }
               w.append(c);
               break;
+          */
           case '\b':
               w.append("\\b");
               break;
