@@ -48,21 +48,46 @@ public class JException extends RuntimeException {
         this.current = currentToken;
         this.expected = expected;
     }
-    
+
+    /**
+     * Returns the error code, i.e. S0201
+     * @return
+     */
     public String getError() {
         return error;
     }
 
+    /**
+     * Returns the error location (in characters)
+     * @return
+     */
     public int getLocation() {
         return location;
     }
 
+    /**
+     * Returns the current token
+     * @return
+     */
     public Object getCurrent() {
         return current;
     }
 
+    /**
+     * Returns the expected token
+     * @return
+     */
     public Object getExpected() {
         return expected;
+    }
+
+    /**
+     * Returns the error message with error details in the text.
+     * Example: Syntax error: ")" {code=S0201 position=3}
+     * @return
+     */
+    public String getDetailedErrorMessage() {
+        return msg(error, location, current, expected, true);
     }
 
     /**
@@ -78,11 +103,29 @@ public class JException extends RuntimeException {
      * @return
      */
     public static String msg(String error, int location, Object arg1, Object arg2) {
+        return msg(error, location, arg1, arg2, false);
+    }
+
+    /**
+     * Generate error message from given error code
+     * Codes are defined in Jsonata.errorCodes
+     * 
+     * Fallback: if error code does not exist, return a generic message
+     * 
+     * @param error
+     * @param location
+     * @param arg1
+     * @param arg2
+     * @param details True = add error details as text, false = don't add details (use getters to retrieve details)
+     * @return
+     */
+    public static String msg(String error, int location, Object arg1, Object arg2, boolean details) {
         String message = Jsonata.errorCodes.get(error);
 
         if (message==null) {
             // unknown error code
-            return "JSonataException "+error+" {code=unknown position="+location+" arg1="+arg1+" arg2="+arg2+"}";
+            return "JSonataException "+error+
+                (details ? " {code=unknown position="+location+" arg1="+arg1+" arg2="+arg2+"}" : "");
         }
 
         String formatted = message;
@@ -96,10 +139,12 @@ public class JException extends RuntimeException {
             ex.printStackTrace();
             // ignore
         }
-        formatted = formatted + " {code="+error;
-        if (location>=0)
-            formatted += " position="+location;
-        formatted += "}";
+        if (details) {
+            formatted = formatted + " {code="+error;
+            if (location>=0)
+                formatted += " position="+location;
+            formatted += "}";
+        }
         return formatted;
     }
 
