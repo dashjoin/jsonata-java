@@ -56,6 +56,9 @@ public class Main {
 
 ### Custom Functions
 
+You can define custom functions and declare variables via a JSONata frame or 
+the registerFunction method:
+
 ```Java
         var expression = jsonata("$sum(example.value) + $sin($PI/2)");
 
@@ -66,6 +69,8 @@ public class Main {
 
         var result = expression.evaluate(data, env);  // returns 25
 ```
+
+For more examples, please refer to this [test case](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/CustomFunctionTest.java).
 
 ## History
 We needed a high performance and 100% compatible engine for the ETL and data transformations of the [Dashjoin Low Code platform](https://github.com/dashjoin/platform). Being a JSON full stack based on Quarkus/Java, JSONata was a very good fit and is even more today.
