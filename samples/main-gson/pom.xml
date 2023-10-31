@@ -19,7 +19,7 @@
 		<dependency>
 		    <groupId>com.dashjoin</groupId>
 		    <artifactId>jsonata</artifactId>
-		    <version>0.9.3</version>
+		    <version>0.9.4</version>
 		</dependency>
         <!--  Gson: Java to JSON conversion -->
         <dependency>

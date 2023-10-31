@@ -1,5 +1,8 @@
 # Release change log
 
+## 0.9.4 - 2023/10/31
+- [List of enhancements and fixes](https://github.com/dashjoin/jsonata-java/milestone/3?closed=1)
+
 ## 0.9.3 - 2023/10/05
 - [List of enhancements and fixes](https://github.com/dashjoin/jsonata-java/milestone/2?closed=1)
 
