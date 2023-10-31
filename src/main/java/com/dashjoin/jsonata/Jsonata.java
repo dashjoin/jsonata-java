@@ -80,7 +80,8 @@ public class Jsonata {
 
         public void bind(String name, JFunction function) { 
             bind(name, (Object)function);
-            function.signature.setFunctionName(name);
+            if (function.signature != null)
+              function.signature.setFunctionName(name);
         }
         
         public<R> void bind(String name, Fn0<R> lambda) { bind(name, (Object) lambda); }
@@ -1726,9 +1727,9 @@ public class Jsonata {
                 if (proc instanceof Fn0) {
                     result = ((Fn0)proc).get();
                 } else if (proc instanceof Fn1) {
-                    result = ((Fn1)proc).apply(_args.get(0));
+                    result = ((Fn1)proc).apply(_args.size() <= 0 ? null : _args.get(0));
                 } else if (proc instanceof Fn2) {
-                    result = ((Fn2)proc).apply(_args.get(0), _args.get(1));
+                    result = ((Fn2)proc).apply(_args.size() <= 0 ? null : _args.get(0), _args.size() <= 1 ? null :_args.get(1));
                 }
              } else if (proc instanceof Pattern) {
                 List _res = new ArrayList<>();
