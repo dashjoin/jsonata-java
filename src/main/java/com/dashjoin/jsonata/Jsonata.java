@@ -1563,7 +1563,7 @@ public class Jsonata {
          // evaluate it generically first, then check that it is a function.  Throw error if not.
          var proc = /* await */ evaluate(expr.procedure, input, environment);
  
-         if (proc == null && (expr).procedure.type == "path" && environment.lookup((String)((Infix)expr).procedure.steps.get(0).value)!=null) {
+         if (proc == null && (expr).procedure.type == "path" && environment.lookup((String)expr.procedure.steps.get(0).value)!=null) {
              // help the user out here if they simply forgot the leading $
              throw new JException(
                  "T1005",
