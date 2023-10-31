@@ -88,6 +88,10 @@ public class Signature implements Serializable {
         this.functionName = function;
         parseSignature(signature);
     }
+    
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
+    }
 
     public static void main(String[] args) {
         Signature s = new Signature("<s-:s>", "test");//<s-(sf)(sf)n?:s>");

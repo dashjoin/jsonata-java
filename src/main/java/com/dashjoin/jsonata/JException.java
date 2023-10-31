@@ -23,6 +23,8 @@ import java.util.regex.Matcher;
 
 public class JException extends RuntimeException {
 
+    private static final long serialVersionUID = -3354943281127831704L;
+    
     String error;
     int location;
     Object current;
@@ -45,6 +47,22 @@ public class JException extends RuntimeException {
         this.error = error; this.location = location;
         this.current = currentToken;
         this.expected = expected;
+    }
+    
+    public String getError() {
+        return error;
+    }
+
+    public int getLocation() {
+        return location;
+    }
+
+    public Object getCurrent() {
+        return current;
+    }
+
+    public Object getExpected() {
+        return expected;
     }
 
     /**

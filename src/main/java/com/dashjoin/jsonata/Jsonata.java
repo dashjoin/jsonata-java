@@ -78,6 +78,11 @@ public class Jsonata {
             bindings.put(name, val);
         }
 
+        public void bind(String name, JFunction function) { 
+            bind(name, (Object)function);
+            function.signature.setFunctionName(name);
+        }
+        
         public<R> void bind(String name, Fn0<R> lambda) { bind(name, (Object) lambda); }
         public<A,R> void bind(String name, Fn1<A,R> lambda) { bind(name, (Object)lambda); }
         public<A,B,R> void bind(String name, Fn2<A,B,R> lambda) { bind(name, (Object)lambda); }
@@ -2162,7 +2167,8 @@ public class Jsonata {
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
             if (signature!=null)
-                this.signature = new Signature(signature, "ext2b");//function.getClass().getName());
+                // use classname as default, gets overwritten once the function is registered
+                this.signature = new Signature(signature, function.getClass().getName());
         }
 
         public JFunction(String functionName, String signature, Class clz, Object instance, String implMethodName) {

@@ -37,9 +37,37 @@ public class CustomFunctionTest {
       @SuppressWarnings("rawtypes")
       @Override
       public Object call(Object input, List args) throws Throwable {
-        return (String)args.get(0) + (String)args.get(1) + (String)args.get(2);
+        return (String) args.get(0) + (String) args.get(1) + (String) args.get(2);
       }
     }, "<sss:s>"));
     Assertions.assertEquals("abc", expression.evaluate(Map.of("a", "a", "b", "b", "c", "c")));
+  }
+
+  /**
+   * Lambdas use no signature - in case of an error, a ClassCastException is thrown
+   */
+  @Test
+  public void testLambdaSignatureError() {
+    var expression = Jsonata.jsonata("$append(1, 2)");
+    expression.registerFunction("append", (Integer a, Boolean b) -> "" + a + b);
+    Assertions.assertThrowsExactly(ClassCastException.class, () -> expression.evaluate(null));
+  }
+
+  /**
+   * provide signature: number, boolean => string
+   */
+  @Test
+  public void testJFunctionSignatureError() {
+    var expression = Jsonata.jsonata("$append(1, 2)");
+    expression.registerFunction("append", new JFunction(new JFunctionCallable() {
+      @Override
+      public Object call(Object input, @SuppressWarnings("rawtypes") List args) throws Throwable {
+        return "" + args.get(0) + args.get(1);
+      }
+    }, "<nb:s>"));
+    JException ex =
+        Assertions.assertThrowsExactly(JException.class, () -> expression.evaluate(null));
+    Assertions.assertEquals("T0410", ex.getError());
+    Assertions.assertEquals("append", ex.getExpected());
   }
 }
