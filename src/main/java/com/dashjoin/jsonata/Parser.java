@@ -274,8 +274,8 @@ public class Parser {
                 JException err = new JException(
                     code,
                     node.position,
-                    node.value,
-                    id
+                    id,
+                    node.value
                 );
                 return handleError(err);
             }
@@ -537,7 +537,7 @@ public class Parser {
             this.arguments = new ArrayList<>();
             if (!node.id.equals(")")) {
                 for (; ;) {
-                    if (node.type.equals("operator") && node.id.equals("?")) {
+                    if ("operator".equals(node.type) && node.id.equals("?")) {
                         // partial function application
                         this.type = "partial";
                         this.arguments.add(node);
