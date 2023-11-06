@@ -2486,6 +2486,26 @@ public class Jsonata {
         //  }
     }
 
+    /**
+     * Flag: validate input objects to comply with JSON types
+     */
+    boolean validateInput = true;
+
+    /**
+     * Checks whether input validation is active
+     */
+    public boolean isValidateInput() {
+        return validateInput;
+    }
+
+    /**
+     * Enable or disable input validation
+     * @param validateInput
+     */
+    public void setValidateInput(boolean validateInput) {
+        this.validateInput = validateInput;
+    }
+
     public Object evaluate(Object input) { return evaluate(input,null); }
 
     /* async */
@@ -2520,6 +2540,9 @@ public class Jsonata {
             ((JList)input).outerWrapper = true;
         }
 
+        if (validateInput)
+            Functions.validateInput(input);
+
         Object it;
         try {
             it = /* await */ evaluate(ast, input, exec_env);
@@ -2534,7 +2557,7 @@ public class Jsonata {
             throw err;
         }
     }
-    
+
     public void assign(String name, Object value) {
         environment.bind(name, value);
     }

@@ -283,6 +283,62 @@ public class Functions {
         throw new IllegalArgumentException("Only JSON types (values, Map, List) can be stringified. Unsupported type: "+arg.getClass().getName());
     }
 
+
+    /**
+     * Validate input data types.
+     * This will make sure that all input data can be processed.
+     * 
+     * @param arg
+     * @return
+     */
+    public static void validateInput(Object arg) {
+        // if (arg == null)
+        //   return null;
+        
+        if (arg==null || arg == Jsonata.NULL_VALUE) {
+            return;
+        }
+        
+        if (arg instanceof JFunction) {
+            return;
+        }
+      
+        if (arg instanceof Symbol) {
+            return;
+        }
+
+        if (arg instanceof Double) {
+            return;
+        }
+
+        if (arg instanceof Number || arg instanceof Boolean) {
+            return;
+        }
+        
+        if (arg instanceof String) {
+            return;
+        }
+
+        if (arg instanceof Map) {
+            for (Entry<String, Object> e : ((Map<String, Object>) arg).entrySet()) {
+                validateInput(e.getKey());
+                validateInput(e.getValue());
+            }
+            return;
+        }
+
+        if ((arg instanceof List)) {
+            for (Object v : (List) arg) {
+                validateInput(v);
+            }
+            return;
+        }
+
+        // Throw error for unknown types
+        throw new IllegalArgumentException("Only JSON types (values, Map, List) are allowed as input. Unsupported type: "+
+            arg.getClass().getCanonicalName());
+    }
+
     /**
      * Create substring based on character number and length
      * @param {String} str - String to evaluate
