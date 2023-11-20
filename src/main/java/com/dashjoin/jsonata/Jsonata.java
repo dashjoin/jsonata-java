@@ -127,6 +127,12 @@ public class Jsonata {
      * @returns {*} Evaluated input data
      */
     Object evaluate(Symbol expr, Object input, Frame environment) {
+        // Thread safety:
+        // Make sure each evaluate is executed on an instance per thread
+        return getPerThreadInstance()._evaluate(expr, input, environment);
+    }
+
+    Object _evaluate(Symbol expr, Object input, Frame environment) {
         Object result = null;
 
         // Store the current input
@@ -1549,7 +1555,28 @@ public class Jsonata {
         return Utils.isFunction(o) || Functions.isLambda(o) || (o instanceof Pattern);
     }
      
-     static ThreadLocal<Jsonata> current = new ThreadLocal<>();
+    final static ThreadLocal<Jsonata> current = new ThreadLocal<>();
+
+    /**
+     * Returns a per thread instance of this parsed expression.
+     * 
+     * @return
+     */
+    Jsonata getPerThreadInstance() {
+        Jsonata threadInst = current.get();
+        // Fast path
+        if (threadInst!=null)
+            return threadInst;
+
+        synchronized(this) {
+            threadInst = current.get();
+            if (threadInst==null) {
+                threadInst = new Jsonata(this);
+                current.set(threadInst);
+            }
+            return threadInst;
+        }
+    }
 
      /**
       * Evaluate Object against input data
@@ -1561,7 +1588,7 @@ public class Jsonata {
      /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Object applytoContext) {
          Object result = null;
 
-         current.set(this);
+         // this.current is set by getPerThreadInstance() at this point
  
          // create the procedure
          // can"t assume that expr.procedure is a lambda type directly
@@ -2484,6 +2511,21 @@ public class Jsonata {
         //  } else {
         //      jsonata.RegexEngine = RegExp;
         //  }
+
+        // Set instance for this thread
+        current.set(this);
+    }
+
+    /**
+     * Creates a clone of the given Jsonata instance.
+     * Package-private copy constructor used to create per thread instances.
+     * 
+     * @param other
+     */
+    Jsonata(Jsonata other) {
+        this.ast = other.ast;
+        this.environment = other.environment;
+        this.timestamp = other.timestamp;
     }
 
     /**
@@ -2510,7 +2552,7 @@ public class Jsonata {
 
     /* async */
     public Object evaluate(Object input, Frame bindings) { // FIXME:, callback) {
-        // throw if the expression compiled with syntax errors
+                // throw if the expression compiled with syntax errors
         if(errors != null) {
             throw new JException("S0500", 0);
         }
