@@ -17,7 +17,7 @@ public class ThreadTest {
     Assertions.assertEquals(1, expr.evaluate(Map.of("a", 1)));
   }
 
-  // TODO: https://github.com/dashjoin/jsonata-java/issues/25
+  @Test
   public void testNow() throws InterruptedException {
     Jsonata now = jsonata("$now()");
     Object r1 = now.evaluate(null);

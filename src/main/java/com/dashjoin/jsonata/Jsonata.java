@@ -2573,7 +2573,7 @@ public class Jsonata {
 
         // capture the timestamp and put it in the execution environment
         // the $now() and $millis() functions will return this value - whenever it is called
-        //timestamp = new Date();
+        timestamp = System.currentTimeMillis();
         //exec_env.timestamp = timestamp;
 
         // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
