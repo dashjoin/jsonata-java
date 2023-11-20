@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -64,9 +63,9 @@ public class Jsonata {
     }
 
     public static class Frame {
-        Map<String, Object> bindings = new TreeMap<String,Object>();
+        final Map<String, Object> bindings = new LinkedHashMap<String,Object>();
 
-        Frame parent;
+        final Frame parent;
 
         public boolean isParallelCall;
 
@@ -2624,13 +2623,13 @@ public class Jsonata {
         return errors;
     }
 
-    static ThreadLocal<Parser> _parser = new ThreadLocal<>();
-    static synchronized Parser getParser() {
+    final static ThreadLocal<Parser> _parser = new ThreadLocal<>();
+    final static synchronized Parser getParser() {
         Parser p = _parser.get();
         if (p!=null)
             return p;
         _parser.set(p = new Parser());
         return p;
     }
-    Parser parser = getParser();
+    final Parser parser = getParser();
 }
