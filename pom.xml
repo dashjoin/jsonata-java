@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.dashjoin</groupId>
     <artifactId>jsonata</artifactId>
-    <version>0.9.4</version>
+    <version>0.9.5</version>
 
     <parent>
 	    <groupId>com.dashjoin</groupId>
