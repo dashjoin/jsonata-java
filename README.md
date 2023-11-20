@@ -91,12 +91,14 @@ We lose the type safety and compile time checks Java generics introduced, but si
 
 ### No JSON wrapper library
 To get as near as possible to the Javascript syntax, decision was made to use
-* Java java.util.Map as Javascript object
+* java.util.Map as Javascript object
     - which in turn represents a JSON object
-* Java java.util.List as Javascript array
+* java.util.List as Javascript array
     - which in turn represents JSON lists/JSONata sequences
+* String, numbers, and boolean can be used as well
+* [This test case](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/TypesTest.java) documents which types are legal and how you can use a JSON library like Jackson to convert Pojos and other types
 
-So no JSON lib like Jackson is being used. This has advantages, but needs careful design w.r.t. how the logic is being ported.
+No JSON lib like Jackson is being used. This has advantages, but needs careful design w.r.t. how the logic is being ported.
 ### The big 'null vs undefined' question
 Porting Javascript code gets ambiguous as soon as there is a boolean expression that might depend on null and/or undefined.
 In Java there are basically these solutions:
