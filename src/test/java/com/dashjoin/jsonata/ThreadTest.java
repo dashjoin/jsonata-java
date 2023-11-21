@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import com.dashjoin.jsonata.Jsonata.Frame;
 
 public class ThreadTest {
 
@@ -50,5 +51,33 @@ public class ThreadTest {
 
     // the outer thread is unaffected by the previous operations
     Assertions.assertEquals(100, outer.get());
+  }
+
+  @Test
+  public void testAddEnvAndInput() throws Exception {
+    Jsonata expr = jsonata("$eval('$count($keys($))')");
+    Map<String, Object> input1 = Map.of("input", 1);
+    Map<String, Object> input2 = Map.of("input", 2, "other", 3);
+    Frame frame1 = expr.createFrame();
+    Frame frame2 = expr.createFrame();
+    frame1.bind("variable", 1);
+    frame2.bind("variable", 2);
+
+    int count = 10000;
+    Future<?> out = Executors.newSingleThreadExecutor().submit(() -> {
+      int sum = 0;
+      for (int i = 0; i < count; i++) {
+        sum += (int) expr.evaluate(input1);
+      }
+      return sum;
+    });
+
+    int sum = 0;
+    for (int i = 0; i < count; i++) {
+      sum += (int) expr.evaluate(input2);
+    }
+
+    Assertions.assertEquals(count, out.get());
+    Assertions.assertEquals(2*count, sum);
   }
 }

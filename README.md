@@ -14,7 +14,7 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
 * [JSON parser agnostic](https://github.com/dashjoin/jsonata-java/blob/main/samples/json-interop.md)
     - use with Jackson, GSon, ...
     - comes with integrated vanilla parser
-* Performance optimized
+* Performance optimized & thread safe
     - [Native jsonata command line tool](https://github.com/dashjoin/jsonata-cli)
 * Enterprise support
     - [Premium support available from the original developers](https://dashjoin.com)
