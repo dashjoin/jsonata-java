@@ -345,7 +345,7 @@ public class Signature implements Serializable {
                                 // missing (undefined)
                                 arg = null;
                             } else {
-                                arg = args.get(argIndex);
+                                arg = argIndex <args.size() ? args.get(argIndex) : null;
                                 var arrayOK = true;
                                 // is there type information on the contents of the array?
                                 if (param.subtype != null) {
