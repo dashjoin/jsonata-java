@@ -2237,7 +2237,7 @@ public class Jsonata {
         }
 
         public int getNumberOfArgs() {
-            return method.getParameterTypes().length;
+            return method != null ? method.getParameterTypes().length : 0;
         }
     }
 
