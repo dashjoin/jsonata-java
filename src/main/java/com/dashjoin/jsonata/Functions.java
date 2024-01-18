@@ -1835,6 +1835,10 @@ public class Functions {
      * @returns {Array} - the resultant array
      */
     public static List each(Map obj, Object func) throws Throwable {
+        if (obj==null) {
+            return null;
+        }
+
         var result = Utils.createSequence();
 
         for (var key : obj.keySet()) {
@@ -2016,6 +2020,10 @@ public class Functions {
      * @returns {object} - sifted object
      */
     public static Object sift(Map<Object,Object> arg, Object func) throws Throwable {
+        if (arg==null) {
+            return null;
+        }
+
         var result = new LinkedHashMap<>();
 
         for (var item : arg.keySet()) {
