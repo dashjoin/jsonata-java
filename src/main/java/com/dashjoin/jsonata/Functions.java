@@ -1061,9 +1061,19 @@ public class Functions {
             return result;
 
         if (pattern instanceof String) {
-            result = Arrays.asList( str.split((String)pattern) );
+            String sep = (String)pattern;
+            if (sep.isEmpty()) {
+                // $split("str", ""): Split string into characters
+                int l = limit!=null ? limit.intValue() : Integer.MAX_VALUE;
+                for (int i=0; i<str.length() && i<l; i++) {
+                    result.add( ""+str.charAt(i) );
+                }
+            } else {
+                // Quote separator string + preserve trailing empty strings (-1)
+                result = Arrays.asList( str.split( Pattern.quote(sep), -1) );
+            }
         } else {
-            result = Arrays.asList( str.split(((Pattern)pattern).pattern() ) );
+            result = Arrays.asList( ((Pattern)pattern).split(str, -1) );
         }
         if (limit!=null && limit.intValue()<result.size()) {
             result = result.subList(0, limit.intValue());

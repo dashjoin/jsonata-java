@@ -55,4 +55,42 @@ public class StringTest {
     Assertions.assertEquals("{\"a\":\"</\"}",
         jsonata("$string($)").evaluate(Map.of("a", "</")));
   }
+
+  /**
+   * Additional $split tests
+   */
+  @Test
+  public void splitTest() {
+    Object res;
+
+    // Splitting empty string with empty separator must return empty list
+    res = jsonata("$split('', '')").evaluate(null);
+    Assertions.assertEquals(Arrays.asList(), res);
+
+    // Split characters with limit
+    res = jsonata("$split('a1b2c3d4', '', 4)").evaluate(null);
+    Assertions.assertEquals(Arrays.asList("a", "1", "b", "2"), res);
+
+    // Check string is not treated as regexp
+    res = jsonata("$split('this..is.a.test', '.')").evaluate(null);
+    //System.out.println( Functions.string(res, false));
+    Assertions.assertEquals(Arrays.asList("this","","is","a","test"), res);
+    
+    // Check trailing empty strings
+    res = jsonata("$split('this..is.a.test...', '.')").evaluate(null);
+    //System.out.println( Functions.string(res, false));
+    Assertions.assertEquals(Arrays.asList("this","","is","a","test","","",""), res);
+  
+    // Check trailing empty strings
+    res = jsonata("$split('this..is.a.test...', /\\./)").evaluate(null);
+    Assertions.assertEquals(Arrays.asList("this","","is","a","test","","",""), res);
+
+    // Check string is not treated as regexp, trailing empty strings, and limit
+    res = jsonata("$split('this.*.*is.*a.*test.*.*.*.*.*.*', '.*', 8)").evaluate(null);
+    Assertions.assertEquals(Arrays.asList("this","","is","a","test","","",""), res);
+
+    // Escaped regexp, trailing empty strings, and limit
+    res = jsonata("$split('this.*.*is.*a.*test.*.*.*.*.*.*', /\\.\\*/, 8)").evaluate(null);
+    Assertions.assertEquals(Arrays.asList("this","","is","a","test","","",""), res);
+  }
 }
