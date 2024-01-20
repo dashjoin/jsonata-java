@@ -19,11 +19,13 @@ package com.dashjoin.jsonata;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
 
+import java.io.Serializable;
+
 /**
  * Configure max runtime / max recursion depth.
  * See Frame.setRuntimeBounds - usually not used directly
  */
-public class Timebox {
+public class Timebox implements Serializable {
 
     long timeout = 5000L;
     int maxDepth = 100;

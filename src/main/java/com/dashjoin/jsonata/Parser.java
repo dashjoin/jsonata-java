@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ import com.dashjoin.jsonata.utils.Signature;
 
 //var parseSignature = require('./signature');
 @SuppressWarnings({"unchecked"})
-public class Parser {
+public class Parser implements Serializable {
 
     boolean dbg = false;
     
@@ -92,7 +93,7 @@ public class Parser {
         }
     }
     
-    class Symbol implements Cloneable {
+    class Symbol implements Cloneable, Serializable {
 
         //Symbol s;
         String id;

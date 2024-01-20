@@ -17,6 +17,7 @@
  */
 package com.dashjoin.jsonata;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -63,7 +64,7 @@ import com.dashjoin.jsonata.utils.Constants;
 import com.dashjoin.jsonata.utils.DateTimeUtils;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class Functions {
+public class Functions implements Serializable {
 
     /**
      * Sum function
@@ -628,7 +629,7 @@ public class Functions {
         return str.concat(substr(padding, 0, pads));
     }
 
-    static class RegexpMatch {
+    static class RegexpMatch implements Serializable {
         String match;
         int index;
         List<String> groups;

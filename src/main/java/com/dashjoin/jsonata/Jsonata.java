@@ -24,6 +24,7 @@
  */
 package com.dashjoin.jsonata;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -50,19 +51,19 @@ import com.dashjoin.jsonata.utils.Signature;
  * @description JSON query and transformation language
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class Jsonata {
+public class Jsonata implements Serializable {
  
      // Start of Evaluator code
  
-    public static interface EntryCallback {
+    public static interface EntryCallback extends Serializable {
         void callback(Symbol expr, Object input, Frame environment);
     }
 
-    public static interface ExitCallback {
+    public static interface ExitCallback extends Serializable {
         void callback(Symbol expr, Object input, Frame environment, Object result);
     }
 
-    public static class Frame {
+    public static class Frame implements Serializable {
         final Map<String, Object> bindings = new LinkedHashMap<String,Object>();
 
         final Frame parent;
@@ -2099,7 +2100,7 @@ public class Jsonata {
         //  };
     }
 
-    public static interface JLambda {
+    public static interface JLambda extends Serializable {
     }
 
     public static interface FnVarArgs<R> extends JLambda, Function<List<?>, R> {
@@ -2173,18 +2174,18 @@ public class Jsonata {
     /**
      * JFunction callable Lambda interface
      */
-    public static interface JFunctionCallable {
+    public static interface JFunctionCallable extends Serializable {
         Object call(Object input, List args) throws Throwable;
     }
 
-    public static interface JFunctionSignatureValidation {
+    public static interface JFunctionSignatureValidation extends Serializable {
         Object validate(Object args, Object context);
     }
 
     /**
      * JFunction definition class
      */
-    public static class JFunction implements JFunctionCallable, JFunctionSignatureValidation {
+    public static class JFunction implements JFunctionCallable, JFunctionSignatureValidation, Serializable {
         JFunctionCallable function;
         String functionName;
         Signature signature;
