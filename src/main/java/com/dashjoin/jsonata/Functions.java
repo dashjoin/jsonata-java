@@ -530,6 +530,10 @@ public class Functions {
             return null;
         }
 
+        if (str.isEmpty()) {
+            return "";
+        }
+        
         // normalize whitespace
         var result = str.replaceAll("[ \t\n\r]+", " ");
         if (result.charAt(0) == ' ') {

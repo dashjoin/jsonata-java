@@ -93,4 +93,10 @@ public class StringTest {
     res = jsonata("$split('this.*.*is.*a.*test.*.*.*.*.*.*', /\\.\\*/, 8)").evaluate(null);
     Assertions.assertEquals(Arrays.asList("this","","is","a","test","","",""), res);
   }
+
+  @Test
+  public void trimTest() {
+    Assertions.assertEquals("", jsonata("$trim(\"\")").evaluate(null));
+    Assertions.assertEquals(null, jsonata("$trim(notthere)").evaluate(null));
+  }
 }
