@@ -24,11 +24,12 @@
  */
 package com.dashjoin.jsonata;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Tokenizer { // = function (path) {
+public class Tokenizer implements Serializable { // = function (path) {
 
 static HashMap<String, Integer> operators = new HashMap<String, Integer>() {{
     put(".", 75);
@@ -91,7 +92,7 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
         length = path.length();
     }
 
-    public static class Token {
+    public static class Token implements Serializable {
         String type;
         Object value;
         int position;
