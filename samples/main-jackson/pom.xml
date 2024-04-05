@@ -19,7 +19,7 @@
 		<dependency>
 		    <groupId>com.dashjoin</groupId>
 		    <artifactId>jsonata</artifactId>
-		    <version>0.9.5</version>
+		    <version>0.9.6</version>
 		</dependency>
         <dependency>
 		    <groupId>com.fasterxml.jackson.core</groupId>
