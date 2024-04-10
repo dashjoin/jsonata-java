@@ -540,6 +540,11 @@ public class Functions {
             // strip leading space
             result = result.substring(1);
         }
+        
+        if (result.isEmpty()) {
+            return "";
+        }
+      
         if (result.charAt(result.length() - 1) == ' ') {
             // strip trailing space
             result = result.substring(0, result.length() - 1);

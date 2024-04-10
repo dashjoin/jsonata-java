@@ -96,6 +96,8 @@ public class StringTest {
 
   @Test
   public void trimTest() {
+    Assertions.assertEquals("", jsonata("$trim(\"\n\")").evaluate(null));
+    Assertions.assertEquals("", jsonata("$trim(\" \")").evaluate(null));
     Assertions.assertEquals("", jsonata("$trim(\"\")").evaluate(null));
     Assertions.assertEquals(null, jsonata("$trim(notthere)").evaluate(null));
   }
