@@ -4,12 +4,10 @@ import static com.dashjoin.jsonata.Jsonata.jsonata;
 import static java.util.Arrays.asList;
 import static java.util.Map.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class ArrayTest {
 
-  @Disabled
   @Test
   public void testArray() {
     Jsonata expr1 = jsonata("{'key': $append($.[{'x': 'y'}],$.[{'a': 'b'}])}");

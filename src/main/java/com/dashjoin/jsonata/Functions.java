@@ -2080,19 +2080,13 @@ public class Functions {
         if (!(arg2 instanceof List)) {
             arg2 = new JList<>(Arrays.asList(arg2));
         }
-        // else
-        //     // Arg2 was a list: add it as a list element (don't flatten)
-        //     ((List)arg1).add((List)arg2);
 
         // Shortcut:
         if (((List)arg1).isEmpty() && (arg2 instanceof Utils.RangeList))
             return arg2;
 
         arg1 = new JList<>((List)arg1); // create a new copy!
-        if (arg2 instanceof JList && ((JList)arg2).cons)
-            ((List)arg1).add(arg2);
-        else
-            ((List)arg1).addAll((List)arg2);
+        ((List)arg1).addAll((List)arg2);
         return arg1;
     }
 
