@@ -2318,9 +2318,17 @@ public class Functions {
           }
         }
         
-        DecimalFormat formatter = picture != null ? new DecimalFormat(picture, new DecimalFormatSymbols(Locale.US)) : new DecimalFormat();
-        return formatter.parse(value);
-        //throw new RuntimeException("not implemented");
+        try {
+            DecimalFormat formatter = picture != null ? new DecimalFormat(picture, new DecimalFormatSymbols(Locale.US)) : new DecimalFormat();
+            return formatter.parse(value);
+        } catch (IllegalArgumentException ill) {
+            throw new ParseException("Formatting or parsing an integer as a sequence starting with \""+ picture +"\" is not supported by this implementation", 0);
+        } catch (Exception ex) {
+            // Ignore the exception, return null
+            // System.err.println("Exception in parseInteger (returning null): " + ex);
+            // ex.printStackTrace();
+            return null;
+        }
     }
 
     /**
