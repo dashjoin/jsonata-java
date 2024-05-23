@@ -4,6 +4,7 @@ import static com.dashjoin.jsonata.Jsonata.jsonata;
 import java.util.Arrays;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -100,5 +101,14 @@ public class StringTest {
     Assertions.assertEquals("", jsonata("$trim(\" \")").evaluate(null));
     Assertions.assertEquals("", jsonata("$trim(\"\")").evaluate(null));
     Assertions.assertEquals(null, jsonata("$trim(notthere)").evaluate(null));
+  }
+  
+  @Disabled
+  @Test
+  public void evalTest() {
+    Assertions.assertEquals("AAA", jsonata("(\n"
+        + "  $data := {'Wert1': 'AAA', 'Wert2': 'BBB'};\n"
+        + "  $eval('$data.Wert1')\n"
+        + ")").evaluate(null));
   }
 }
