@@ -134,9 +134,10 @@ public class Jsonata {
     Object _evaluate(Symbol expr, Object input, Frame environment) {
         Object result = null;
 
-        // Store the current input
+        // Store the current input + environment
         // This is required by Functions.functionEval for current $eval() input context
         this.input = input;
+        this.environment = environment;
 
         if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 

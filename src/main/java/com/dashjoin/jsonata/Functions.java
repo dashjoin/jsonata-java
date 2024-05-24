@@ -2367,6 +2367,7 @@ public class Functions {
         }
 
         Jsonata ast;
+        Jsonata.Frame env = Jsonata.current.get().environment;
         try {
             ast = jsonata(expr);
         } catch(Throwable err) {
@@ -2377,7 +2378,7 @@ public class Functions {
         }
         Object result = null;
         try {
-            result = ast.evaluate(input, Jsonata.current.get().environment);
+            result = ast.evaluate(input, env);
         } catch(Throwable err) {
             // error evaluating the expression passed to $eval
             //populateMessage(err);

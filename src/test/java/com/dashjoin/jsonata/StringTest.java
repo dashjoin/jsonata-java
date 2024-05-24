@@ -103,7 +103,6 @@ public class StringTest {
     Assertions.assertEquals(null, jsonata("$trim(notthere)").evaluate(null));
   }
   
-  @Disabled
   @Test
   public void evalTest() {
     Assertions.assertEquals("AAA", jsonata("(\n"
