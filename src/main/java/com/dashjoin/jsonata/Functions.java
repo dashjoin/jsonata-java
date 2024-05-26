@@ -710,7 +710,7 @@ public class Functions {
      * @param {Integer} [limit] - max number of matches to return
      * @returns {Array} The array of match objects
      */
-    public static List<RegexpMatch> match(String str, Pattern regex, Integer limit) {
+    public static List<Map> match(String str, Pattern regex, Integer limit) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
