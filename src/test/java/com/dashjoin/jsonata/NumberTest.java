@@ -60,6 +60,9 @@ public class NumberTest {
     assertEquals(0.5, res);
   }
   
+  /**
+   * JSONata constant 1.0 evaluates to 1
+   */
   @Test
   public void testConst() {
     Jsonata expr1 = jsonata("1.0");
