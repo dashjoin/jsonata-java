@@ -10,7 +10,7 @@ import com.dashjoin.jsonata.json.Json;
 public class NumberTest {
 
   /**
-   * this case fails, because the double value 1.0 is "untouched
+   * this case fails, because the double value 1.0 is "untouched"
    */
   @Disabled
   @Test
@@ -40,6 +40,26 @@ public class NumberTest {
     assertEquals(1, res);
   }
       
+  /**
+   * "clean" the input using com.dashjoin.jsonata.Utils.convertNumber(Number)
+   */
+  @Test
+  public void testDouble4() {
+    Jsonata expr1 = jsonata("x");
+    var res = expr1.evaluate(of("x", Utils.convertNumber(1.0)));
+    assertEquals(1, res);
+  }
+      
+  /**
+   * int 1 is converted to double when divided by 2
+   */
+  @Test
+  public void testInt() {
+    Jsonata expr1 = jsonata("$ / 2");
+    var res = expr1.evaluate(1);
+    assertEquals(0.5, res);
+  }
+  
   @Test
   public void testConst() {
     Jsonata expr1 = jsonata("1.0");

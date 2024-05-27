@@ -109,6 +109,13 @@ In Java there are basically these solutions:
 JSON libs will usually use a Holder variant (implemented in some JSONValue implementation).
 After review, it turned out that we can stay as near as possible to the original code structure (with as little special code as possible) by using the 3rd variant.
 
+### Numeric Values
+
+Compared to Java, Javascript handles numbers quite differently.
+Whenever a computation is done, the engine tries to "fit" the result into an int, long, or double (see com.dashjoin.jsonata.Utils.convertNumber(Number)).
+This [test case](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/NumberTest.java)
+shows this behavior.
+
 ## Performance
 We conducted some experiments to measure performance, but it's not an 'overall benchmark' yet. Your mileage may vary...
 
