@@ -1,5 +1,8 @@
 # Release change log
 
+## 0.9.7 - 2024/06/11
+- [List of enhancements and fixes](https://github.com/dashjoin/jsonata-java/milestone/6?closed=1)
+
 ## 0.9.6 - 2024/04/05
 - [List of enhancements and fixes](https://github.com/dashjoin/jsonata-java/milestone/5?closed=1)
 
