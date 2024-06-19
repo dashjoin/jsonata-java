@@ -23,6 +23,7 @@ public class ArrayTest {
   @Disabled
   @Test
   public void filterTest() {
+    // Frame value not evaluated if used in array filter #45
     Jsonata expr = jsonata("($arr := [{'x':1}, {'x':2}];$arr[x=$number(variable.field)])");
     Assertions.assertNotNull(expr.evaluate(Map.of("variable", Map.of("field", "1"))));
   }
