@@ -32,9 +32,11 @@ import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -2224,8 +2226,15 @@ public class Functions {
             return OffsetDateTime.parse(timestamp).toInstant().toEpochMilli();
           }
           catch (RuntimeException e) {
-            LocalDate ldt = LocalDate.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            return ldt.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli();
+            try {
+              LocalDate ldt = LocalDate.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+              return ldt.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli();
+            }
+            catch (DateTimeParseException noZone) {
+              // Implementations usually default to the local time zone when the date string is non-standard
+              // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#non-standard_date_strings
+              return LocalDateTime.parse(timestamp).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            }
           }
         } else {
             return DateTimeUtils.parseDateTime(timestamp, picture);
