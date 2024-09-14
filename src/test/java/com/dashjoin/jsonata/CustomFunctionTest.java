@@ -3,6 +3,7 @@ package com.dashjoin.jsonata;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Jsonata.JFunctionCallable;
@@ -69,5 +70,22 @@ public class CustomFunctionTest {
         Assertions.assertThrowsExactly(JException.class, () -> expression.evaluate(null));
     Assertions.assertEquals("T0410", ex.getError());
     Assertions.assertEquals("append", ex.getExpected());
+  }
+
+  @Disabled
+  @Test
+  public void testVarArg() {
+    var expression = Jsonata.jsonata("$sum(1,2,3)");
+    expression.registerFunction("sum", new JFunction(new JFunctionCallable() {
+      @SuppressWarnings("rawtypes")
+      @Override
+      public Object call(Object input, List args) throws Throwable {
+        int sum = 0;
+        for (Object i : args)
+          sum += (int) i;
+        return sum;
+      }
+    }, "<n+:n>"));
+    Assertions.assertEquals(6, expression.evaluate(null));
   }
 }
