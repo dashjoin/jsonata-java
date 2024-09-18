@@ -188,7 +188,7 @@ public class Jsonata {
                 result = evaluateRegex(expr); //, input, environment);
                 break;
             case "function":
-                result = /* await */ evaluateFunction(expr, input, environment, null);
+                result = /* await */ evaluateFunction(expr, input, environment, Utils.NONE);
                 break;
             case "variable":
                 result = evaluateVariable(expr, input, environment);
@@ -1514,11 +1514,6 @@ public class Jsonata {
 
         var lhs = /* await */ evaluate(expr.lhs, input, environment);
 
-        // Map null to NULL_VALUE before applying to functions
-        // TODO: fix more generically!
-        if (lhs==null)
-            lhs = Jsonata.NULL_VALUE;
-
         if(expr.rhs.type.equals("function")) {
         //Symbol applyTo = new Symbol(); applyTo.context = lhs;
             // this is a Object _invocation_; invoke it with lhs expression as the first argument
@@ -1608,7 +1603,7 @@ public class Jsonata {
  
         List<Object> evaluatedArgs = new ArrayList();
 
-         if (applytoContext != null) {
+         if (applytoContext != Utils.NONE) {
             evaluatedArgs.add(applytoContext);
          }
          // eager evaluation - evaluate the arguments

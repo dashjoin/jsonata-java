@@ -73,6 +73,14 @@ public class StringTest {
   public void splitTest() {
     Object res;
 
+    // Splitting on an undefined value
+    res = jsonata("$split(a, '-')").evaluate(Map.of());
+    Assertions.assertNull(res);
+
+    // Splitting on an undefined value, equivalent to above
+    res = jsonata("a ~> $split('-')").evaluate(Map.of());
+    Assertions.assertNull(res);
+
     // Splitting empty string with empty separator must return empty list
     res = jsonata("$split('', '')").evaluate(null);
     Assertions.assertEquals(Arrays.asList(), res);
