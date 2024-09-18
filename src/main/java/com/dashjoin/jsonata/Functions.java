@@ -1607,7 +1607,8 @@ public class Functions {
             var func_args = hofFuncArgs(func, entry, i, arr);
             // invoke func
             var res = funcApply(func, func_args);
-            if (toBoolean(res)) {
+            var booledValue = toBoolean(res);
+            if (booledValue == null ? false : booledValue) {
                 result.add(entry);
             }
         }
@@ -1638,7 +1639,8 @@ public class Functions {
                 var func_args = hofFuncArgs(func, entry, i, arr);
                 // invoke func
                 var res = funcApply(func, func_args);
-                positiveResult = toBoolean(res);
+                var booledValue = toBoolean(res);
+                positiveResult = booledValue == null ? false : booledValue;
             }
             if (positiveResult) {
                 if(!hasFoundMatch) {

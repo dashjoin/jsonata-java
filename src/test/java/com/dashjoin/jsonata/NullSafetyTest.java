@@ -1,7 +1,7 @@
 package com.dashjoin.jsonata;
 
 import static com.dashjoin.jsonata.Jsonata.jsonata;
-
+import java.util.Arrays;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -35,5 +35,22 @@ public class NullSafetyTest {
 
         res = jsonata("$spread(null)").evaluate(null);
         Assertions.assertEquals(null, res);
+    }
+    
+    @Test
+    public void testFilterNull() {
+        var x = Jsonata.jsonata("$filter($, function($v, $i, $a){$v})").evaluate(Arrays.asList(1, null));
+        Assertions.assertEquals(1, x);
+    }
+    
+    @Test
+    public void testNotNull() {
+        Assertions.assertNull(Jsonata.jsonata("$not($)").evaluate(null));
+    }
+    
+    @Test
+    public void testSingleNull() {
+        var x = Jsonata.jsonata("$single($, function($v, $i, $a){ $v })").evaluate(Arrays.asList(null, 1));
+        Assertions.assertEquals(1, x);
     }
 }
