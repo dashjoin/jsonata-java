@@ -71,21 +71,4 @@ public class CustomFunctionTest {
     Assertions.assertEquals("T0410", ex.getError());
     Assertions.assertEquals("append", ex.getExpected());
   }
-
-  @Disabled
-  @Test
-  public void testVarArg() {
-    var expression = Jsonata.jsonata("$sum(1,2,3)");
-    expression.registerFunction("sum", new JFunction(new JFunctionCallable() {
-      @SuppressWarnings("rawtypes")
-      @Override
-      public Object call(Object input, List args) throws Throwable {
-        int sum = 0;
-        for (Object i : args)
-          sum += (int) i;
-        return sum;
-      }
-    }, "<n+:n>"));
-    Assertions.assertEquals(6, expression.evaluate(null));
-  }
 }

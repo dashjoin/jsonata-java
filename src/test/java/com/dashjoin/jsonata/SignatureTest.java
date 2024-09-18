@@ -39,4 +39,20 @@ public class SignatureTest {
     // boolean not allowed
     Assertions.assertThrows(JException.class, ()->expr.evaluate(true));
   }
+
+  @Test
+  public void testVarArg() {
+    var expression = Jsonata.jsonata("$sumvar(1,2,3)");
+    expression.registerFunction("sumvar", new JFunction(new JFunctionCallable() {
+      @SuppressWarnings("rawtypes")
+      @Override
+      public Object call(Object input, List args) throws Throwable {
+        int sum = 0;
+        for (Object i : args)
+          sum += (int) i;
+        return sum;
+      }
+    }, "<n+:n>"));
+    Assertions.assertEquals(6, expression.evaluate(null));
+  }
 }
