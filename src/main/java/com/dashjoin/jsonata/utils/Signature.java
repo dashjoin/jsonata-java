@@ -385,6 +385,7 @@ public class Signature implements Serializable {
                             validatedArgs.add(arg);
                             argIndex++;
                         } else {
+                            arg = argIndex<args.size() ? args.get(argIndex) : null;
                             validatedArgs.add(arg);
                             argIndex++;
                         }
