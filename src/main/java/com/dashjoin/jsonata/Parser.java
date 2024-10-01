@@ -1176,6 +1176,7 @@ public class Parser {
                         result = new Symbol(); result.type = "apply"; result.value = expr.value; result.position = expr.position;
                         result.lhs = processAST(expr.lhs);
                         result.rhs = processAST(expr.rhs);
+                        result.keepArray = result.lhs.keepArray || result.rhs.keepArray;
                         break;                    
                     default:
                         Infix _result = new Infix(null);
