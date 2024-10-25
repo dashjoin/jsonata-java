@@ -96,7 +96,7 @@ public class Parser {
 
         //Symbol s;
         String id;
-        String type;
+        public String type;
         Object value;
         int bp;
         int lbp;
