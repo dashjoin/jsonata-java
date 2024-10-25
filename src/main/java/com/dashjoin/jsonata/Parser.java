@@ -92,7 +92,7 @@ public class Parser {
         }
     }
     
-    class Symbol implements Cloneable {
+    public class Symbol implements Cloneable {
 
         //Symbol s;
         String id;
