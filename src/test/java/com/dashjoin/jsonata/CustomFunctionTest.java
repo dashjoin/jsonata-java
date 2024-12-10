@@ -18,6 +18,21 @@ public class CustomFunctionTest {
   }
 
   @Test
+  public void testEval() {
+    var expression = Jsonata.jsonata("$eval('$greet()')");
+    expression.registerFunction("greet", () -> "Hello world");
+    Assertions.assertEquals("Hello world", expression.evaluate(null));
+  }
+
+  @Disabled
+  @Test
+  public void testEvalWithParams() {
+    var expression = Jsonata.jsonata("($eval('$greet()'))");
+    expression.registerFunction("greet", () -> "Hello world");
+    Assertions.assertEquals("Hello world", expression.evaluate(null));
+  }
+
+  @Test
   public void testUnary() {
     var expression = Jsonata.jsonata("$echo(123)");
     expression.registerFunction("echo", (x) -> x);
