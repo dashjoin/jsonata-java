@@ -17,6 +17,7 @@
  */
 package com.dashjoin.jsonata;
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +29,7 @@ import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.Jsonata.JFunctionCallable;
 
 @SuppressWarnings({"rawtypes"})
-public class Utils {
+public class Utils implements Serializable {
     public static boolean isNumeric(Object v) {
         if (v instanceof Long) return true;
         boolean isNum = false;
@@ -117,7 +118,7 @@ public class Utils {
      * 
      * Used for late materialization of ranges.
      */
-    public static class RangeList extends AbstractList<Number> {
+    public static class RangeList extends AbstractList<Number> implements Serializable {
 
         final long a, b;
         final int size;
