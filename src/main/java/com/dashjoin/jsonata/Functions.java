@@ -2389,7 +2389,7 @@ public class Functions {
         }
         Object result = null;
         try {
-            result = ast.evaluate(input, env);
+            result = Jsonata.current.get().evaluate(ast.ast, input, env);
         } catch(Throwable err) {
             // error evaluating the expression passed to $eval
             //populateMessage(err);

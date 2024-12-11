@@ -24,7 +24,6 @@ public class CustomFunctionTest {
     Assertions.assertEquals("Hello world", expression.evaluate(null));
   }
 
-  @Disabled
   @Test
   public void testEvalWithParams() {
     var expression = Jsonata.jsonata("($eval('$greet()'))");
