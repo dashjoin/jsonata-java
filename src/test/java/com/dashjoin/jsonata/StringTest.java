@@ -1,7 +1,6 @@
 package com.dashjoin.jsonata;
 
 import static com.dashjoin.jsonata.Jsonata.jsonata;
-
 import java.util.Arrays;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
