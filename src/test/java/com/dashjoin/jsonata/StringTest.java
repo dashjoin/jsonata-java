@@ -1,6 +1,7 @@
 package com.dashjoin.jsonata;
 
 import static com.dashjoin.jsonata.Jsonata.jsonata;
+
 import java.util.Arrays;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
@@ -126,5 +127,19 @@ public class StringTest {
         + "  $data := {'Wert1': 'AAA', 'Wert2': 'BBB'};\n"
         + "  $eval('$data.Wert1')\n"
         + ")").evaluate(null));
+  }
+
+  @Test
+  public void regexTest() {
+    Assertions.assertEquals(Map.of("foo", 1), jsonata(
+        "($matcher := $eval('/^' & 'foo' & '/i'); $.$spread()[$.$keys() ~> $matcher])")
+        .evaluate(Map.of("foo", 1, "bar", 2)));
+  }
+  
+  @Disabled
+  @Test
+  public void replaceTest() {
+    Assertions.assertEquals("http://example.org/test", 
+        jsonata("$replace($, /{par}/, '')").evaluate("http://example.org/test{par}"));
   }
 }
