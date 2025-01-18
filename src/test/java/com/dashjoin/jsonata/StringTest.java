@@ -127,6 +127,13 @@ public class StringTest {
         + "  $eval('$data.Wert1')\n"
         + ")").evaluate(null));
   }
+
+  @Test
+  public void regexTest() {
+    Assertions.assertEquals(Map.of("foo", 1), jsonata(
+        "($matcher := $eval('/^' & 'foo' & '/i'); $.$spread()[$.$keys() ~> $matcher])")
+        .evaluate(Map.of("foo", 1, "bar", 2)));
+  }
   
   @Disabled
   @Test
