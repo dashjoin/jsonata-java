@@ -127,11 +127,4 @@ public class StringTest {
         + "  $eval('$data.Wert1')\n"
         + ")").evaluate(null));
   }
-  
-  @Disabled
-  @Test
-  public void replaceTest() {
-    Assertions.assertEquals("http://example.org/test", 
-        jsonata("$replace($, /{par}/, '')").evaluate("http://example.org/test{par}"));
-  }
 }
