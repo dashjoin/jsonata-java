@@ -12,8 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TypesTest {
 
-  // https://github.com/dashjoin/jsonata-java/issues/63
-  @Disabled
   @Test
   public void castTestIn() {
     Assertions.assertFalse((boolean)jsonata("3 in $").evaluate(Arrays.asList(1.0, 2.0)));
@@ -24,6 +22,10 @@ public class TypesTest {
   public void castTestEquals() {
     Assertions.assertTrue((boolean)jsonata("1 = $").evaluate(1.0));
     Assertions.assertFalse((boolean)jsonata("1 = $").evaluate(2.0));
+    Assertions.assertTrue( (boolean)jsonata("{'x':1 } = {'x':1 }").evaluate(null)  );
+    Assertions.assertFalse( (boolean)jsonata("{'x':1 } = {'x':2 }").evaluate(null)  );
+    Assertions.assertTrue( (boolean)jsonata("[1,null] = [1,null]").evaluate(null)  );
+    Assertions.assertFalse( (boolean)jsonata("[1,null] = [2,null]").evaluate(null)  );
   }
 
   @Test

@@ -976,7 +976,8 @@ public class Jsonata {
         }
 
         for(var i = 0; i < ((List)rhs).size(); i++) {
-            if(((List)rhs).get(i).equals(lhs)) {
+            Object tmp = evaluateEqualityExpression(lhs, ((List)rhs).get(i), "=");
+            if (Boolean.TRUE.equals(tmp)) {
                 result = true;
                 break;
             }
