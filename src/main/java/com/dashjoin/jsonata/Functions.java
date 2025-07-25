@@ -561,7 +561,7 @@ public class Functions {
      * @param {string} [char] - the pad character(s); defaults to ' '
      * @returns {string} - padded string
      */
-    public static String pad(String str, Integer width, String _char) {
+    public static String pad(String str, Number _width, String _char) {
         // undefined inputs always return undefined
         if (str == null) {
             return null;
@@ -572,6 +572,7 @@ public class Functions {
         }
 
         String result;
+        int width = _width.intValue();
 
         if (width < 0) {
             result = leftPad(str, -width, _char);
