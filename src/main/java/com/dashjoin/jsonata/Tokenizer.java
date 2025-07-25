@@ -61,6 +61,8 @@ static HashMap<String, Integer> operators = new HashMap<String, Integer>() {{
     put("<=", 40);
     put(">=", 40);
     put("~>", 40);
+    put("?:", 40);
+    put("??", 40);
     put("and", 30);
     put("or", 25);
     put("in", 40);
@@ -231,6 +233,16 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
             // ~>  chain function
             position += 2;
             return create("operator", "~>");
+        }
+        if (currentChar == '?' && haveMore && path.charAt(position + 1) == ':') {
+            // ?: default / elvis operator
+            position += 2;
+            return create("operator", "?:");
+        }
+        if (currentChar == '?' && haveMore && path.charAt(position + 1) == '?') {
+            // ?? coalescing operator
+            position += 2;
+            return create("operator", "??");
         }
         // test for single char operators
         if (operators.get(""+currentChar)!=null) {

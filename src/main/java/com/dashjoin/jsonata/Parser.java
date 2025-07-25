@@ -493,6 +493,26 @@ public class Parser {
         // merged Infix: register(new Prefix("-")); // unary numeric negation
         register(new Infix("~>")); // function application
 
+        // coalescing operator
+        register(new Infix("??", Tokenizer.operators.get("??")) {
+
+            @Override Symbol led(Symbol left) {
+                this.type = "condition";
+                Symbol c = new Symbol();
+                this.condition = c;
+                {
+                    c.type = "function";
+                    c.value = "(";
+                    Symbol p = new Symbol();
+                    c.procedure = p; p.type = "variable"; p.value = "exists";
+                    c.arguments = List.of(left);
+                }
+                this.then = left;
+                this._else = expression(0);
+                return this;
+            }
+        });
+
         register(new InfixR("(error)", 10) {
             @Override
             Symbol led(Symbol left) {
@@ -783,6 +803,18 @@ public class Parser {
                     advance(":");
                     this._else = expression(0);
                 }
+                return this;
+            }
+        });
+
+        // elvis/default operator
+        register(new Infix("?:", Tokenizer.operators.get("?:")) {
+
+            @Override Symbol led(Symbol left) {
+                this.type = "condition";
+                this.condition = left;
+                this.then = left;
+                this._else = expression(0);
                 return this;
             }
         });
