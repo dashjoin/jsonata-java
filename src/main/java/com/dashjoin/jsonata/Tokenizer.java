@@ -144,7 +144,11 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
                 start = position;
                 while (currentChar == 'i' || currentChar == 'm') {
                     position++;
-                    currentChar = path.charAt(position);
+                    if (position < length) {
+                        currentChar = path.charAt(position);
+                    } else {
+                        currentChar = 0;
+                    }
                 }
                 flags = path.substring(start, position) + 'g';
                 
