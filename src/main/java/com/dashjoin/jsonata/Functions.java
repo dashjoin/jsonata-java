@@ -1477,7 +1477,7 @@ public class Functions {
         if (arg instanceof List) {
             List l = (List)arg;
             if (l.size() == 1) {
-                result = toBoolean(l.get(0));
+                result = Boolean.TRUE.equals(toBoolean(l.get(0)));
             } else if (l.size() > 1) {
                 long truesLength = l.stream().filter(e -> Jsonata.boolize(e)).count();
                 result = truesLength > 0;

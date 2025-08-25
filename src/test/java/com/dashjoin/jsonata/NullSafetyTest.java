@@ -1,7 +1,9 @@
 package com.dashjoin.jsonata;
 
 import static com.dashjoin.jsonata.Jsonata.jsonata;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,15 @@ public class NullSafetyTest {
     @Test
     public void testNotNull() {
         Assertions.assertNull(Jsonata.jsonata("$not($)").evaluate(null));
+    }
+    
+    @Test
+    public void testArrayContainingNull() {
+        List<String> list = new ArrayList<>();
+        list.add(null);
+        Assertions.assertFalse((boolean)jsonata("$ ? true : false").evaluate(list));
+        list.add("test");
+        Assertions.assertTrue((boolean)jsonata("$ ? true : false").evaluate(list));
     }
     
     @Test
