@@ -72,6 +72,22 @@ the registerFunction method:
 
 For more examples, please refer to this [test case](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/CustomFunctionTest.java).
 
+### Execution Scope
+
+`Jsonata.Frame` represents the execution scope or environment for a JSONata expression. It serves two primary purposes:
+
+1. Variable Bindings: It holds the symbol table for an expression, mapping variable names (like $name) to their corresponding Java objects.
+2. Execution Control: It allows you to set resource constraints on the evaluation to prevent expressions from running for too long or consuming too many resources, which is crucial for security and stability.
+
+When you call `jsonata.evaluate(data, frame)`, the evaluation runs within the context of that frame.
+
+You can set an execution timeout and a maximum recursion depth using the `setRuntimeBounds(long timeout, int maxRecursionDepth)` method on a Frame instance.
+
+* timeout: The maximum time in milliseconds that the evaluation is allowed to run. If it exceeds this time, a JException is thrown.
+* maxRecursionDepth: The maximum depth of the function call stack. This prevents infinite recursion (e.g., from a recursive function definition in the expression) and protects against StackOverflowError. If the depth is exceeded, a JException is thrown.
+
+See [JsonataTest.java](https://github.com/dashjoin/jsonata-java/blob/8ebe8d24e35c6e2fac70aa86d3e3820af5adab5b/src/test/java/com/dashjoin/jsonata/JsonataTest.java#L52) for example use.
+
 ## History
 We needed a high performance and 100% compatible engine for the ETL and data transformations of the [Dashjoin Low Code platform](https://github.com/dashjoin/platform). Being a JSON full stack based on Quarkus/Java, JSONata was a very good fit and is even more today.
 
