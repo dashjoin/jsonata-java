@@ -4,8 +4,10 @@ import static com.dashjoin.jsonata.Jsonata.jsonata;
 import static java.util.Arrays.asList;
 import static java.util.Map.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Arrays;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class ArrayTest {
@@ -24,5 +26,13 @@ public class ArrayTest {
     // Frame value not evaluated if used in array filter #45
     Jsonata expr = jsonata("($arr := [{'x':1}, {'x':2}];$arr[x=$number($$.variable.field)])");
     Assertions.assertNotNull(expr.evaluate(Map.of("variable", Map.of("field", "1"))));
+  }
+  
+  @Disabled
+  @Test
+  public void testIndex() {
+    Jsonata expr = jsonata("($x:=['a','b']; $x#$i.$i)");
+    Assertions.assertEquals(Arrays.asList(0, 1), expr.evaluate(1));
+    Assertions.assertEquals(Arrays.asList(0, 1), expr.evaluate(null));
   }
 }
