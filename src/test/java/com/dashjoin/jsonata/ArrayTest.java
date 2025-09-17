@@ -35,4 +35,17 @@ public class ArrayTest {
     Assertions.assertEquals(Arrays.asList(0, 1), expr.evaluate(1));
     Assertions.assertEquals(Arrays.asList(0, 1), expr.evaluate(null));
   }
+  
+  @Test
+  public void testSort() {
+    Jsonata expr = jsonata("$sort([{'x': 2}, {'x': 1}], function($l, $r){$l.x > $r.x})");
+    Assertions.assertEquals(Arrays.asList(Map.of("x", 1), Map.of("x", 2)), expr.evaluate(null));
+  }
+  
+  @Disabled
+  @Test
+  public void testSortNull() {
+    Jsonata expr = jsonata("$sort([{'x': 2}, {'x': 1}], function($l, $r){$l.y > $r.y})");
+    Assertions.assertEquals(Arrays.asList(Map.of("x", 2), Map.of("x", 1)), expr.evaluate(null));
+  }
 }
