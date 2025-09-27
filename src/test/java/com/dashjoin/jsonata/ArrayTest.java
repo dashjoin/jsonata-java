@@ -5,6 +5,7 @@ import static java.util.Arrays.asList;
 import static java.util.Map.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -20,14 +21,14 @@ public class ArrayTest {
     var res2 = expr2.evaluate(of("key", asList(of("x", "y"), of("a", "b"))));
     assertEquals(res1, res2);
   }
-  
+
   @Test
   public void filterTest() {
     // Frame value not evaluated if used in array filter #45
     Jsonata expr = jsonata("($arr := [{'x':1}, {'x':2}];$arr[x=$number($$.variable.field)])");
     Assertions.assertNotNull(expr.evaluate(Map.of("variable", Map.of("field", "1"))));
   }
-  
+
   @Disabled
   @Test
   public void testIndex() {
@@ -35,17 +36,32 @@ public class ArrayTest {
     Assertions.assertEquals(Arrays.asList(0, 1), expr.evaluate(1));
     Assertions.assertEquals(Arrays.asList(0, 1), expr.evaluate(null));
   }
-  
+
   @Test
   public void testSort() {
     Jsonata expr = jsonata("$sort([{'x': 2}, {'x': 1}], function($l, $r){$l.x > $r.x})");
     Assertions.assertEquals(Arrays.asList(Map.of("x", 1), Map.of("x", 2)), expr.evaluate(null));
   }
-  
+
   @Disabled
   @Test
   public void testSortNull() {
     Jsonata expr = jsonata("$sort([{'x': 2}, {'x': 1}], function($l, $r){$l.y > $r.y})");
     Assertions.assertEquals(Arrays.asList(Map.of("x", 2), Map.of("x", 1)), expr.evaluate(null));
+  }
+
+  @Disabled
+  @Test
+  public void testWildcardFilter() {
+    Object value1 = Map.of("value", Map.of(Map.of("Name", "Cell1"), Map.of("Product", "Product1")));
+    Object value2 = Map.of("value", Map.of(Map.of("Name", "Cell2"), Map.of("Product", "Product2")));
+    Object data = List.of(value1, value2);
+
+    // Expecting the first object in the array
+    var expression = jsonata("*[value.Product = 'Product1']");
+    Assertions.assertEquals(value1, expression.evaluate(data));
+
+    var expression2 = jsonata("**[value.Product = 'Product1']");
+    Assertions.assertEquals(value1, expression2.evaluate(data));
   }
 }
