@@ -1953,7 +1953,9 @@ public class Functions {
                 @Override
                 public int compare(Object o1, Object o2) {
                     try {
-                        boolean swap = (boolean) funcApply(comparator, Arrays.asList(o1, o2));
+                        Boolean swap = toBoolean(funcApply(comparator, Arrays.asList(o1, o2)));
+                        if (swap == null)
+                          return 0;
                         if (swap)
                           return 1;
                         else

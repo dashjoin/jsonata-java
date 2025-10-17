@@ -43,7 +43,6 @@ public class ArrayTest {
     Assertions.assertEquals(Arrays.asList(Map.of("x", 1), Map.of("x", 2)), expr.evaluate(null));
   }
 
-  @Disabled
   @Test
   public void testSortNull() {
     Jsonata expr = jsonata("$sort([{'x': 2}, {'x': 1}], function($l, $r){$l.y > $r.y})");
