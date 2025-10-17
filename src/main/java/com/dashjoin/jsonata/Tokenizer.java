@@ -263,12 +263,12 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
                 currentChar = path.charAt(position);
                 if (currentChar == '\\') { // escape sequence
                     position++;
-                    currentChar = path.charAt(position);
+                    if (position < path.length()) currentChar = path.charAt(position); else throw new JException("S0103", position, "");
                     if (escapes.get(""+currentChar)!=null) {
                         qstr += escapes.get(""+currentChar);
                     } else if (currentChar == 'u') {
                         //  u should be followed by 4 hex digits
-                        String octets = path.substring(position + 1, (position + 1) + 4);
+                        String octets = position+5 < path.length() ? path.substring(position + 1, (position + 1) + 4) : "";
                         if (octets.matches("^[0-9a-fA-F]+$")) { //  /^[0-9a-fA-F]+$/.test(octets)) {
                             int codepoint = Integer.parseInt(octets, 16);
                             qstr += Character.toString((char) codepoint);
@@ -278,7 +278,7 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
                         }
                     } else {
                         // illegal escape sequence
-                        throw new JException("S0301", position, currentChar);
+                        throw new JException("S0103", position, currentChar);
 
                     }
                 } else if (currentChar == quoteType) {
