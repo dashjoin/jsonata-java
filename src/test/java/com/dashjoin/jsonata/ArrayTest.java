@@ -51,9 +51,16 @@ public class ArrayTest {
 
   @Disabled
   @Test
+  public void testWildcard() {
+    Jsonata expr = jsonata("*");
+    Assertions.assertEquals(Map.of("x", 1), expr.evaluate(List.of(Map.of("x", 1))));
+  }
+
+  @Disabled
+  @Test
   public void testWildcardFilter() {
-    Object value1 = Map.of("value", Map.of(Map.of("Name", "Cell1"), Map.of("Product", "Product1")));
-    Object value2 = Map.of("value", Map.of(Map.of("Name", "Cell2"), Map.of("Product", "Product2")));
+    Object value1 = Map.of("value", Map.of("Name", "Cell1", "Product", "Product1"));
+    Object value2 = Map.of("value", Map.of("Name", "Cell2", "Product", "Product2"));
     Object data = List.of(value1, value2);
 
     // Expecting the first object in the array
