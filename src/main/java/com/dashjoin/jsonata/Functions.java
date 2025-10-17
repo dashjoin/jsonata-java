@@ -195,6 +195,11 @@ public class Functions {
         }
 
         if (arg instanceof Double) {
+          double d = ((Double)arg).doubleValue();
+          if (d % 1 == 0 && Long.MIN_VALUE < d && d <= Long.MAX_VALUE) {
+              b.append(Math.round(d)); return;
+          }
+            
           // TODO: this really should be in the jackson serializer
           BigDecimal bd = new BigDecimal((Double)arg, new MathContext(15));
           String res = bd.stripTrailingZeros().toString();
