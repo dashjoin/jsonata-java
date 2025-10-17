@@ -130,6 +130,8 @@ public class JException extends RuntimeException {
 
         String formatted = message;
         try {
+            if ("{{{message}}}".equals(message))
+                return ""+arg1;
             // Replace any {{var}} with Java format "%1$s"
             formatted = formatted.replaceFirst("\\{\\{\\w+\\}\\}", Matcher.quoteReplacement("\"%1$s\""));
             formatted = formatted.replaceFirst("\\{\\{\\w+\\}\\}", Matcher.quoteReplacement("\"%2$s\""));
