@@ -723,9 +723,6 @@ public class Jsonata {
                 if((value instanceof List)) {
                     value = flatten(value, null);
                     results = (List)Functions.append(results, value);
-                } else if (value instanceof Map) {
-                // Call recursively do decompose the map
-                results.addAll((List)evaluateWildcard(expr, value));
                 } else {
                     results.add(value);
                 }

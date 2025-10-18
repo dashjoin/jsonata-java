@@ -79,11 +79,7 @@ public class Utils {
         JList<Object> sequence = new JList<>();
         sequence.sequence = true;
         if (el!=NONE) {
-            if (el instanceof List && ((List)el).size()==1)
-                sequence.add(((List)el).get(0));
-            else
-            // This case does NOT exist in Javascript! Why?
-                sequence.add(el);
+            sequence.add(el);
         }
         return sequence;
     }
