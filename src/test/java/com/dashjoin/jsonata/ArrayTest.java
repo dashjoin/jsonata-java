@@ -49,14 +49,12 @@ public class ArrayTest {
     Assertions.assertEquals(Arrays.asList(Map.of("x", 2), Map.of("x", 1)), expr.evaluate(null));
   }
 
-  @Disabled
   @Test
   public void testWildcard() {
     Jsonata expr = jsonata("*");
     Assertions.assertEquals(Map.of("x", 1), expr.evaluate(List.of(Map.of("x", 1))));
   }
 
-  @Disabled
   @Test
   public void testWildcardFilter() {
     Object value1 = Map.of("value", Map.of("Name", "Cell1", "Product", "Product1"));
