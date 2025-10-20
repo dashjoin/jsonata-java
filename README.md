@@ -86,7 +86,8 @@ You can set an execution timeout and a maximum recursion depth using the `setRun
 * timeout: The maximum time in milliseconds that the evaluation is allowed to run. If it exceeds this time, a JException is thrown.
 * maxRecursionDepth: The maximum depth of the function call stack. This prevents infinite recursion (e.g., from a recursive function definition in the expression) and protects against StackOverflowError. If the depth is exceeded, a JException is thrown.
 
-See [JsonataTest.java](https://github.com/dashjoin/jsonata-java/blob/8ebe8d24e35c6e2fac70aa86d3e3820af5adab5b/src/test/java/com/dashjoin/jsonata/JsonataTest.java#L52) for example use.
+See [RuntimeTest.java](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/RuntimeTest.java) for details
+and an example of how to provide custom callbacks.
 
 ## History
 We needed a high performance and 100% compatible engine for the ETL and data transformations of the [Dashjoin Low Code platform](https://github.com/dashjoin/platform). Being a JSON full stack based on Quarkus/Java, JSONata was a very good fit and is even more today.
