@@ -4,6 +4,9 @@
     <groupId>com.dashjoin</groupId>
     <artifactId>jsonata</artifactId>
     <version>0.9.9</version>
+    <name>${project.groupId}:${project.artifactId}</name>
+	<description>JSONata Java reference port</description>
+    <url>https://github.com/dashjoin/jsonata-java</url>
 
     <parent>
 	    <groupId>com.dashjoin</groupId>
