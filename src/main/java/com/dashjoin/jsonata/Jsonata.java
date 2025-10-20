@@ -432,7 +432,7 @@ public class Jsonata {
         ((JList)result).tupleStream = true;
         var stepEnv = environment;
         if(tupleBindings == null) {
-            tupleBindings = (List<Map>) input.stream().filter(item -> item!=null).map(item -> Map.of("@", item)).collect(Collectors.toList());
+            tupleBindings = (List<Map>) input.stream().map(item -> Utils.mapOf("@", item)).collect(Collectors.toList());
         }
 
         for(var ee = 0; ee < tupleBindings.size(); ee++) {

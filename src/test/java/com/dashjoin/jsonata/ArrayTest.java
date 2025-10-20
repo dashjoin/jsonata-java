@@ -29,7 +29,6 @@ public class ArrayTest {
     Assertions.assertNotNull(expr.evaluate(Map.of("variable", Map.of("field", "1"))));
   }
 
-  @Disabled
   @Test
   public void testIndex() {
     Jsonata expr = jsonata("($x:=['a','b']; $x#$i.$i)");
