@@ -391,6 +391,7 @@ public class Signature implements Serializable {
                         }
                     }
                 }
+                index++;
             }
             return validatedArgs;
         }   
