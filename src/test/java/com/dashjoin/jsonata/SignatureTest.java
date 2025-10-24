@@ -19,7 +19,7 @@ public class SignatureTest {
         return args.toString();
       }
     }, "<a?a?a?a?:s>"));
-    Assertions.assertEquals("[[1], [null], [3], [null]]", expr.evaluate(null));
+    Assertions.assertEquals("[[1], null, [3], null]", expr.evaluate(null));
   }
   
   @Test
