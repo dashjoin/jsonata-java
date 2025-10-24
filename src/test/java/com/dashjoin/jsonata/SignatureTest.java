@@ -55,4 +55,17 @@ public class SignatureTest {
     }, "<n+:n>"));
     Assertions.assertEquals(6, expression.evaluate(null));
   }
+
+  @Test
+  public void testVarArgMany(){
+      Jsonata expr = jsonata("$customArgs('test',[1,2,3,4],3)");
+      expr.registerFunction("customArgs", new JFunction(new JFunctionCallable() {
+
+          @Override
+          public Object call(Object input, @SuppressWarnings("rawtypes") List args) throws Throwable {
+              return args.toString();
+          }
+      }, "<sa<n>n:s>"));
+      Assertions.assertEquals("[test, [1, 2, 3, 4], 3]", expr.evaluate(null));
+  }
 }
