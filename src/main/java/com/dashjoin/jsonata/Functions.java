@@ -231,7 +231,7 @@ public class Functions {
                     b.append("  ");
                 }
                 b.append('"');
-                b.append(e.getKey());
+                Utils.quote(e.getKey(), b);
                 b.append('"');
                 b.append(':');
                 if (prettify)

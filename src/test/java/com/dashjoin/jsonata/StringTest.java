@@ -140,4 +140,11 @@ public class StringTest {
     Assertions.assertEquals("http://example.org/test", 
         jsonata("$replace($, /{par}/, '')").evaluate("http://example.org/test{par}"));
   }
+  
+  @Test
+  public void testFieldnameWithSpecialChar() {
+    Jsonata expr = jsonata("$ ~> |$|{}|");
+    Object o = Map.of("a\nb", "c\nd");
+    Assertions.assertEquals(o, expr.evaluate(o));
+  }
 }
