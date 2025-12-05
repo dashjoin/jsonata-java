@@ -14,6 +14,14 @@ import org.junit.jupiter.api.Test;
 public class ArrayTest {
 
   @Test
+  public void testNegativeIndex() {
+    Jsonata expr = jsonata("item[-1]");
+    Assertions.assertNull(expr.evaluate(Map.of("item", List.of())));
+    expr = jsonata("$[-1]");
+    Assertions.assertNull(expr.evaluate(List.of()));
+  }
+  
+  @Test
   public void testArray() {
     Jsonata expr1 = jsonata("{'key': $append($.[{'x': 'y'}],$.[{'a': 'b'}])}");
     var res1 = expr1.evaluate(of("key", asList(of("x", "y"), of("a", "b"))));
