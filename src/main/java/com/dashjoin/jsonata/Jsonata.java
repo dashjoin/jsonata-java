@@ -500,7 +500,7 @@ public class Jsonata {
                 // count in from end of array
                 index = ((List)input).size() + index;
             }
-            var item = index<((List)input).size() ? ((List)input).get(index) : null;
+            var item = 0<=index && index<((List)input).size() ? ((List)input).get(index) : null;
             if(item != null) {
                 if(item instanceof List) {
                     results = (List)item;
