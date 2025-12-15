@@ -225,13 +225,13 @@ public class Functions {
             b.append('{');
             if (prettify)
                 b.append('\n');
-            for (Entry<String, Object> e : ((Map<String, Object>) arg).entrySet()) {
+            for (Entry<Object, Object> e : ((Map<Object, Object>) arg).entrySet()) {
                 if (prettify) {
                     b.append(indent);
                     b.append("  ");
                 }
                 b.append('"');
-                Utils.quote(e.getKey(), b);
+                Utils.quote(e.getKey().toString(), b);
                 b.append('"');
                 b.append(':');
                 if (prettify)
