@@ -1891,7 +1891,7 @@ public class Functions {
      */
     public static void assertFn(boolean condition, String message) throws Throwable {
         if(!condition) {
-            throw new JException("D3141", -1, "$assert() statement failed");
+            throw new JException("D3141", -1, message!=null ? message : "$assert() statement failed");
 //                message: message || "$assert() statement failed"
         }
     }
