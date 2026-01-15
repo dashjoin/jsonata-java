@@ -26,4 +26,14 @@ public class ExceptionTest {
       Assertions.assertEquals("Number out of range: \"Infinity\"", e.getMessage());
     }
   }
+  
+  @Test
+  public void testAssertCustomMessage() {
+    try {
+      Jsonata.jsonata("$assert(false, 'message')").evaluate(null);
+      Assertions.fail();
+    } catch (JException e) {
+      Assertions.assertEquals("message", e.getMessage());
+    }
+  }
 }
