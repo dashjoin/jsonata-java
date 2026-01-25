@@ -2184,9 +2184,20 @@ public class Jsonata {
         Signature signature;
         Method method;
         Object methodInstance;
+        int numberOfArgs;
 
         public JFunction(JFunctionCallable function, String signature) {
+            this(null, function, signature);
+        }
+
+        public JFunction(String functionName, JFunctionCallable function, String signature) {
+            this(functionName, function, signature, 0);
+        }
+
+        public JFunction(String functionName, JFunctionCallable function, String signature, int numberOfArgs) {
+            this.functionName = functionName;
             this.function = function;
+            this.numberOfArgs = numberOfArgs;
             if (signature!=null)
                 // use classname as default, gets overwritten once the function is registered
                 this.signature = new Signature(signature, function.getClass().getName());
@@ -2231,7 +2242,7 @@ public class Jsonata {
         }
 
         public int getNumberOfArgs() {
-            return method != null ? method.getParameterTypes().length : 0;
+            return method != null ? method.getParameterTypes().length : numberOfArgs;
         }
     }
 
