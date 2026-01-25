@@ -37,7 +37,7 @@ public class Generate {
         String name = cas.getName().substring(0, cas.getName().length() - 5);
         String jname = name.replace('-', '_');
 
-        Object jsonCase = new JsonataTest().readJson(cas.getAbsolutePath());
+        Object jsonCase = JsonUtils.readJson(cas.getAbsolutePath());
         if (jsonCase instanceof List) {
           for (int i=0; i<((List)jsonCase).size(); i++) {
             b.append("// " + s(((Map)((List) jsonCase).get(i)).get("expr"))+"\n");

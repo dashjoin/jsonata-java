@@ -1,0 +1,58 @@
+{
+  "buildings": {
+    "home": {
+      "address": "home address",
+      "period": "11 month on 12",
+      "presentation": {
+        "first": {
+          "widget": {
+            "data": "home widget"
+          }
+        }
+      }
+    },
+    "work": {
+      "address": "work address",
+      "presentation": {
+        "first": {
+          "widget": {
+            "data": "work widget"
+          }
+        }
+      }
+    },
+    "vacancy": {
+      "address": "vacancy address",
+      "period": "1 month on 12",
+      "presentation": {
+        "first": {
+          "widget": {
+            "data": "vacancy widget"
+          }
+        }
+      }
+    },
+    "old": {
+      "address": "old address",
+      "period": "2 month on 12",
+      "presentation": {
+        "first": {
+          "widget": {
+            "data": "old widget"
+          }
+        }
+      }
+    },
+    "operation": {
+      "address": "operation address",
+      "period": "3 month on 12",
+      "presentation": {
+        "first": {
+          "widget": {
+            "data": "operation widget"
+          }
+        }
+      }
+    }
+  }
+}

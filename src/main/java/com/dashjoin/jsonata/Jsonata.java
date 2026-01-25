@@ -1535,7 +1535,8 @@ public class Jsonata {
                 List args = new ArrayList<>(); args.add(lhs); args.add(func); // == [lhs, func]
                 result = /* await */ apply(chain, args, null, environment);
             } else {
-                if (lhs instanceof List && "partial".equals(expr.rhs.type)) {
+                Object procName = getProcName(expr.rhs);
+                if ("each".equals(procName) && lhs instanceof List && "partial".equals(expr.rhs.type)) {
                     var tempLhs = (List)lhs;
                     lhs = new HashMap();
                     for (int i = 0; i < tempLhs.size(); i++) {
@@ -1549,6 +1550,14 @@ public class Jsonata {
         }
 
         return result;
+    }
+
+    String getProcName(Symbol rhs) {
+        Symbol procedure = rhs.procedure;
+        if (procedure == null) return null;
+        Object procName = procedure.value;
+        if (procName == null) return null;
+        return procName.toString();
     }
 
     boolean isFunctionLike(Object o) {
