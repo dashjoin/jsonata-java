@@ -1535,6 +1535,14 @@ public class Jsonata {
                 List args = new ArrayList<>(); args.add(lhs); args.add(func); // == [lhs, func]
                 result = /* await */ apply(chain, args, null, environment);
             } else {
+                Object procName = getProcName(expr.rhs);
+                if ("each".equals(procName) && lhs instanceof List && "partial".equals(expr.rhs.type)) {
+                    var tempLhs = (List)lhs;
+                    lhs = new HashMap();
+                    for (int i = 0; i < tempLhs.size(); i++) {
+                        ((HashMap) lhs).put(i, tempLhs.get(i));
+                    }
+                }
                 List args = new ArrayList<>(); args.add(lhs); // == [lhs]
                 result = /* await */ apply(func, args, null, environment);
             }
@@ -1542,6 +1550,14 @@ public class Jsonata {
         }
 
         return result;
+    }
+
+    String getProcName(Symbol rhs) {
+        Symbol procedure = rhs.procedure;
+        if (procedure == null) return null;
+        Object procName = procedure.value;
+        if (procName == null) return null;
+        return procName.toString();
     }
 
     boolean isFunctionLike(Object o) {
@@ -1755,7 +1771,7 @@ public class Jsonata {
                 List _res = new ArrayList<>();
                 for (String s : (List<String>)validatedArgs) {
                 //System.err.println("PAT "+proc+" input "+s);
-                    if (((Pattern)proc).matcher(s).find()) {
+                    if (s != null && ((Pattern)proc).matcher(s).find()) {
                         //System.err.println("MATCH");
                         _res.add(s);
                     }
@@ -1821,7 +1837,7 @@ public class Jsonata {
         var evaluatedArgs = new ArrayList<>();
         for(var ii = 0; ii < expr.arguments.size(); ii++) {
             var arg = expr.arguments.get(ii);
-            if (arg.type.equals("operator") && (arg.value.equals("?"))) {
+            if (arg.type.equals("operator") && (arg.value.toString().equals("?"))) {
                 evaluatedArgs.add(arg);
             } else {
                 evaluatedArgs.add(/* await */ evaluate(arg, input, environment));
@@ -1910,7 +1926,7 @@ public class Jsonata {
         for (var param : proc.arguments) {
 //         proc.arguments.forEach(Object (param, index) {
             Object arg = index<args.size() ? args.get(index) : null;
-            if ((arg==null) || (arg instanceof Symbol && ("operator".equals(((Symbol)arg).type) && "?".equals(((Symbol)arg).value)))) {
+            if ((arg==null) || (arg instanceof Symbol && ("operator".equals(((Symbol)arg).type) && (((Symbol)arg).value.toString().equals("?"))))) {
                 unboundArgs.add(param);
             } else {
                 env.bind((String)param.value, arg);
