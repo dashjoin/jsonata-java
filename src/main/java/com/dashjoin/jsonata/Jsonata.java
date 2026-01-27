@@ -33,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -1821,7 +1822,7 @@ public class Jsonata {
         var evaluatedArgs = new ArrayList<>();
         for(var ii = 0; ii < expr.arguments.size(); ii++) {
             var arg = expr.arguments.get(ii);
-            if (arg.type.equals("operator") && (arg.value.equals("?"))) {
+            if (arg.type.equals("operator") &&  Objects.equals('?', arg.value)) {
                 evaluatedArgs.add(arg);
             } else {
                 evaluatedArgs.add(/* await */ evaluate(arg, input, environment));
@@ -1901,7 +1902,7 @@ public class Jsonata {
       * @param {Array} args - Arguments
       * @returns {{lambda: boolean, input: *, environment: {bind, lookup}, arguments: Array, body: *}} Result of partially applied procedure
       */
-    Object partialApplyProcedure(Symbol proc, List<Symbol> args) {
+    Object partialApplyProcedure(Symbol proc, List args) {
         // create a closure, bind the supplied parameters and return a Object that takes the remaining (?) parameters
         // Note Uli: if no env, bind to default env so the native functions can be found
         var env = createFrame(proc.environment!=null ? proc.environment : this.environment);
@@ -1910,11 +1911,15 @@ public class Jsonata {
         for (var param : proc.arguments) {
 //         proc.arguments.forEach(Object (param, index) {
             Object arg = index<args.size() ? args.get(index) : null;
-            if ((arg==null) || (arg instanceof Symbol && ("operator".equals(((Symbol)arg).type) && "?".equals(((Symbol)arg).value)))) {
-                unboundArgs.add(param);
-            } else {
-                env.bind((String)param.value, arg);
+            if (arg instanceof Symbol) {
+                Symbol sym = (Symbol) arg;
+                if ("operator".equals(sym.type) && Objects.equals('?', sym.value)) {
+                    unboundArgs.add(param);
+                    index++;
+                    continue;
+                }
             }
+            env.bind((String)param.value, arg);
             index++;
         }
         var procedure = parser.new Symbol();
