@@ -998,7 +998,8 @@ public class Parser {
                             rest.procedure.type.equals("path") &&
                             rest.procedure.steps.size() == 1 &&
                             rest.procedure.steps.get(0).type.equals("name") &&
-                            result.steps.get(result.steps.size() - 1).type.equals("function")) {
+                            result.steps.get(result.steps.size() - 1).type.equals("function") &&
+                            rest.procedure.steps.get(0).value instanceof Symbol) {
                             // next function in chain of functions - will override a thenable
                             result.steps.get(result.steps.size() - 1).nextFunction = (Symbol)rest.procedure.steps.get(0).value;
                         }
