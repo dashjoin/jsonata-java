@@ -102,20 +102,6 @@ public class JsonataTest {
         return om;
     }
 
-    Object toJson(String jsonStr) throws JsonMappingException, JsonProcessingException {
-        //ObjectMapper om = getObjectMapper();
-        //Object json = om.readValue(jsonStr, Object.class);
-        Object json = Json.parseJson(jsonStr);
-        return json;
-    }
-
-    Object readJson(String name) throws StreamReadException, DatabindException, IOException {
-        //ObjectMapper om = getObjectMapper();
-        //Object json = om.readValue(new java.io.FileReader(name, Charset.forName("UTF-8")), Object.class);
-
-        Object json = Json.parseJson(new java.io.FileReader(name, Charset.forName("UTF-8")));
-        return json;
-    }
 
     @Test
     public void testSimple() {
@@ -125,7 +111,7 @@ public class JsonataTest {
 
     @Test
     public void testPath() throws Exception {
-        Object data = readJson("jsonata/test/test-suite/datasets/dataset0.json");
+        Object data = JsonUtils.readJson("jsonata/test/test-suite/datasets/dataset0.json");
         System.out.println(data);
         testExpr("foo.bar", data, null, 42,null);
     }
@@ -146,7 +132,7 @@ public class JsonataTest {
     }
 
     public void runSubCase(String name, int subNr) throws Exception {
-        List cases = (List)readJson(name);
+        List cases = (List)JsonUtils.readJson(name);
         if (!runTestCase(name+"_"+subNr, (Map<String, Object>) cases.get(subNr)))
             throw new Exception();
     }
@@ -158,7 +144,7 @@ public class JsonataTest {
 
         boolean success = true;
 
-        Object testCase = readJson(name);
+        Object testCase = JsonUtils.readJson(name);
         if (testCase instanceof List) {
             // some cases contain a list of test cases
             // loop over the case definitions
@@ -264,7 +250,7 @@ public class JsonataTest {
 
         Object data = testDef.get("data");
         if (data==null && dataset!=null)
-            data = readJson("jsonata/test/test-suite/datasets/"+dataset+".json");
+            data = JsonUtils.readJson("jsonata/test/test-suite/datasets/"+dataset+".json");
 
         TestOverride to = getOverrideForTest(name);
         if (to!=null) {

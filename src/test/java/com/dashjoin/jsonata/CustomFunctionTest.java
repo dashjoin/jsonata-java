@@ -1,5 +1,6 @@
 package com.dashjoin.jsonata;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
@@ -84,5 +85,33 @@ public class CustomFunctionTest {
         Assertions.assertThrowsExactly(JException.class, () -> expression.evaluate(null));
     Assertions.assertEquals("T0410", ex.getError());
     Assertions.assertEquals("append", ex.getExpected());
+  }
+
+  @Test
+  public void testEachEmptyArray() {
+    var expression = Jsonata.jsonata("[] ~> $each(?, function($v) { $v })");
+    Object evaluate = expression.evaluate("{}");
+    Assertions.assertNull(evaluate);
+  }
+
+  @Test
+  public void testEachArrayWithData() {
+    var expression = Jsonata.jsonata("[123, 321] ~> $each(?, function($v) { $v })");
+    Object evaluate = expression.evaluate("{}");
+    Assertions.assertInstanceOf(List.class, evaluate);
+    List<Integer> expected = List.of(123, 321);
+    Assertions.assertEquals(expected, evaluate);
+  }
+
+  @Test
+  public void testMapInPipe() throws IOException {
+    Object data = JsonUtils.readJsonFromResources("map_in_pipe/input.json");
+    Object answer = JsonUtils.readJsonFromResources("map_in_pipe/answer.json");
+    var expression = Jsonata.jsonata("$sift($.buildings, function($v, $k) { $k ~> /o/ and $v.presentation.*.widget})" +
+            "                    ~> $each(?, function($v, $key) {{ $key: $sift($v.presentation, function($v, $k){ $v.widget }) }})" +
+            "                    ~> $map(?, function($v){($v.*)})");
+    Object evaluate = expression.evaluate(data);
+    Assertions.assertInstanceOf(List.class, evaluate);
+    Assertions.assertEquals(answer, evaluate);
   }
 }
