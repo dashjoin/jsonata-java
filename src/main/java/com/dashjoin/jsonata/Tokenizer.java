@@ -139,7 +139,11 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
                     throw new JException("S0301", position);
                 }
                 position++;
-                currentChar = path.charAt(position);
+                if (position < length) {
+                    currentChar = path.charAt(position);
+                } else {
+                    currentChar = 0;
+                }
                 // flags
                 start = position;
                 while (currentChar == 'i' || currentChar == 'm') {
