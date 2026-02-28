@@ -2142,7 +2142,7 @@ public class Functions {
     }
 
     public static Method getFunction(Class clz, String name) {
-        Method[] methods = Functions.class.getMethods();
+        Method[] methods = clz.getMethods();
         for (Method m : methods) {
             // if (m.getModifiers() == (Modifier.STATIC | Modifier.PUBLIC) ) {
             //     System.out.println(m.getName());
