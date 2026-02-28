@@ -37,6 +37,7 @@ import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -1753,14 +1754,18 @@ public class Jsonata {
                 }
              } else if (proc instanceof Pattern) {
                 List _res = new ArrayList<>();
-                for (String s : (List<String>)validatedArgs) {
+                for (Object s : (List)validatedArgs) {
                 //System.err.println("PAT "+proc+" input "+s);
-                    if (((Pattern)proc).matcher(s).find()) {
-                        //System.err.println("MATCH");
-                        _res.add(s);
+                    if (s instanceof String) {
+                        Matcher matcher = ((Pattern) proc).matcher((String) s);
+                        _res.add(regexClosure(matcher));
                     }
                 }
-                result = _res;
+                if (_res.size() == 1) {
+                    result = _res.get(0);
+                } else {
+                    result = _res;
+                }
              } else {
                 System.out.println("Proc not found "+proc);
                  throw new JException(
@@ -1779,6 +1784,21 @@ public class Jsonata {
          }
          return result;
      }
+
+    private static Map regexClosure(Matcher matcher) {
+        if (matcher.find()) {
+            String group = matcher.group();
+            return Map.of(
+                    "match", group,
+                    "start", matcher.start(),
+                    "end", matcher.end(),
+                    "groups", List.of(group),
+                    "next", (Fn0<Map>) () -> regexClosure(matcher)
+            );
+        } else {
+            return null;
+        }
+    }
  
      /**
       * Evaluate lambda against input data
