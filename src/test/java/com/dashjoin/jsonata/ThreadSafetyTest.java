@@ -284,4 +284,13 @@ public class ThreadSafetyTest {
         assertNotEquals(r1, r2, "$now() should return different values on different calls");
     }
 
+    @Test
+    public void testMillisWithCachedInstance() throws Exception {
+        Jsonata expr = jsonata("$millis()");
+        long r1 = ((Number) expr.evaluate(null)).longValue();
+        Thread.sleep(10);
+        long r2 = ((Number) expr.evaluate(null)).longValue();
+        assertTrue(r2 > r1, "$millis() should advance across separate evaluations");
+    }
+
 }
