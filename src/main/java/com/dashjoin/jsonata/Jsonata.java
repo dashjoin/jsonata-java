@@ -127,115 +127,122 @@ public class Jsonata {
      * @returns {*} Evaluated input data
      */
     Object evaluate(Symbol expr, Object input, Frame environment) {
-        // Thread safety:
-        // Make sure each evaluate is executed on an instance per thread
-        return getPerThreadInstance()._evaluate(expr, input, environment);
+        return _evaluate(expr, input, environment);
     }
 
     Object _evaluate(Symbol expr, Object input, Frame environment) {
         Object result = null;
 
-        // Store the current input + environment
-        // This is required by Functions.functionEval for current $eval() input context
-        this.input = input;
-        this.environment = environment;
+        // Save and restore the evaluation context so that nested
+        // evaluations (e.g. $eval()) see the correct context.
+        // All mutable per-evaluation state lives on EvalContext, not on this instance.
+        EvalContext ctx = evalContext.get();
+        Object savedInput = ctx.input;
+        Frame savedEnvironment = ctx.environment;
+        ctx.input = input;
+        ctx.environment = environment;
 
-        if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
+        try {
+            if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
-        var entryCallback = environment.lookup("__evaluate_entry");
-        if(entryCallback!=null) {
-            ((EntryCallback)entryCallback).callback(expr, input, environment);
-        }
- 
-        if (expr.type!=null)
-        switch (expr.type) {
-            case "path":
-                result = /* await */ evaluatePath(expr, input, environment);
-                break;
-            case "binary":
-                result = /* await */ evaluateBinary(expr, input, environment);
-                break;
-            case "unary":
-                result = /* await */ evaluateUnary(expr, input, environment);
-                break;
-            case "name":
-                result = evaluateName(expr, input, environment);
-                if (parser.dbg) System.out.println("evalName "+result);
-                break;
-            case "string":
-            case "number":
-            case "value":
-                result = evaluateLiteral(expr); //, input, environment);
-                break;
-            case "wildcard":
-                result = evaluateWildcard(expr, input); //, environment);
-                break;
-            case "descendant":
-                result = evaluateDescendants(expr, input); //, environment);
-                break;
-            case "parent":
-                result = environment.lookup(expr.slot.label);
-                break;
-            case "condition":
-                result = /* await */ evaluateCondition(expr, input, environment);
-                break;
-            case "block":
-                result = /* await */ evaluateBlock(expr, input, environment);
-                break;
-            case "bind":
-                result = /* await */ evaluateBindExpression(expr, input, environment);
-                break;
-            case "regex":
-                result = evaluateRegex(expr); //, input, environment);
-                break;
-            case "function":
-                result = /* await */ evaluateFunction(expr, input, environment, Utils.NONE);
-                break;
-            case "variable":
-                result = evaluateVariable(expr, input, environment);
-                break;
-            case "lambda":
-                result = evaluateLambda(expr, input, environment);
-                break;
-            case "partial":
-                result = /* await */ evaluatePartialApplication(expr, input, environment);
-                break;
-            case "apply":
-                result = /* await */ evaluateApplyExpression(expr, input, environment);
-                break;
-            case "transform":
-                result = evaluateTransformExpression(expr, input, environment);
-                break;
-        }
- 
-        if (expr.predicate!=null)
-            for(var ii = 0; ii < expr.predicate.size(); ii++) {
-                result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
+            var entryCallback = environment.lookup("__evaluate_entry");
+            if(entryCallback!=null) {
+                ((EntryCallback)entryCallback).callback(expr, input, environment);
             }
- 
-        if (!expr.type.equals("path") && expr.group!=null) {
-            result = /* await */ evaluateGroupExpression(expr.group, result, environment);
-        }
- 
-        var exitCallback = environment.lookup("__evaluate_exit");
-        if(exitCallback!=null) {
-            ((ExitCallback)exitCallback).callback(expr, input, environment, result);
-        }
-        
-        // mangle result (list of 1 element -> 1 element, empty list -> null)
-        if(result!=null && Utils.isSequence(result) && !((JList)result).tupleStream) {
-            JList _result = (JList)result;
-            if(expr.keepArray) {
-                _result.keepSingleton = true;
-            }
-            if(_result.isEmpty()) {
-                result = null;
-            } else if(_result.size() == 1) {
-                result =  _result.keepSingleton ? _result : _result.get(0);
-            }
-        }
 
-        return result;
+            if (expr.type!=null)
+            switch (expr.type) {
+                case "path":
+                    result = /* await */ evaluatePath(expr, input, environment);
+                    break;
+                case "binary":
+                    result = /* await */ evaluateBinary(expr, input, environment);
+                    break;
+                case "unary":
+                    result = /* await */ evaluateUnary(expr, input, environment);
+                    break;
+                case "name":
+                    result = evaluateName(expr, input, environment);
+                    if (parser.dbg) System.out.println("evalName "+result);
+                    break;
+                case "string":
+                case "number":
+                case "value":
+                    result = evaluateLiteral(expr); //, input, environment);
+                    break;
+                case "wildcard":
+                    result = evaluateWildcard(expr, input); //, environment);
+                    break;
+                case "descendant":
+                    result = evaluateDescendants(expr, input); //, environment);
+                    break;
+                case "parent":
+                    result = environment.lookup(expr.slot.label);
+                    break;
+                case "condition":
+                    result = /* await */ evaluateCondition(expr, input, environment);
+                    break;
+                case "block":
+                    result = /* await */ evaluateBlock(expr, input, environment);
+                    break;
+                case "bind":
+                    result = /* await */ evaluateBindExpression(expr, input, environment);
+                    break;
+                case "regex":
+                    result = evaluateRegex(expr); //, input, environment);
+                    break;
+                case "function":
+                    result = /* await */ evaluateFunction(expr, input, environment, Utils.NONE);
+                    break;
+                case "variable":
+                    result = evaluateVariable(expr, input, environment);
+                    break;
+                case "lambda":
+                    result = evaluateLambda(expr, input, environment);
+                    break;
+                case "partial":
+                    result = /* await */ evaluatePartialApplication(expr, input, environment);
+                    break;
+                case "apply":
+                    result = /* await */ evaluateApplyExpression(expr, input, environment);
+                    break;
+                case "transform":
+                    result = evaluateTransformExpression(expr, input, environment);
+                    break;
+            }
+
+            if (expr.predicate!=null)
+                for(var ii = 0; ii < expr.predicate.size(); ii++) {
+                    result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
+                }
+
+            if (!expr.type.equals("path") && expr.group!=null) {
+                result = /* await */ evaluateGroupExpression(expr.group, result, environment);
+            }
+
+            var exitCallback = environment.lookup("__evaluate_exit");
+            if(exitCallback!=null) {
+                ((ExitCallback)exitCallback).callback(expr, input, environment, result);
+            }
+
+            // mangle result (list of 1 element -> 1 element, empty list -> null)
+            if(result!=null && Utils.isSequence(result) && !((JList)result).tupleStream) {
+                JList _result = (JList)result;
+                if(expr.keepArray) {
+                    _result.keepSingleton = true;
+                }
+                if(_result.isEmpty()) {
+                    result = null;
+                } else if(_result.size() == 1) {
+                    result =  _result.keepSingleton ? _result : _result.get(0);
+                }
+            }
+
+            return result;
+        } finally {
+            ctx.input = savedInput;
+            ctx.environment = savedEnvironment;
+        }
     }
  
     /**
@@ -1549,28 +1556,33 @@ public class Jsonata {
         return Utils.isFunction(o) || Functions.isLambda(o) || (o instanceof Pattern);
     }
      
-    final static ThreadLocal<Jsonata> current = new ThreadLocal<>();
-
     /**
-     * Returns a per thread instance of this parsed expression.
-     * 
-     * @return
+     * Mutable evaluation context, stored on a static ThreadLocal.
+     * Holds all per-evaluation state that was previously stored as mutable fields
+     * on the Jsonata instance. This allows the Jsonata instance itself to remain
+     * immutable after construction, making it freely shareable across threads
+     * with no cloning needed.
      */
-    Jsonata getPerThreadInstance() {
-        Jsonata threadInst = current.get();
-        // Fast path
-        if (threadInst!=null)
-            return threadInst;
+    static final class EvalContext {
+        Object input;
+        Frame environment;
+        long timestamp;
+        final Jsonata instance;
 
-        synchronized(this) {
-            threadInst = current.get();
-            if (threadInst==null) {
-                threadInst = new Jsonata(this);
-                current.set(threadInst);
-            }
-            return threadInst;
+        EvalContext(Jsonata instance) {
+            this.instance = instance;
         }
     }
+
+    /**
+     * Thread-local evaluation context. Set at the entry point of evaluate()
+     * and restored after evaluation completes. Read by Functions.java for
+     * $eval(), $now(), $millis(), and funcApply().
+     *
+     * This is the ONLY ThreadLocal needed. No per-instance ThreadLocals,
+     * no cloning, no mutable state on the Jsonata instance during evaluation.
+     */
+    static final ThreadLocal<EvalContext> evalContext = new ThreadLocal<>();
 
      /**
       * Evaluate Object against input data
@@ -1582,8 +1594,6 @@ public class Jsonata {
      /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Object applytoContext) {
          Object result = null;
 
-         // this.current is set by getPerThreadInstance() at this point
- 
          // create the procedure
          // can"t assume that expr.procedure is a lambda type directly
          // could be an expression that evaluates to a Object (e.g. variable reference, parens expr etc.
@@ -2474,8 +2484,6 @@ public class Jsonata {
     List<Exception> errors;
     Frame environment;
     Symbol ast;
-    long timestamp;
-    Object input;
 
     static {
         staticFrame = new Frame(null);
@@ -2508,8 +2516,6 @@ public class Jsonata {
         }
         environment = createFrame(staticFrame);
 
-        timestamp = System.currentTimeMillis(); // will be overridden on each call to evalute()
-
         // Note: now and millis are implemented in Functions
         //  environment.bind("now", defineFunction(function(picture, timezone) {
         //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
@@ -2525,21 +2531,8 @@ public class Jsonata {
         //      jsonata.RegexEngine = RegExp;
         //  }
 
-        // Set instance for this thread
-        current.set(this);
     }
 
-    /**
-     * Creates a clone of the given Jsonata instance.
-     * Package-private copy constructor used to create per thread instances.
-     * 
-     * @param other
-     */
-    Jsonata(Jsonata other) {
-        this.ast = other.ast;
-        this.environment = other.environment;
-        this.timestamp = other.timestamp;
-    }
 
     /**
      * Flag: validate input objects to comply with JSON types
@@ -2581,13 +2574,10 @@ public class Jsonata {
         } else {
             exec_env = environment;
         }
-        // put the input document into the environment as the root object
         exec_env.bind("$", input);
 
-        // capture the timestamp and put it in the execution environment
-        // the $now() and $millis() functions will return this value - whenever it is called
-        timestamp = System.currentTimeMillis();
-        //exec_env.timestamp = timestamp;
+        // Timestamp for $now() and $millis() — captured once per evaluation
+        long ts = System.currentTimeMillis();
 
         // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
         if((input instanceof List) && !Utils.isSequence(input)) {
@@ -2598,18 +2588,24 @@ public class Jsonata {
         if (validateInput)
             Functions.validateInput(input);
 
+        EvalContext prev = evalContext.get();
+        EvalContext ctx = new EvalContext(this);
+        ctx.input = input;
+        ctx.environment = exec_env;
+        ctx.timestamp = ts;
+        evalContext.set(ctx);
+
         Object it;
         try {
             it = /* await */ evaluate(ast, input, exec_env);
-        //  if (typeof callback === "function") {
-        //      callback(null, it);
-        //  }
             it = Utils.convertNulls(it);
             return it;
         } catch (Exception err) {
             // insert error message into structure
             populateMessage(err); // possible side-effects on `err`
             throw err;
+        } finally {
+            evalContext.set(prev);
         }
     }
 
