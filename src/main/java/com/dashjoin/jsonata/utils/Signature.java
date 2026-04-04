@@ -313,7 +313,7 @@ public class Signature implements Serializable {
             for (Object _param : _params) {
                 Param param = (Param)_param;
                 var arg = argIndex<args.size() ? args.get(argIndex) : null;
-                String match = isValid.group(index + 1);
+                String match = isValid.group(index++ + 1);
                 if ("".equals(match)) {
                     if (param.context && param.regex!=null) {
                         // substitute context value for missing arg
@@ -391,10 +391,9 @@ public class Signature implements Serializable {
                         }
                     }
                 }
-                index++;
             }
             return validatedArgs;
-        }   
+        }
         throwValidationError(args, suppliedSig, functionName);
         return null; // dead code -> compiler happy
     }
