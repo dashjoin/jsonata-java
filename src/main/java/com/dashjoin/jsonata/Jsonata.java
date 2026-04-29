@@ -89,12 +89,11 @@ public class Jsonata {
         public<A,B,R> void bind(String name, Fn2<A,B,R> lambda) { bind(name, (Object)lambda); }
 
         public Object lookup(String name) {
-            // Important: if we have a null value,
-            // return it
-            if (bindings.containsKey(name))
-                return bindings.get(name);
-            if (parent!=null)
-                return parent.lookup(name);
+            // Iterative walk of the parent scope chain to avoid StackOverflowError
+            // on JVMs with small thread stacks (e.g. Windows workers).
+            for (Frame f = this; f != null; f = f.parent) {
+                if (f.bindings.containsKey(name)) return f.bindings.get(name);
+            }
             return null;
         }
 
