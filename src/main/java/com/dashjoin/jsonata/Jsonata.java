@@ -129,7 +129,17 @@ public class Jsonata {
     Object evaluate(Symbol expr, Object input, Frame environment) {
         // Thread safety:
         // Make sure each evaluate is executed on an instance per thread
-        return getPerThreadInstance()._evaluate(expr, input, environment);
+        Jsonata _this = getPerThreadInstance();
+        // Save and restore the evaluation context so that nested
+        // evaluations (e.g. $eval()) see the correct context.        
+        Object _input = _this.input;
+        Frame _environment = _this.environment;
+        try {
+          return _this._evaluate(expr, input, environment);
+        } finally {
+            _this.input = _input;
+            _this.environment = _environment;
+        }
     }
 
     Object _evaluate(Symbol expr, Object input, Frame environment) {
