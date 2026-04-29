@@ -1561,10 +1561,9 @@ public class Functions {
      */
     public static Object funcApply(Object func, List funcArgs) throws Throwable {
         Object res;
-        if (isLambda(func)) {
-            Jsonata.EvalContext ctx = Jsonata.evalContext.get();
-            res = ctx.instance.apply(func, funcArgs, null, ctx.environment);
-        } else
+        if (isLambda(func))
+            res = Jsonata.current.get().apply(func, funcArgs, null, Jsonata.current.get().environment);
+        else
             res = ((JFunction)func).call(null, funcArgs);
         return res;
     }
@@ -2376,8 +2375,7 @@ public class Functions {
         if(expr == null) {
             return null;
         }
-        Jsonata.EvalContext ctx = Jsonata.evalContext.get();
-        Object input = ctx.input;
+        Object input = Jsonata.current.get().input; // =  this.input;
         if(focus != null) {
             input = focus;
             // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
@@ -2388,7 +2386,7 @@ public class Functions {
         }
 
         Jsonata ast;
-        Jsonata.Frame env = ctx.environment;
+        Jsonata.Frame env = Jsonata.current.get().environment;
         try {
             ast = jsonata(expr);
         } catch(Throwable err) {
@@ -2399,7 +2397,7 @@ public class Functions {
         }
         Object result = null;
         try {
-            result = ctx.instance.evaluate(ast.ast, input, env);
+            result = Jsonata.current.get().evaluate(ast.ast, input, env);
         } catch(Throwable err) {
             // error evaluating the expression passed to $eval
             //populateMessage(err);
@@ -2414,7 +2412,7 @@ public class Functions {
     //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
     //  }, "<s?s?:s>"));
     public static String now(String picture, String timezone) {
-        long t = Jsonata.evalContext.get().timestamp;
+        long t = Jsonata.current.get().timestamp;
         return dateTimeFromMillis(t, picture, timezone);
     }
 
@@ -2422,7 +2420,7 @@ public class Functions {
     //      return timestamp.getTime();
     //  }, "<:n>"));
     public static long millis() {
-        long t = Jsonata.evalContext.get().timestamp;
+        long t = Jsonata.current.get().timestamp;
         return t;
     }
 }

@@ -127,22 +127,29 @@ public class Jsonata {
      * @returns {*} Evaluated input data
      */
     Object evaluate(Symbol expr, Object input, Frame environment) {
-        return _evaluate(expr, input, environment);
+        // Thread safety:
+        // Make sure each evaluate is executed on an instance per thread
+        Jsonata _this = getPerThreadInstance();
+        // Save and restore the evaluation context so that nested
+        // evaluations (e.g. $eval()) see the correct context.        
+        Object _input = _this.input;
+        Frame _environment = _this.environment;
+        try {
+          return _this._evaluate(expr, input, environment);
+        } finally {
+            _this.input = _input;
+            _this.environment = _environment;
+        }
     }
 
     Object _evaluate(Symbol expr, Object input, Frame environment) {
         Object result = null;
 
-        // Save and restore the evaluation context so that nested
-        // evaluations (e.g. $eval()) see the correct context.
-        // All mutable per-evaluation state lives on EvalContext, not on this instance.
-        EvalContext ctx = evalContext.get();
-        Object savedInput = ctx.input;
-        Frame savedEnvironment = ctx.environment;
-        ctx.input = input;
-        ctx.environment = environment;
+        // Store the current input + environment
+        // This is required by Functions.functionEval for current $eval() input context
+        this.input = input;
+        this.environment = environment;
 
-        try {
             if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
             var entryCallback = environment.lookup("__evaluate_entry");
@@ -239,10 +246,6 @@ public class Jsonata {
             }
 
             return result;
-        } finally {
-            ctx.input = savedInput;
-            ctx.environment = savedEnvironment;
-        }
     }
  
     /**
@@ -1556,33 +1559,28 @@ public class Jsonata {
         return Utils.isFunction(o) || Functions.isLambda(o) || (o instanceof Pattern);
     }
      
-    /**
-     * Mutable evaluation context, stored on a static ThreadLocal.
-     * Holds all per-evaluation state that was previously stored as mutable fields
-     * on the Jsonata instance. This allows the Jsonata instance itself to remain
-     * immutable after construction, making it freely shareable across threads
-     * with no cloning needed.
-     */
-    static final class EvalContext {
-        Object input;
-        Frame environment;
-        long timestamp;
-        final Jsonata instance;
+    final static ThreadLocal<Jsonata> current = new ThreadLocal<>();
 
-        EvalContext(Jsonata instance) {
-            this.instance = instance;
+    /**
+     * Returns a per thread instance of this parsed expression.
+     * 
+     * @return
+     */
+    Jsonata getPerThreadInstance() {
+        Jsonata threadInst = current.get();
+        // Fast path
+        if (threadInst!=null)
+            return threadInst;
+
+        synchronized(this) {
+            threadInst = current.get();
+            if (threadInst==null) {
+                threadInst = new Jsonata(this);
+                current.set(threadInst);
+            }
+            return threadInst;
         }
     }
-
-    /**
-     * Thread-local evaluation context. Set at the entry point of evaluate()
-     * and restored after evaluation completes. Read by Functions.java for
-     * $eval(), $now(), $millis(), and funcApply().
-     *
-     * This is the ONLY ThreadLocal needed. No per-instance ThreadLocals,
-     * no cloning, no mutable state on the Jsonata instance during evaluation.
-     */
-    static final ThreadLocal<EvalContext> evalContext = new ThreadLocal<>();
 
      /**
       * Evaluate Object against input data
@@ -1594,6 +1592,8 @@ public class Jsonata {
      /* async */ Object evaluateFunction(Symbol expr, Object input, Frame environment, Object applytoContext) {
          Object result = null;
 
+         // this.current is set by getPerThreadInstance() at this point
+ 
          // create the procedure
          // can"t assume that expr.procedure is a lambda type directly
          // could be an expression that evaluates to a Object (e.g. variable reference, parens expr etc.
@@ -2484,6 +2484,8 @@ public class Jsonata {
     List<Exception> errors;
     Frame environment;
     Symbol ast;
+    long timestamp;
+    Object input;
 
     static {
         staticFrame = new Frame(null);
@@ -2516,6 +2518,8 @@ public class Jsonata {
         }
         environment = createFrame(staticFrame);
 
+        timestamp = System.currentTimeMillis(); // will be overridden on each call to evalute()
+
         // Note: now and millis are implemented in Functions
         //  environment.bind("now", defineFunction(function(picture, timezone) {
         //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
@@ -2531,8 +2535,21 @@ public class Jsonata {
         //      jsonata.RegexEngine = RegExp;
         //  }
 
+        // Set instance for this thread
+        current.set(this);
     }
 
+    /**
+     * Creates a clone of the given Jsonata instance.
+     * Package-private copy constructor used to create per thread instances.
+     * 
+     * @param other
+     */
+    Jsonata(Jsonata other) {
+        this.ast = other.ast;
+        this.environment = other.environment;
+        this.timestamp = other.timestamp;
+    }
 
     /**
      * Flag: validate input objects to comply with JSON types
@@ -2574,10 +2591,13 @@ public class Jsonata {
         } else {
             exec_env = environment;
         }
+        // put the input document into the environment as the root object
         exec_env.bind("$", input);
 
-        // Timestamp for $now() and $millis() — captured once per evaluation
-        long ts = System.currentTimeMillis();
+        // capture the timestamp and put it in the execution environment
+        // the $now() and $millis() functions will return this value - whenever it is called
+        timestamp = System.currentTimeMillis();
+        //exec_env.timestamp = timestamp;
 
         // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
         if((input instanceof List) && !Utils.isSequence(input)) {
@@ -2588,24 +2608,18 @@ public class Jsonata {
         if (validateInput)
             Functions.validateInput(input);
 
-        EvalContext prev = evalContext.get();
-        EvalContext ctx = new EvalContext(this);
-        ctx.input = input;
-        ctx.environment = exec_env;
-        ctx.timestamp = ts;
-        evalContext.set(ctx);
-
         Object it;
         try {
             it = /* await */ evaluate(ast, input, exec_env);
+        //  if (typeof callback === "function") {
+        //      callback(null, it);
+        //  }
             it = Utils.convertNulls(it);
             return it;
         } catch (Exception err) {
             // insert error message into structure
             populateMessage(err); // possible side-effects on `err`
             throw err;
-        } finally {
-            evalContext.set(prev);
         }
     }
 
