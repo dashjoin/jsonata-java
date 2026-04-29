@@ -150,102 +150,102 @@ public class Jsonata {
         this.input = input;
         this.environment = environment;
 
-            if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
+        if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
-            var entryCallback = environment.lookup("__evaluate_entry");
-            if(entryCallback!=null) {
-                ((EntryCallback)entryCallback).callback(expr, input, environment);
+        var entryCallback = environment.lookup("__evaluate_entry");
+        if(entryCallback!=null) {
+            ((EntryCallback)entryCallback).callback(expr, input, environment);
+        }
+ 
+        if (expr.type!=null)
+        switch (expr.type) {
+            case "path":
+                result = /* await */ evaluatePath(expr, input, environment);
+                break;
+            case "binary":
+                result = /* await */ evaluateBinary(expr, input, environment);
+                break;
+            case "unary":
+                result = /* await */ evaluateUnary(expr, input, environment);
+                break;
+            case "name":
+                result = evaluateName(expr, input, environment);
+                if (parser.dbg) System.out.println("evalName "+result);
+                break;
+            case "string":
+            case "number":
+            case "value":
+                result = evaluateLiteral(expr); //, input, environment);
+                break;
+            case "wildcard":
+                result = evaluateWildcard(expr, input); //, environment);
+                break;
+            case "descendant":
+                result = evaluateDescendants(expr, input); //, environment);
+                break;
+            case "parent":
+                result = environment.lookup(expr.slot.label);
+                break;
+            case "condition":
+                result = /* await */ evaluateCondition(expr, input, environment);
+                break;
+            case "block":
+                result = /* await */ evaluateBlock(expr, input, environment);
+                break;
+            case "bind":
+                result = /* await */ evaluateBindExpression(expr, input, environment);
+                break;
+            case "regex":
+                result = evaluateRegex(expr); //, input, environment);
+                break;
+            case "function":
+                result = /* await */ evaluateFunction(expr, input, environment, Utils.NONE);
+                break;
+            case "variable":
+                result = evaluateVariable(expr, input, environment);
+                break;
+            case "lambda":
+                result = evaluateLambda(expr, input, environment);
+                break;
+            case "partial":
+                result = /* await */ evaluatePartialApplication(expr, input, environment);
+                break;
+            case "apply":
+                result = /* await */ evaluateApplyExpression(expr, input, environment);
+                break;
+            case "transform":
+                result = evaluateTransformExpression(expr, input, environment);
+                break;
+        }
+ 
+        if (expr.predicate!=null)
+            for(var ii = 0; ii < expr.predicate.size(); ii++) {
+                result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
             }
-
-            if (expr.type!=null)
-            switch (expr.type) {
-                case "path":
-                    result = /* await */ evaluatePath(expr, input, environment);
-                    break;
-                case "binary":
-                    result = /* await */ evaluateBinary(expr, input, environment);
-                    break;
-                case "unary":
-                    result = /* await */ evaluateUnary(expr, input, environment);
-                    break;
-                case "name":
-                    result = evaluateName(expr, input, environment);
-                    if (parser.dbg) System.out.println("evalName "+result);
-                    break;
-                case "string":
-                case "number":
-                case "value":
-                    result = evaluateLiteral(expr); //, input, environment);
-                    break;
-                case "wildcard":
-                    result = evaluateWildcard(expr, input); //, environment);
-                    break;
-                case "descendant":
-                    result = evaluateDescendants(expr, input); //, environment);
-                    break;
-                case "parent":
-                    result = environment.lookup(expr.slot.label);
-                    break;
-                case "condition":
-                    result = /* await */ evaluateCondition(expr, input, environment);
-                    break;
-                case "block":
-                    result = /* await */ evaluateBlock(expr, input, environment);
-                    break;
-                case "bind":
-                    result = /* await */ evaluateBindExpression(expr, input, environment);
-                    break;
-                case "regex":
-                    result = evaluateRegex(expr); //, input, environment);
-                    break;
-                case "function":
-                    result = /* await */ evaluateFunction(expr, input, environment, Utils.NONE);
-                    break;
-                case "variable":
-                    result = evaluateVariable(expr, input, environment);
-                    break;
-                case "lambda":
-                    result = evaluateLambda(expr, input, environment);
-                    break;
-                case "partial":
-                    result = /* await */ evaluatePartialApplication(expr, input, environment);
-                    break;
-                case "apply":
-                    result = /* await */ evaluateApplyExpression(expr, input, environment);
-                    break;
-                case "transform":
-                    result = evaluateTransformExpression(expr, input, environment);
-                    break;
+ 
+        if (!expr.type.equals("path") && expr.group!=null) {
+            result = /* await */ evaluateGroupExpression(expr.group, result, environment);
+        }
+ 
+        var exitCallback = environment.lookup("__evaluate_exit");
+        if(exitCallback!=null) {
+            ((ExitCallback)exitCallback).callback(expr, input, environment, result);
+        }
+        
+        // mangle result (list of 1 element -> 1 element, empty list -> null)
+        if(result!=null && Utils.isSequence(result) && !((JList)result).tupleStream) {
+            JList _result = (JList)result;
+            if(expr.keepArray) {
+                _result.keepSingleton = true;
             }
-
-            if (expr.predicate!=null)
-                for(var ii = 0; ii < expr.predicate.size(); ii++) {
-                    result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
-                }
-
-            if (!expr.type.equals("path") && expr.group!=null) {
-                result = /* await */ evaluateGroupExpression(expr.group, result, environment);
+            if(_result.isEmpty()) {
+                result = null;
+            } else if(_result.size() == 1) {
+                result =  _result.keepSingleton ? _result : _result.get(0);
             }
+        }
 
-            var exitCallback = environment.lookup("__evaluate_exit");
-            if(exitCallback!=null) {
-                ((ExitCallback)exitCallback).callback(expr, input, environment, result);
-            }
-
-            // mangle result (list of 1 element -> 1 element, empty list -> null)
-            if(result!=null && Utils.isSequence(result) && !((JList)result).tupleStream) {
-                JList _result = (JList)result;
-                if(expr.keepArray) {
-                    _result.keepSingleton = true;
-                }
-                if(_result.isEmpty()) {
-                    result = null;
-                } else if(_result.size() == 1) {
-                    result =  _result.keepSingleton ? _result : _result.get(0);
-                }
-            }
-
-            return result;
+        return result;
     }
  
     /**
