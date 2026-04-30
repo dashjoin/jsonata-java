@@ -174,9 +174,9 @@ public class DateTimeUtils implements Serializable {
             wordValuesLong.put(lword + "th", val);
         }
     }
-
+    private static final Pattern SPLIT_PATTERN = Pattern.compile(",\\s|\\sand\\s|[\\s\\-]");
     public static int wordsToNumber(String text) {
-        String[] parts = text.split(",\\s|\\sand\\s|[\\s\\-]");
+        String[] parts = SPLIT_PATTERN.split(text);
         Integer[] values = new Integer[parts.length];
         for (int i = 0; i < parts.length; i++) {
             values[i] = wordValues.get(parts[i]);
@@ -202,7 +202,7 @@ public class DateTimeUtils implements Serializable {
      * long version of above
      */
     public static long wordsToLong(String text) {
-      String[] parts = text.split(",\\s|\\sand\\s|[\\s\\-]");
+      String[] parts = SPLIT_PATTERN.split(text);
       Long[] values = new Long[parts.length];
       for (int i = 0; i < parts.length; i++) {
           values[i] = wordValuesLong.get(parts[i]);
@@ -788,16 +788,15 @@ public class DateTimeUtils implements Serializable {
 
         int offsetMillis = (60 * offsetHours + offsetMinutes) * 60 * 1000;
         LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(millis + offsetMillis), ZoneOffset.UTC);
-        String result = "";
+        StringBuilder resultBuilder = new StringBuilder();
         for (SpecPart part : formatSpec.parts) {
             if (part.type.equals("literal")) {
-                result += part.value;
+                resultBuilder.append(part.value);
             } else {
-                result += formatComponent(dateTime, part, offsetHours, offsetMinutes);
+                resultBuilder.append(formatComponent(dateTime, part, offsetHours, offsetMinutes));
             }
         }
-
-        return result;
+        return resultBuilder.toString();
     }
 
     private static String formatComponent(LocalDateTime date, SpecPart markerSpec, int offsetHours, int offsetMinutes) {
@@ -938,11 +937,12 @@ public class DateTimeUtils implements Serializable {
     public static Long parseDateTime(String timestamp, String picture) {
         PictureFormat formatSpec = analyseDateTimePicture(picture);
         PictureMatcher matchSpec = generateRegex(formatSpec);
-        String fullRegex = "^";
+        StringBuilder fullRegexBuilder = new StringBuilder("^");
         for (MatcherPart part : matchSpec.parts) {
-            fullRegex += "(" + part.regex + ")";
+            fullRegexBuilder.append("(").append(part.regex).append(")");
         }
-        fullRegex += "$";
+        fullRegexBuilder.append("$");
+        String fullRegex = fullRegexBuilder.toString();
         Pattern pattern = Pattern.compile(fullRegex, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(timestamp);
         if (matcher.find()) {
@@ -1060,13 +1060,13 @@ public class DateTimeUtils implements Serializable {
         return ((~type & mask) == 0) && (type & mask) != 0;
     }
 
+    private static final Pattern LITERAL_ESCAPE_PATTERN = Pattern.compile("[.*+?^${}()|\\[\\]\\\\]");
     private static PictureMatcher generateRegex(PictureFormat formatSpec) {
         PictureMatcher matcher = new PictureMatcher();
         for (final SpecPart part : formatSpec.parts) {
             MatcherPart res;
             if (part.type.equals("literal")) {
-                Pattern p = Pattern.compile("[.*+?^${}()|\\[\\]\\\\]");
-                Matcher m = p.matcher(part.value);
+                Matcher m = LITERAL_ESCAPE_PATTERN.matcher(part.value);
 
                 String regex = m.replaceAll("\\\\$0");
                 res = new MatcherPart(regex) {
