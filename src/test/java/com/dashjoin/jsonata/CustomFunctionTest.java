@@ -1,7 +1,11 @@
 package com.dashjoin.jsonata;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+
+import com.dashjoin.jsonata.json.Json;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -84,5 +88,21 @@ public class CustomFunctionTest {
         Assertions.assertThrowsExactly(JException.class, () -> expression.evaluate(null));
     Assertions.assertEquals("T0410", ex.getError());
     Assertions.assertEquals("append", ex.getExpected());
+  }
+
+  @Test
+  public void testMapWithAppend() throws IOException {
+    Object answer = Json.parseJson("{\"systems\": \"asd\"}");
+    var expression = Jsonata.jsonata("{'systems': 'asd'}.$map($, $append(?))");
+    Object evaluate = expression.evaluate(null);
+    Assertions.assertEquals(answer, evaluate);
+  }
+
+  @Test
+  public void testMapWithAppend2() {
+    Object answer = Json.parseJson("{\"systems\": \"asd\"}");
+    var expression = Jsonata.jsonata("$map($, $append(?))");
+    Object evaluate = expression.evaluate(answer);
+    Assertions.assertEquals(answer, evaluate);
   }
 }
