@@ -1391,7 +1391,7 @@ public class Jsonata {
                 if(aa.equals(bb)) {
                     // both the same - move on to next term
                     continue;
-                } else if (((Comparable)aa).compareTo(bb)<0) {
+                } else if (Utils.compareTo(aa, bb)<0) {
                     comp = -1;
                 } else {
                     comp = 1;

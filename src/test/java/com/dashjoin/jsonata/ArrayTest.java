@@ -75,4 +75,12 @@ public class ArrayTest {
     var expression2 = jsonata("**[value.Product = 'Product1']");
     Assertions.assertEquals(value1, expression2.evaluate(data));
   }
+  
+  @Test
+  public void testSortTypes() {
+    var e = jsonata("[{'value': 5.9}, {'value': 8}] ^(<value).value");
+    Assertions.assertEquals(List.of(5.9, 8), e.evaluate(null));
+    e = jsonata("[{'value': 'b'}, {'value': 'a'}] ^(<value).value");
+    Assertions.assertEquals(List.of("a", "b"), e.evaluate(null));
+  }
 }

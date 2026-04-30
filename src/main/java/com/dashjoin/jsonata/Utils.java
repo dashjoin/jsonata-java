@@ -275,4 +275,16 @@ public class Utils {
         map.put(key, value);
         return map;
     }
+    
+    /**
+     * called from Jsonata.compare() - aa and bb are either both strings or numbers
+     * for numbers, compare doubleValue to avoid cast error when int is compared to double
+     */
+    @SuppressWarnings("unchecked")
+    static int compareTo(Object aa, Object bb) {
+        if (aa instanceof String)
+            return ((Comparable)aa).compareTo(bb);
+        else
+            return Double.compare(((Number)aa).doubleValue(), ((Number)bb).doubleValue());
+    }
 }
