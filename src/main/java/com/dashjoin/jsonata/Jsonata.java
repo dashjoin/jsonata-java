@@ -464,7 +464,7 @@ public class Jsonata {
                     if((res instanceof JList) && ((JList)res).tupleStream) {
                         tuple.putAll((Map)res.get(bb));
                     } else {
-                        if (expr.focus!=null) {
+                        if (expr.focus!=null && !expr.focus.equals("")) {
                             tuple.put(expr.focus, res.get(bb));
                             tuple.put("@", tupleBindings.get(ee).get("@"));
                         } else {

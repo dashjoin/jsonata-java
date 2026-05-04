@@ -1,13 +1,12 @@
 package com.dashjoin.jsonata;
 
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import com.dashjoin.jsonata.json.Json;
 
 public class VariableTest {
 
-  @Disabled
   @Test
   public void testContextVariable() {
     var input = Json.parseJson("{\n"
@@ -24,5 +23,10 @@ public class VariableTest {
         + "                      \"documentIdentityType\": customer.identityDocumentType\n"
         + "                  })");
     Assertions.assertEquals("{documentIdentityNumber=ABC123456, documentIdentityType=ID_CARD}", e.evaluate(input) + "");
+  }
+  
+  @Test void testContextVariableSimple() {
+    var e = Jsonata.jsonata("model@$");
+    Assertions.assertEquals(123, e.evaluate(Map.of("model", 123)));
   }
 }
