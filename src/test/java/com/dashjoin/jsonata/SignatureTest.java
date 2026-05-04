@@ -56,6 +56,21 @@ public class SignatureTest {
     Assertions.assertEquals(6, expression.evaluate(null));
   }
 
+  /**
+   * Verifies that parameter index tracking works correctly in signature validation.
+   * Without the index++ fix in Signature.validate(), the second parameter's capture group
+   * is read at the wrong position, causing valid calls to fail with T0410.
+   */
+  @Test
+  public void testArrayFirstArgWithFunctionSecondArg() {
+      // $map has signature <af> : first arg = array, second arg = function
+      // Without index++ fix, the function arg is validated against group(1) instead of group(2)
+      var expression = jsonata("$map([1,2,3], function($v) { $v * 2 })");
+      var result = expression.evaluate(null);
+      Assertions.assertNotNull(result);
+      Assertions.assertEquals(java.util.List.of(2, 4, 6), result);
+  }
+
   @Test
   public void testVarArgMany(){
       Jsonata expr = jsonata("$customArgs('test',[1,2,3,4],3)");
