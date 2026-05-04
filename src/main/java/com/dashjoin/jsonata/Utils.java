@@ -206,6 +206,12 @@ public class Utils {
             convertNulls((List)val);
     }
 
+    /**
+     * Converts all occurrences of {@link Jsonata#NULL_VALUE} in the given object to null
+     * 
+     * @param res Result object which might contain NULL_VALUEs
+     * @return The same object with NULL_VALUEs replaced with null
+     */
     public static Object convertNulls(Object res) {
         recurse(res);
         return convertValue(res);

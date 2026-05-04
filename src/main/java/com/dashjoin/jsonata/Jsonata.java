@@ -2571,6 +2571,38 @@ public class Jsonata {
         this.validateInput = validateInput;
     }
 
+    /**
+     * Flag: output NULL_VALUE conversion is enabled
+     */
+    boolean outputConvertNulls = true;
+
+    /**
+     * Checks whether output NULL_VALUE conversion is enabled
+     */
+    public boolean isOutputConvertNulls() {
+        return outputConvertNulls;
+    }
+
+    /**
+     * Enable or disable output {@link Jsonata#NULL_VALUE} conversion.
+     * Enabled by default, which returns both "Jsonata null" and "Jsonata undefined"
+     * as Java null.
+     * 
+     * When disabled, output values might contain
+     * <ul>
+     *  <li>{@link Jsonata#NULL_VALUE} indicating "Jsonata null"
+     *  <li>Java null indicating "Jsonata undefined"
+     * </ul>
+     * 
+     * Manually calling {@link Utils#convertNulls(Object)}
+     * on a raw result without output conversion will yield the converted result.
+     * 
+     * @param outputConvertNulls
+     */
+    public void setOutputConvertNulls(boolean outputConvertNulls) {
+        this.outputConvertNulls = outputConvertNulls;
+    }
+
     public Object evaluate(Object input) { return evaluate(input,null); }
 
     /* async */
@@ -2614,7 +2646,8 @@ public class Jsonata {
         //  if (typeof callback === "function") {
         //      callback(null, it);
         //  }
-            it = Utils.convertNulls(it);
+            if (outputConvertNulls)
+                it = Utils.convertNulls(it);
             return it;
         } catch (Exception err) {
             // insert error message into structure
