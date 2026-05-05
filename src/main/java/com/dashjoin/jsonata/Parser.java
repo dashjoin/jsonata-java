@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ import com.dashjoin.jsonata.utils.Signature;
 
 //var parseSignature = require('./signature');
 @SuppressWarnings({"unchecked"})
-public class Parser {
+public class Parser implements Serializable {
 
     boolean dbg = false;
     
@@ -92,7 +93,7 @@ public class Parser {
         }
     }
     
-    public class Symbol implements Cloneable {
+    public class Symbol implements Cloneable, Serializable {
 
         //Symbol s;
         String id;
@@ -505,7 +506,7 @@ public class Parser {
                     c.value = "(";
                     Symbol p = new Symbol();
                     c.procedure = p; p.type = "variable"; p.value = "exists";
-                    c.arguments = List.of(left);
+                    c.arguments = List.of(Parser.clone(left));
                 }
                 this.then = left;
                 this._else = expression(0);
@@ -812,7 +813,12 @@ public class Parser {
 
             @Override Symbol led(Symbol left) {
                 this.type = "condition";
-                this.condition = left;
+                // Deep-clone `left` so the condition and then branches have
+                // independent AST nodes. Sharing the same reference causes
+                // post-parse processing (e.g. predicate stages, unary minus
+                // folding on number literals) to mutate the same node twice,
+                // producing wrong results (see #773 for the equivalent ?? fix).
+                this.condition = Parser.clone(left);
                 this.then = left;
                 this._else = expression(0);
                 return this;

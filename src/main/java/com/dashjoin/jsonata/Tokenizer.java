@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Tokenizer { // = function (path) {
+public class Tokenizer implements java.io.Serializable { // = function (path) {
 
 static HashMap<String, Integer> operators = new HashMap<String, Integer>() {{
     put(".", 75);
