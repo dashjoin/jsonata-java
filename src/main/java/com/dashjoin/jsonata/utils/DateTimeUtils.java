@@ -1107,6 +1107,13 @@ public class DateTimeUtils implements Serializable {
                         return offsetHours * 60 + offsetMinutes;
                     }
                 };
+            } else if (part.component == 'f') {
+                res = new MatcherPart("[0-9]+") {
+                    public int parse(String value) {
+                        // return parseFloat('0.' + value.substring(0, 3)) * 1000;
+                        return Integer.parseInt(value.substring(0,3));
+                    }
+                };
             } else if (part.integerFormat != null) {
                 res = generateRegex(part.component,part.integerFormat);
             } else {
