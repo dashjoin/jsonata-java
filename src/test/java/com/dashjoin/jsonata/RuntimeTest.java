@@ -31,17 +31,11 @@ public class RuntimeTest {
   public void testCallbacks() {
     var expr = jsonata("42");
     var frame = expr.createFrame();
-    frame.bind("__evaluate_entry", new Jsonata.EntryCallback() {
-      @Override
-      public void callback(Symbol expr, Object input, Frame environment) {
-        entered = true;
-      }
+    frame.setEvaluateEntryCallback((ast, input, environment) -> {
+      entered = true;
     });
-    frame.bind("__evaluate_exit", new Jsonata.ExitCallback() {
-      @Override
-      public void callback(Symbol expr, Object input, Frame environment, Object result) {
-        exited = true;
-      }
+    frame.setEvaluateExitCallback((ast, input, environment, result) -> {
+      exited = true;
     });
     expr.evaluate(null, frame);
     Assertions.assertTrue(exited && entered);
