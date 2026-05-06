@@ -29,6 +29,28 @@ import static com.dashjoin.jsonata.Jsonata.NULL_VALUE;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class JsonataTest {
+    /**
+     * Represents an undefined result 
+     */
+    public final static Object UNDEFINED = "__UNDEFINED__" + Math.random();
+
+    /**
+     * Evaluates the expression, returns undefined result as UNDEFINED (to differentiate from null).
+     */
+    public static Object evaluateJsonata(String expr, Object input, Frame bindings) {
+        // Parse the expression and disable output null conversion
+        var jsonata = jsonata(expr);
+        jsonata.setOutputConvertNulls(false);
+
+        var result = jsonata.evaluate(input, bindings);
+        
+        // Preserve undefined result
+        if (result==null)
+            result = UNDEFINED;
+        
+        // Convert null values to Java null
+        return Utils.convertNulls(result);
+    }
 
     boolean testExpr(String expr, Object data, Map<String,Object> bindings,
         Object expected, String code) {
@@ -47,10 +69,11 @@ public class JsonataTest {
             }
         }
 
-        Jsonata jsonata = jsonata(expr);
         if (bindingFrame!=null)
             bindingFrame.setRuntimeBounds(debug ? 500000L : 1000L, 303);
-        Object result = jsonata.evaluate(data, bindingFrame);
+
+        var result = evaluateJsonata(expr, data, bindingFrame);
+
         if (code!=null)
             success = false;
         
@@ -232,7 +255,27 @@ public class JsonataTest {
         return null;
     }
 
-    boolean runTestCase(String name, Map<String, Object> testDef) throws Exception {
+    /**
+     * Map.of equivalent supporting null values
+     * @param keyValues
+     * @return
+     */
+    public static Map<String,Object> mapOf(Object... keyValues) {
+        Map<String, Object> map = new java.util.HashMap<>();
+        for (int i=0; i<keyValues.length; i+=2) {
+            map.put((String)keyValues[i], keyValues[i+1]);
+        }
+        return map;
+    }
+    
+    /**
+     * Runs the given test case
+     * @param name Name of the test (only used for debug output)
+     * @param testDef Map with definition of the test case like expr, result, data etc. (see JSON test definitions)
+     * @return true if the test was successful, false otherwise
+     * @throws Exception
+     */
+    public boolean runTestCase(String name, Map<String, Object> testDef) throws Exception {
 
         testCases++;
         if (debug) System.out.println("\nRunning test "+name);
@@ -248,12 +291,12 @@ public class JsonataTest {
         String dataset = (String)testDef.get("dataset");
         Map<String,Object> bindings = (Map)testDef.get("bindings");
         Object result = testDef.get("result");
-        
-        // if (result == null)
-        //   if (testDef.containsKey("result"))
-        //     result = Jsonata.NULL_VALUE;
 
-        //replaceNulls(result);
+        // Check if test is expected to return undefined result
+        boolean undefined = "true".equals("" + testDef.get("undefinedResult") );
+
+        if (undefined)
+            result = UNDEFINED;
 
         String code = (String)testDef.get("code");
         
@@ -263,6 +306,11 @@ public class JsonataTest {
         //System.out.println(""+bindings);
 
         Object data = testDef.get("data");
+        // Handle null value: if data is explicitly null, make sure it is fed as NULL_VALUE because
+        // Java null means undefined
+        if (testDef.containsKey("data") && data==null)
+            data = NULL_VALUE;
+
         if (data==null && dataset!=null)
             data = readJson("jsonata/test/test-suite/datasets/"+dataset+".json");
 
