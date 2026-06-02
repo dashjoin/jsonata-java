@@ -502,11 +502,8 @@ public class Jsonata {
         if( input instanceof JList && ((JList)input).tupleStream) {
             ((JList)results).tupleStream = true;
         }
-        if (input == null) {
-            // undefined input yields undefined output; skip filtering entirely
-            input = Utils.createSequence();
-        } else if (!(input instanceof List)) { // isArray
-            input = Utils.createSequence(input);
+        if (!(input instanceof List)) { // isArray
+            input = Utils.createSequence(input == null ? Utils.NONE : input);
         }
         if (predicate.type.equals("number")) {
             var index = ((Number)predicate.value).intValue();  // round it down - was Math.floor
