@@ -72,6 +72,18 @@ public class NullSafetyTest {
     }
     
     @Test
+    public void testArrayIndexPreservesNull() {
+        // Indexing into an array element that is JSON null must yield null,
+        // not be filtered out as if it were undefined.
+        Map<String, Object> data = Map.of("data", List.of(
+            Arrays.asList(1, null, 3),
+            Arrays.asList(2, null, 4),
+            Arrays.asList(3, null, 5)));
+        Object res = jsonata("[$map(data, function($row) { $row[1] })]").evaluate(data);
+        Assertions.assertEquals(Arrays.asList(null, null, null), res);
+    }
+
+    @Test
     public void testFilterNullLookup() {
       var x = Jsonata.jsonata("$filter($, function($v, $i, $a){$lookup($v, 'content')})").evaluate(
           Arrays.asList(Map.of("content", "some"), Map.of()));

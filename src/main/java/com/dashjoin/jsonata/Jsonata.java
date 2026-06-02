@@ -502,7 +502,10 @@ public class Jsonata {
         if( input instanceof JList && ((JList)input).tupleStream) {
             ((JList)results).tupleStream = true;
         }
-        if (!(input instanceof List)) { // isArray
+        if (input == null) {
+            // undefined input yields undefined output; skip filtering entirely
+            input = Utils.createSequence();
+        } else if (!(input instanceof List)) { // isArray
             input = Utils.createSequence(input);
         }
         if (predicate.type.equals("number")) {
@@ -511,8 +514,12 @@ public class Jsonata {
                 // count in from end of array
                 index = ((List)input).size() + index;
             }
-            var item = 0<=index && index<((List)input).size() ? ((List)input).get(index) : null;
-            if(item != null) {
+            if (0<=index && index<((List)input).size()) {
+                var item = ((List)input).get(index);
+                // Preserve JSON null at this index (vs. out-of-bounds, which is undefined)
+                if (item == null) {
+                    item = NULL_VALUE;
+                }
                 if(item instanceof List) {
                     results = (List)item;
                 } else {
