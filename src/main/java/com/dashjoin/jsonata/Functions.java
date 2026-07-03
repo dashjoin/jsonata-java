@@ -1557,9 +1557,8 @@ public class Functions {
      * @param func
      * @param funcArgs
      * @return
-     * @throws Throwable
      */
-    public static Object funcApply(Object func, List funcArgs) throws Throwable {
+    public static Object funcApply(Object func, List funcArgs) {
         Object res;
         if (isLambda(func))
             res = Jsonata.current.get().apply(func, funcArgs, null, Jsonata.current.get().environment);
@@ -1950,38 +1949,55 @@ public class Functions {
             return arr;
         }
 
-        List result = new ArrayList<>(arr);
 
         if (comparator != null) {
-            Comparator comp = new Comparator() {
+            if (comparator instanceof Comparator) {
+                List sorted = new ArrayList<>(arr);
+                sorted.sort((Comparator) comparator);
+                return sorted;
+            }
 
-                @Override
-                public int compare(Object o1, Object o2) {
-                    try {
-                        Boolean swap = toBoolean(funcApply(comparator, Arrays.asList(o1, o2)));
-                        if (swap == null)
-                          return 0;
-                        if (swap)
-                          return 1;
-                        else
-                          return -1;
-                    } catch (Throwable e) {
-                        // TODO Auto-generated catch block
-                        //e.printStackTrace();
-                        throw new RuntimeException(e);
-                    }
-                }
-                
-            };
-            if (comparator instanceof Comparator)
-              result.sort((Comparator)comparator);
-            else
-              result.sort((Comparator)comp);
-        } else {
-            result.sort(null);
+            Object[] sorted  = arr.toArray();
+            Object[] buffer = new Object[sorted.length];
+            mergeSort(sorted, buffer, 0, sorted.length - 1, comparator);
+            List result = new ArrayList<>(sorted.length);
+            Collections.addAll(result, sorted);
+            return result;
         }
 
-        return result;
+        List sorted = new ArrayList<>(arr);
+        sorted.sort(null);
+        return sorted;
+    }
+
+    private static void mergeSort(Object[] sorted, Object[] buffer, int lo, int hi, Object jsonataComparator) {
+        if (lo >= hi) {
+            return;
+        }
+        int mid = (lo + hi) / 2;
+        mergeSort(sorted, buffer, lo, mid, jsonataComparator);
+        mergeSort(sorted, buffer, mid + 1, hi, jsonataComparator);
+        merge(sorted, buffer, lo, mid, hi, jsonataComparator);
+    }
+
+    private static void merge(Object[] sorted, Object[] buffer, int lo, int mid, int hi, Object jsonataComparator) {
+        int left = lo, right = mid + 1, writePos = lo;
+
+        while (left <= mid && right <= hi) {
+            boolean swap;
+            Boolean sw = toBoolean(funcApply(jsonataComparator, Arrays.asList(sorted[left], sorted[right])));
+            swap = Boolean.TRUE.equals(sw);
+
+            if (swap) {
+                buffer[writePos++] = sorted[right++];
+            } else {
+                buffer[writePos++] = sorted[left++];
+            }
+        }
+        while (left <= mid) buffer[writePos++] = sorted[left++];
+        while (right <= hi) buffer[writePos++] = sorted[right++];
+
+        System.arraycopy(buffer, lo, sorted, lo, hi - lo + 1);
     }
 
     /**
