@@ -4,11 +4,14 @@ import static com.dashjoin.jsonata.Jsonata.jsonata;
 import static java.util.Arrays.asList;
 import static java.util.Map.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class ArrayTest {
@@ -82,5 +85,16 @@ public class ArrayTest {
     Assertions.assertEquals(List.of(5.9, 8), e.evaluate(null));
     e = jsonata("[{'value': 'b'}, {'value': 'a'}] ^(<value).value");
     Assertions.assertEquals(List.of("a", "b"), e.evaluate(null));
+  }
+
+  //This test only shows the problem on a large array. Experiments show an error on element 81.
+  @Test
+  public void testSortLargeArray() throws IOException {
+    Object data = new ObjectMapper().readValue(new File("test/ISSUE-114-largeArrayToSort.json"), Object.class);
+    Object result = new ObjectMapper().readValue(new File("test/ISSUE-114-largeArrayResult.json"), Object.class);
+
+    var expression = jsonata("$sort($, function($l, $r){$l.*.rank < $r.*.rank})");
+    Object evaluate = expression.evaluate(data);
+    Assertions.assertEquals(result, evaluate);
   }
 }
