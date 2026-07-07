@@ -38,12 +38,14 @@ import java.util.stream.Collectors;
 import com.dashjoin.jsonata.Jsonata.Frame;
 import com.dashjoin.jsonata.Tokenizer.Token;
 import com.dashjoin.jsonata.utils.Signature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //var parseSignature = require('./signature');
 @SuppressWarnings({"unchecked"})
 public class Parser implements Serializable {
 
-    boolean dbg = false;
+    private static final Logger log = LoggerFactory.getLogger(Parser.class);
     
     // This parser implements the 'Top down operator precedence' algorithm developed by Vaughan R Pratt; http://dl.acm.org/citation.cfm?id=512931.
     // and builds on the Javascript framework described by Douglas Crockford at http://javascript.crockford.com/tdop/tdop.html
@@ -212,11 +214,11 @@ public class Parser implements Serializable {
             // We want a shallow clone (do not duplicate outer class!)
             try {
                 Symbol cl = (Symbol) this.clone();
-                //System.err.println("cloning "+this+" clone="+cl);
+                //log.info("cloning {} clone={}", this, cl);
                 return cl;
             } catch (CloneNotSupportedException e) {
                 // never reached
-                if (dbg) e.printStackTrace();
+                log.debug("Error when clone object", e);
                 return null;
             }
         }
@@ -232,10 +234,10 @@ public class Parser implements Serializable {
 
         Symbol s = symbolTable.get(t.id);
         if (s != null) {
-            if (dbg) System.out.println("Symbol in table "+t.id+" "+s.getClass().getName()+" -> "+ t.getClass().getName());
+            log.debug("Symbol in table {} {} -> {}", t.id, s.getClass().getName(), t.getClass().getName());
             //symbolTable.put(t.id, t);
             if (t.bp >= s.lbp) {
-                if (dbg) System.out.println("Symbol in table "+t.id+" lbp="+s.lbp+" -> "+t.bp);
+                log.debug("Symbol in table {} lbp={} -> {}", t.id, s.lbp, t.bp);
                 s.lbp = t.bp;
             }
         } else {
@@ -281,7 +283,7 @@ public class Parser implements Serializable {
                 return handleError(err);
             }
             Token next_token = lexer.next(infix);
-            if (dbg) System.out.println("nextToken "+(next_token!=null ? next_token.type : null));
+            log.debug("nextToken {}", next_token!=null ? next_token.type : null);
             if (next_token == null) {
                 node = symbolTable.get("(end)");
                 node.position = source.length();
@@ -322,7 +324,7 @@ public class Parser implements Serializable {
             node.value = value;
             node.type = type;
             node.position = next_token.position;
-            if (dbg) System.out.println("advance "+node);
+            log.debug("advance {}", node);
             return node;
         }
 
@@ -335,7 +337,7 @@ public class Parser implements Serializable {
             while (rbp < node.lbp) {
                 t = node;
                 advance(null, false);
-                if (dbg) System.out.println("t="+t+", left="+left.type);
+                log.debug("t={}, left={}", t, left.type);
                 left = t.led(left);
             }
             return left;
@@ -618,7 +620,7 @@ public class Parser implements Serializable {
         //register(new Prefix("(") {
 
             @Override Symbol nud() {
-                if (dbg) System.out.println("Prefix (");
+                log.debug("Prefix (");
                 List<Symbol> expressions = new ArrayList<>();
                 while (!node.id.equals(")")) {
                     expressions.add(Parser.this.expression(0));
@@ -981,7 +983,7 @@ public class Parser implements Serializable {
     Symbol processAST(Symbol expr) {
         Symbol result = expr;
         if (expr==null) return null;
-        if (dbg) System.out.println(" > processAST type="+expr.type+" value='"+expr.value+"'");
+        log.debug(" > processAST type={} value='{}'", expr.type, expr.value);
         switch (expr.type != null ? expr.type : "(null)") {
             case "binary": {
                 switch (""+expr.value) {
@@ -1028,11 +1030,11 @@ public class Parser implements Serializable {
                                     step.value
                                 );
                             }
-                            //System.out.println("step "+step+" type="+step.type);
+                            //log.info("step {} type={}", step, step.type);
                             if (step.type.equals("string"))
                                 step.type = "name";
                                 // for (var lit : step.steps) {
-                                //     System.out.println("step2 "+lit+" type="+lit.type);
+                                //     log.info("step2 {} type={}", lit, lit.type);
                                 //     lit.type = "name";
                                 // }
                         }
@@ -1056,7 +1058,7 @@ public class Parser implements Serializable {
                         resolveAncestry(result);
                         break;
                     case "[":
-                            if (dbg) System.out.println("binary [");
+                            log.debug("binary [");
                             // predicated step
                             // LHS is a step or a predicated step
                             // RHS is the predicate expr
@@ -1236,7 +1238,7 @@ public class Parser implements Serializable {
                 // expr.value might be Character!
                 String exprValue = ""+expr.value;
                 if (exprValue.equals("[")) {
-                    if (dbg) System.out.println("unary [ "+result);
+                    log.debug("unary [ {}", result);
                     // array constructor - process each item
                     final Symbol _result = result;
                     result.expressions = expr.expressions.stream().map(item -> {
@@ -1263,7 +1265,7 @@ public class Parser implements Serializable {
                     if (exprValue.equals("-") && result.expression.type.equals("number")) {
                         result = result.expression;
                         result.value = Utils.convertNumber( -((Number)result.value).doubleValue() );
-                        if (dbg) System.out.println("unary - value="+result.value);
+                        log.debug("unary - value={}", result.value);
                     } else {
                         pushAncestry(result, result.expression);
                     }

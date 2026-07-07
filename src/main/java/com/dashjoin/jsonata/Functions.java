@@ -666,7 +666,7 @@ public class Functions {
         while (m.find()) {
             RegexpMatch rm = new RegexpMatch();
 
-            //System.out.println("grc="+m.groupCount()+" "+m.group(1));
+            //log.info("grc={} {}", m.groupCount(), m.group(1));
 
             rm.index = m.start();
             rm.match = m.group();
@@ -700,7 +700,7 @@ public class Functions {
             result = (str.indexOf((String)token) != -1);
         } else if (token instanceof Pattern) {
             var matches = evaluateMatcher((Pattern)token, str);
-            //if (dbg) System.out.println("match = "+matches);
+            //log.debug("match = {}", matches);
             //result = (typeof matches !== 'undefined');
             //throw new Error("regexp not impl"); //result = false;
             result = !matches.isEmpty();
@@ -1134,7 +1134,7 @@ public class Functions {
             fixedPicture = fixedPicture.replace("e", "E");
             littleE = true;
         }
-        //System.out.println("picture "+fixedPicture);
+        //log.info("picture {}", fixedPicture);
         formatter.applyLocalizedPattern(fixedPicture);
         String result = formatter.format(value);
 
@@ -2145,8 +2145,8 @@ public class Functions {
         Method[] methods = clz.getMethods();
         for (Method m : methods) {
             // if (m.getModifiers() == (Modifier.STATIC | Modifier.PUBLIC) ) {
-            //     System.out.println(m.getName());
-            //     System.out.println(m.getParameterTypes());
+            //     log.info(m.getName());
+            //     log.info(m.getParameterTypes());
             // }
             if (m.getName().equals(name)) {
                 return m;
@@ -2176,7 +2176,7 @@ public class Functions {
             if (arg1!=null) {
                 List wrap = new ArrayList<>(); wrap.add(arg1);
                 callArgs.set(0, wrap);            
-            //System.err.println("wrapped "+arg1+" as "+wrap);
+            //log.error("wrapped {} as {}"+, arg1, wrap);
             }
         }
 
@@ -2344,8 +2344,7 @@ public class Functions {
             throw new ParseException("Formatting or parsing an integer as a sequence starting with \""+ picture +"\" is not supported by this implementation", 0);
         } catch (Exception ex) {
             // Ignore the exception, return null
-            // System.err.println("Exception in parseInteger (returning null): " + ex);
-            // ex.printStackTrace();
+            // log.error("Exception in parseInteger (returning null): ", ex);
             return null;
         }
     }
