@@ -1959,6 +1959,10 @@ public class Functions {
                 public int compare(Object o1, Object o2) {
                     try {
                         Boolean swap = toBoolean(funcApply(comparator, Arrays.asList(o1, o2)));
+                        // Symmetry/equality: if Jsonata comp(o1,o2)==comp(o2,o1) means Java o1==o2 (return 0)
+                        Boolean swapSym = toBoolean(funcApply(comparator, Arrays.asList(o2, o1)));
+                        if (swap != null && swap.equals(swapSym))
+                          return 0;
                         if (swap == null)
                           return 0;
                         if (swap)
@@ -1966,8 +1970,6 @@ public class Functions {
                         else
                           return -1;
                     } catch (Throwable e) {
-                        // TODO Auto-generated catch block
-                        //e.printStackTrace();
                         throw new RuntimeException(e);
                     }
                 }
