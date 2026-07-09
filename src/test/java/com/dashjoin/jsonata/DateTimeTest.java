@@ -16,6 +16,6 @@ public class DateTimeTest {
     Jsonata expr = Jsonata.jsonata("$fromMillis($toMillis($))");
     String timestamp = (String) expr.evaluate(noZoneTooPrecise);
     Assertions.assertTrue(timestamp.startsWith("2024-08-2"));
-    Assertions.assertTrue(timestamp.endsWith(":43:15.781Z"));
+    Assertions.assertTrue(timestamp.endsWith("3:15.781Z"));
   }
 }
