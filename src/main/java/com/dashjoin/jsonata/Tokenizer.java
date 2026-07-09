@@ -83,6 +83,7 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
     put("t", "\t");
 }};
 
+    private static final Pattern NUM_REGEX = Pattern.compile("^-?(0|([1-9][0-9]*))(\\.[0-9]+)?([Ee][-+]?[0-9]+)?");
 // Tokenizer (lexer) - invoked by the parser to return one token at a time
     String path;
     int position = 0;
@@ -262,20 +263,20 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
             char quoteType = currentChar;
             // double quoted string literal - find end of string
             position++;
-            var qstr = "";
+            var qstr = new StringBuilder();
             while (position < length) {
                 currentChar = path.charAt(position);
                 if (currentChar == '\\') { // escape sequence
                     position++;
                     if (position < path.length()) currentChar = path.charAt(position); else throw new JException("S0103", position, "");
                     if (escapes.get(""+currentChar)!=null) {
-                        qstr += escapes.get(""+currentChar);
+                        qstr.append(escapes.get(""+currentChar));
                     } else if (currentChar == 'u') {
                         //  u should be followed by 4 hex digits
                         String octets = position+5 < path.length() ? path.substring(position + 1, (position + 1) + 4) : "";
                         if (octets.matches("^[0-9a-fA-F]+$")) { //  /^[0-9a-fA-F]+$/.test(octets)) {
                             int codepoint = Integer.parseInt(octets, 16);
-                            qstr += Character.toString((char) codepoint);
+                            qstr.append((char) codepoint);
                             position += 4;
                         } else {
                             throw new JException("S0104", position);
@@ -287,17 +288,16 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
                     }
                 } else if (currentChar == quoteType) {
                     position++;
-                    return create("string", qstr);
+                    return create("string", qstr.toString());
                 } else {
-                    qstr += currentChar;
+                    qstr.append(currentChar);
                 }
                 position++;
             }
             throw new JException("S0101", position);
         }
         // test for numbers
-        Pattern numregex = Pattern.compile("^-?(0|([1-9][0-9]*))(\\.[0-9]+)?([Ee][-+]?[0-9]+)?");
-        Matcher match = numregex.matcher(path.substring(position));
+        Matcher match = NUM_REGEX.matcher(path.substring(position));
         if (match.find()) {
             double num = Double.parseDouble(match.group(0));
             if (!Double.isNaN(num) && Double.isFinite(num)) {

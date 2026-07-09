@@ -609,10 +609,11 @@ public class Functions {
         if (pads <= 0) {
             return str;
         }
-        String padding = "";
+        StringBuilder paddingSb = new StringBuilder();
         for (int i = 0; i < pads + 1; i++) {
-            padding += padStr;
+            paddingSb.append(padStr);
         }
+        String padding = paddingSb.toString();
         return substr(padding, 0, pads).concat(str);
     }
 
@@ -638,10 +639,11 @@ public class Functions {
         if (pads <= 0) {
             return str;
         }
-        String padding = "";
+        StringBuilder paddingSb = new StringBuilder();
         for (int i = 0; i < pads + 1; i++) {
-            padding += padStr;
+            paddingSb.append(padStr);
         }
+        String padding = paddingSb.toString();
         return str.concat(substr(padding, 0, pads));
     }
 
@@ -770,14 +772,21 @@ public class Functions {
         return String.join(separator, strs);
     }
 
+    private static final Pattern DOLLAR_DOLLAR = Pattern.compile("\\$\\$");
+    private static final Pattern DOLLAR_WITHOUT_ESCAPE = Pattern.compile("([^\\\\]|^)\\$([^0-9^<])");
+    private static final Pattern DOLLAR_AT_END = Pattern.compile("\\$$");
     static String safeReplacement(String in) {
         // In JSONata and in Java the $ in the replacement test usually starts the insertion of a capturing group
         // In order to replace a simple $ in Java you have to escape the $ with "\$"
         // in JSONata you do this with a '$$'
-        // "\$" followed any character besides '<' and and digit into $ + this character  
-        return in.replaceAll("\\$\\$", "\\\\\\$")
-            .replaceAll("([^\\\\]|^)\\$([^0-9^<])", "$1\\\\\\$$2")
-            .replaceAll("\\$$", "\\\\\\$"); // allow $ at end
+        // "\$" followed any character besides '<' and and digit into $ + this character
+        if (!in.contains("$")) {
+            return in;
+        }
+        String result = DOLLAR_DOLLAR.matcher(in).replaceAll("\\\\\\$");
+        result = DOLLAR_WITHOUT_ESCAPE.matcher(result).replaceAll("$1\\\\\\$$2");
+        result = DOLLAR_AT_END.matcher(result).replaceAll("\\\\\\$");
+        return result;
     }
 
     /**
@@ -963,6 +972,12 @@ public class Functions {
         }
     }
 
+    private static final Pattern PLUS = Pattern.compile("\\+");
+    private static final Pattern PERCENT_21 = Pattern.compile("%21");
+    private static final Pattern PERCENT_27 = Pattern.compile("%27");
+    private static final Pattern PERCENT_28 = Pattern.compile("%28");
+    private static final Pattern PERCENT_29 = Pattern.compile("%29");
+    private static final Pattern PERCENT_7E = Pattern.compile("%7E");
     /**
      * Encode a string into a component for a url
      * @param {String} str - String to encode
@@ -975,14 +990,20 @@ public class Functions {
         }
 
         Utils.checkUrl(str);
-        
-        return URLEncoder.encode(str, StandardCharsets.UTF_8)
-                            .replaceAll("\\+", "%20")
-                            .replaceAll("\\%21", "!")
-                            .replaceAll("\\%27", "'")
-                            .replaceAll("\\%28", "(")
-                            .replaceAll("\\%29", ")")
-                            .replaceAll("\\%7E", "~");
+
+        String encoded = URLEncoder.encode(str, StandardCharsets.UTF_8);
+
+        if (!encoded.contains("+") && !encoded.contains("%")) {
+            return encoded;
+        }
+
+        encoded = PLUS.matcher(encoded).replaceAll("%20");
+        encoded = PERCENT_21.matcher(encoded).replaceAll("!");
+        encoded = PERCENT_27.matcher(encoded).replaceAll("'");
+        encoded = PERCENT_28.matcher(encoded).replaceAll("(");
+        encoded = PERCENT_29.matcher(encoded).replaceAll(")");
+        encoded = PERCENT_7E.matcher(encoded).replaceAll("~");
+        return encoded;
     }
 
     /**

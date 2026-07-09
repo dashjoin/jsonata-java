@@ -591,7 +591,7 @@ public class Parser implements Serializable {
                 // is the next token a '<' - if so, parse the function signature
                 if (node.id.equals("<")) {
                     int depth = 1;
-                    String sig = "<";
+                    StringBuilder sigBuilder = new StringBuilder("<");
                     while (depth > 0 && !node.id.equals("{") && !node.id.equals("(end)")) {
                         Symbol tok = advance();
                         if (tok.id.equals(">")) {
@@ -599,9 +599,10 @@ public class Parser implements Serializable {
                         } else if (tok.id.equals("<")) {
                             depth++;
                         }
-                        sig += tok.value;
+                        sigBuilder.append(tok.value);
                     }
                     advance(">");
+                    String sig = sigBuilder.toString();
                     this.signature = new Signature(sig, "lambda");
                 }
                 // parse the function body
