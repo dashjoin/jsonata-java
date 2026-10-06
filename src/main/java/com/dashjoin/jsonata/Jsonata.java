@@ -662,6 +662,7 @@ public class Jsonata {
             // array constructor - evaluate each item
             result = new JList<>(); // [];
             int idx = 0;
+            boolean wasParallelCall = environment.isParallelCall;
             for (var item : expr.expressions) {
                 environment.isParallelCall = idx > 0;
                 Object value = evaluate(item, input, environment);
@@ -673,6 +674,7 @@ public class Jsonata {
                 }
                 idx++;
             }
+            environment.isParallelCall = wasParallelCall;
             if(expr.consarray) {
                 if (!(result instanceof JList))
                     result = new JList((List)result);
@@ -1117,6 +1119,7 @@ public class Jsonata {
         // iterate over the groups to evaluate the "value" expression
         //let generators = /* await */ Promise.all(Object.keys(groups).map(/* async */ (key, idx) => {
         int idx = 0;
+        boolean wasParallelCall = environment.isParallelCall;
         for (Entry<Object,GroupEntry> e : groups.entrySet()) {
             var entry = e.getValue();
             var context = entry.data;
@@ -1135,6 +1138,7 @@ public class Jsonata {
 
             idx++;
         }
+        environment.isParallelCall = wasParallelCall;
 
     //  for (let generator of generators) {
     //      var [key, value] = /* await */ generator;

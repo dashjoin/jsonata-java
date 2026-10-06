@@ -24,6 +24,41 @@ public class RuntimeTest {
     expr.evaluate(null, frame);
   }
 
+  /**
+   * https://github.com/dashjoin/jsonata-java/issues/120
+   */
+  @Test
+  public void testRuntimeBoundsArrayConstructorInLoop() {
+    var expr = jsonata("$map([1..30], function($i) { [$i, $i] })");
+    var frame = expr.createFrame();
+    frame.setRuntimeBounds(1000, 10);
+    expr.evaluate(null, frame);
+  }
+
+  @Test
+  public void testRuntimeBoundsNestedArrayConstructorInLoop() {
+    var expr = jsonata("$map([1..30], function($i) { [$i, [$i, $i], $i] })");
+    var frame = expr.createFrame();
+    frame.setRuntimeBounds(1000, 10);
+    expr.evaluate(null, frame);
+  }
+
+  @Test
+  public void testRuntimeBoundsObjectConstructorInLoop() {
+    var expr = jsonata("$map([1..30], function($i) { {'a': $i, 'b': $i} })");
+    var frame = expr.createFrame();
+    frame.setRuntimeBounds(1000, 10);
+    expr.evaluate(null, frame);
+  }
+
+  @Test
+  public void testRuntimeBoundsRecursionWithArrayConstructor() {
+    var expr = jsonata("($f := function($n) { $n > 0 ? [$n, $f($n - 1)] : [] }; $f(30))");
+    var frame = expr.createFrame();
+    frame.setRuntimeBounds(1000, 10);
+    Assertions.assertThrows(JException.class, () -> expr.evaluate(null, frame));
+  }
+
   boolean entered = false;
   boolean exited = false;
   
