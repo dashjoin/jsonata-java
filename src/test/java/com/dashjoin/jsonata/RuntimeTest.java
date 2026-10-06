@@ -51,6 +51,19 @@ public class RuntimeTest {
     expr.evaluate(null, frame);
   }
 
+  /**
+   * restoring isParallelCall to false instead of its previous value would let depth go negative,
+   * silently loosening the bound without ever overflowing
+   */
+  @Test
+  public void testRuntimeBoundsDepthBalancedAfterConstructors() {
+    var expr = jsonata("$map([1..30], function($i) { [$i, [$i, $i], {'a': $i, 'b': [$i, $i]}] })");
+    var frame = expr.createFrame();
+    var timebox = new Timebox(frame, 1000, 10);
+    expr.evaluate(null, frame);
+    Assertions.assertEquals(0, timebox.depth);
+  }
+
   @Test
   public void testRuntimeBoundsRecursionWithArrayConstructor() {
     var expr = jsonata("($f := function($n) { $n > 0 ? [$n, $f($n - 1)] : [] }; $f(30))");
