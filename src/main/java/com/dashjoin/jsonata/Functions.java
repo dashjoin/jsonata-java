@@ -906,7 +906,7 @@ public class Functions {
     }
 
     public static String replace(String str, Object pattern, Object replacement, Integer limit) {
-        if (str == null) {
+        if (str == null || pattern == null) {
             return null;
         }
         if (pattern instanceof String)
@@ -1077,7 +1077,7 @@ public class Functions {
     }
 
     public static List<String> split(String str, Object pattern, Number limit) {
-        if (str==null )
+        if (str==null || pattern==null)
             return null;
 
         if (limit!=null && limit.intValue()<0)
