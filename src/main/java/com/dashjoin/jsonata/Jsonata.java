@@ -1071,7 +1071,7 @@ public class Jsonata {
         List input = (List)_input;
 
         // if the array is empty, add an undefined entry to enable literal JSON object to be generated
-        if (input.isEmpty()) {
+        if (input.isEmpty() && !reduce) {
             input.add(null);
         }
 
