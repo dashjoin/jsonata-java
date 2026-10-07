@@ -700,7 +700,7 @@ public class Functions {
      */
     public static Boolean contains(String str, Object token) {
         // undefined inputs always return undefined
-        if (str == null) {
+        if (str == null || token == null) {
             return null;
         }
 
