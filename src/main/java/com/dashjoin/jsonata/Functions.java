@@ -579,6 +579,16 @@ public class Functions {
         String result;
         int width = _width.intValue();
 
+        var padLength = Math.abs(width) - length(str);
+        if (padLength > 0) {
+            // limit the length of the padding to ten million characters (1e7) to
+            // protect against excessive memory allocation, consistent with the hard
+            // limit imposed by the range operator (see error D2014)
+            if (padLength > 1e7) {
+                throw new JException("D2016", -1, padLength);
+            }
+        }     
+
         if (width < 0) {
             result = leftPad(str, -width, _char);
         } else {
