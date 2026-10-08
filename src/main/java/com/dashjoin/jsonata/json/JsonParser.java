@@ -344,20 +344,30 @@ public class JsonParser {
         captureBuffer.append('\t');
         break;
       case 'u':
-        char[] hexChars = new char[4];
+        int value = 0;
         for (int i = 0; i < 4; i++) {
           read();
           if (!isHexDigit()) {
             throw expected("hexadecimal digit");
           }
-          hexChars[i] = (char)current;
+          value = (value << 4) | hexCharToValue((char) current);
         }
-        captureBuffer.append((char)Integer.parseInt(new String(hexChars), 16));
+        captureBuffer.append((char) value);
         break;
       default:
         throw expected("valid escape sequence");
     }
     read();
+  }
+
+  private int hexCharToValue(char c) {
+    if (c >= '0' && c <= '9') {
+      return c - '0';
+    } else if (c >= 'A' && c <= 'F') {
+      return c - 'A' + 10;
+    } else { // c >= 'a' && c <= 'f'
+      return c - 'a' + 10;
+    }
   }
 
   private void readNumber() throws IOException {
