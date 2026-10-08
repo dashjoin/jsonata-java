@@ -740,7 +740,7 @@ public class Functions {
             );
         }
 
-        var result = Utils.createSequence();
+        var result = createSequence();
         var matches = evaluateMatcher(regex, str);
         int max = Integer.MAX_VALUE;
         if (limit!=null)
@@ -1591,7 +1591,7 @@ public class Functions {
             return null;
         }
 
-        List result = Utils.createSequence();
+        List result = createSequence();
         // do the map - iterate over the arrays, and invoke func
         for (int i=0; i<arr.size(); i++) {
             Object arg = arr.get(i);
@@ -1616,7 +1616,7 @@ public class Functions {
             return null;
         }
 
-        var result = Utils.createSequence();
+        var result = createSequence();
 
         for (var i = 0; i < arr.size(); i++) {
             var entry = arr.get(i);
@@ -1759,7 +1759,7 @@ public class Functions {
      * @returns {Array} Array of keys
      */
     public static List keys(Object arg) {
-        var result = Utils.createSequence();
+        var result = createSequence();
 
         if (arg instanceof List) {
             Set keys = new LinkedHashSet();
@@ -1796,7 +1796,7 @@ public class Functions {
      * @returns {*} - the array
      */
     public static Object spread(Object arg) {
-        Object result = Utils.createSequence();
+        Object result = createSequence();
 
         if (arg instanceof List) {
             // spread all of the items in the array
@@ -1868,7 +1868,7 @@ public class Functions {
             return null;
         }
 
-        var result = Utils.createSequence();
+        var result = createSequence();
 
         for (var key : obj.keySet()) {
             var func_args = hofFuncArgs(func, obj.get(key), key, obj);
@@ -2032,7 +2032,7 @@ public class Functions {
         }
         List arr = (List)_arr;
 
-        var results = (arr instanceof JList/*sequence*/) ? Utils.createSequence() : new ArrayList<>();
+        var results = (arr instanceof JList/*sequence*/) ? createSequence() : new ArrayList<>();
 
         // Create distinct list of elements by adding all to a set,
         // and then adding the set to the result
@@ -2099,7 +2099,7 @@ public class Functions {
 
         // if either argument is not an array, make it so
         if (!(arg1 instanceof List)) {
-            arg1 = Utils.createSequence(arg1);
+            arg1 = createSequence(arg1);
         }
         if (!(arg2 instanceof List)) {
             arg2 = new JList<>(Arrays.asList(arg2));
@@ -2129,7 +2129,7 @@ public class Functions {
         Object result = null;
         if (input instanceof List) {
             List _input = (List)input;
-            result = Utils.createSequence();
+            result = createSequence();
             for(var ii = 0; ii < _input.size(); ii++) {
                 var res = lookup(_input.get(ii), key);
                 if (res != null) {
@@ -2392,7 +2392,7 @@ public class Functions {
             input = focus;
             // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
             if((input instanceof List) && !Utils.isSequence(input)) {
-                input = Utils.createSequence(input);
+                input = createSequence(input);
                 ((JList)input).outerWrapper = true;
             }
         }
@@ -2434,5 +2434,21 @@ public class Functions {
     public static long millis() {
         long t = Jsonata.current.get().timestamp;
         return t;
+    }
+
+    /**
+     * Creates a new sequence with guardrails of the current environment
+     * @return
+     */
+    public static List<Object> createSequence() {
+        return Jsonata.current.get().environment.base.createSequence();
+    }
+
+    /**
+     * Creates a new sequence with guardrails of the current environment
+     * @return
+     */
+    public static List<Object> createSequence(Object el) {
+        return Jsonata.current.get().environment.base.createSequence(el);
     }
 }

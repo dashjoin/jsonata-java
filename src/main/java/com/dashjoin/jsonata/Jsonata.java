@@ -72,6 +72,9 @@ public class Jsonata {
 
         public Frame(Frame enclosingEnvironment) {
             parent = enclosingEnvironment;
+            if (enclosingEnvironment!=null) {
+                base = enclosingEnvironment.base;
+            }
         }
 
         public void bind(String name, Object val) {
@@ -115,6 +118,33 @@ public class Jsonata {
         public void setEvaluateExitCallback(ExitCallback cb) {
             bind("__evaluate_exit", cb);
         }
+
+        // Guardrails extensions
+        public Options options;
+
+        Frame base;
+
+        public int depth;
+
+        public long time;
+
+        public List<Object> createSequence() { return createSequence(Utils.NONE); }
+
+        public List<Object> createSequence(Object el) {
+            JList<Object> seq = (JList<Object>) Utils.__createSequence(el);
+            if (options!=null && options.sequence!=null)
+                seq.setMaxSize(options.sequence);
+            return seq;
+        }
+
+        public void guardrails() {
+            if (options!=null && options.stack!=null && depth>options.stack) {
+                throw new JException("D1011", -1, options.stack);
+            }
+            if (options!=null && options.timeout!=null && System.currentTimeMillis()-time > options.timeout) {
+                throw new JException("D1012", -1, options.timeout);
+            }
+        }
     }
 
     static Frame staticFrame;// = createFrame(null);
@@ -152,6 +182,8 @@ public class Jsonata {
 
         if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
+        environment.base.depth++;
+        environment.base.guardrails();
         var entryCallback = environment.lookup("__evaluate_entry");
         if(entryCallback!=null) {
             ((EntryCallback)entryCallback).callback(expr, input, environment);
@@ -245,6 +277,8 @@ public class Jsonata {
             }
         }
 
+        environment.base.depth--;
+
         return result;
     }
  
@@ -264,7 +298,7 @@ public class Jsonata {
             inputSequence = (List)input;
         } else {
             // if input is not an array, make it so
-            inputSequence = Utils.createSequence(input);
+            inputSequence = environment.base.createSequence(input);
         }
 
         Object resultSequence = null;
@@ -305,7 +339,7 @@ public class Jsonata {
                 // tuple stream is carrying ancestry information - keep this
                 resultSequence = tupleBindings;
             } else {
-                resultSequence = Utils.createSequence();
+                resultSequence = environment.base.createSequence();
                 for (int ii = 0; ii < tupleBindings.size(); ii++) {
                     ((List)resultSequence).add(tupleBindings.get(ii).get("@"));
                 }
@@ -320,7 +354,7 @@ public class Jsonata {
 
             // if the array is explicitly constructed in the expression and marked to promote singleton sequences to array
             if((resultSequence instanceof JList) && ((JList)resultSequence).cons && !((JList)resultSequence).sequence) {
-                resultSequence = Utils.createSequence(resultSequence);
+                resultSequence = environment.base.createSequence(resultSequence);
             }
             ((JList)resultSequence).keepSingleton = true;
         }
@@ -358,7 +392,7 @@ public class Jsonata {
             return result;
         }
 
-        result = Utils.createSequence();
+        result = environment.base.createSequence();
 
         for(var ii = 0; ii < ((List)input).size(); ii++) {
             var res = /* await */ evaluate(expr, ((List)input).get(ii), environment);
@@ -372,7 +406,7 @@ public class Jsonata {
             }
         }
 
-        var resultSequence = Utils.createSequence();
+        var resultSequence = environment.base.createSequence();
         if(lastStep && ((List)result).size()==1 && (((List)result).get(0) instanceof List) && !Utils.isSequence(((List)result).get(0))) {
             resultSequence = (List) ((List) result).get(0);
         } else {
@@ -425,7 +459,7 @@ public class Jsonata {
                 result = (List) /* await */ evaluateSortExpression(expr, tupleBindings, environment);
             } else {
                 List sorted = (List) /* await */ evaluateSortExpression(expr, input, environment);
-                result = Utils.createSequence();
+                result = environment.base.createSequence();
                 ((JList)result).tupleStream = true;
                 for(var ss = 0; ss < ((List)sorted).size(); ss++) {
                     var tuple = Map.of("@", sorted.get(ss),
@@ -439,7 +473,7 @@ public class Jsonata {
             return result;
         }
 
-        result = Utils.createSequence();
+        result = environment.base.createSequence();
         ((JList)result).tupleStream = true;
         var stepEnv = environment;
         if(tupleBindings == null) {
@@ -498,12 +532,12 @@ public class Jsonata {
     */
     /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment) {
     Symbol predicate = (Symbol)_predicate;
-        var results = Utils.createSequence();
+        var results = environment.base.createSequence();
         if( input instanceof JList && ((JList)input).tupleStream) {
             ((JList)results).tupleStream = true;
         }
         if (!(input instanceof List)) { // isArray
-            input = Utils.createSequence(input == null ? Utils.NONE : input);
+            input = environment.base.createSequence(input == null ? Utils.NONE : input);
         }
         if (predicate.type.equals("number")) {
             var index = ((Number)predicate.value).intValue();  // round it down - was Math.floor
@@ -534,7 +568,7 @@ public class Jsonata {
                 }
                 var res = /* await */ evaluate(predicate, context, env);
                 if (Utils.isNumeric(res)) {
-                    res = Utils.createSequence(res);
+                    res = environment.base.createSequence(res);
                 }
                 if (Utils.isArrayOfNumbers(res)) {
                 for (Object ires : ((List)res)) {
@@ -717,7 +751,7 @@ public class Jsonata {
     * @returns {*} Evaluated input data
     */
     Object evaluateWildcard(Symbol expr, Object input) {
-        var results = Utils.createSequence();
+        var results = environment.base.createSequence();
         if ((input instanceof JList) && ((JList)input).outerWrapper && ((JList)input).size() > 0) {
             input = ((JList)input).get(0);
         }
@@ -776,7 +810,7 @@ public class Jsonata {
     */
     Object evaluateDescendants(Symbol expr, Object input) {
         Object result = null;
-        var resultSequence = Utils.createSequence();
+        var resultSequence = environment.base.createSequence();
         if (input != null) {
             // traverse all descendants of this object/array
             recurseDescendants(input, resultSequence);
@@ -1066,7 +1100,7 @@ public class Jsonata {
         var reduce = (_input instanceof JList) && ((JList)_input).tupleStream ? true : false;
         // group the input sequence by "key" expression
         if (!(_input instanceof List)) {
-            _input = Utils.createSequence(_input);
+            _input = environment.base.createSequence(_input);
         }
         List input = (List)_input;
 
@@ -1218,7 +1252,12 @@ public class Jsonata {
                 size
             );
         }
-
+        if(environment.base.options!=null && size > environment.base.options.sequence) {
+            throw new JException("D2015",
+                -1,
+                size
+            );
+        }
         return new Utils.RangeList(_lhs, _rhs);
     }
  
@@ -2403,6 +2442,8 @@ public class Jsonata {
         put("T1008", "Attempted to partially apply a non-function");
         put("D1009", "Multiple key definitions evaluate to same key: {{value}}");
         put("T1010", "The matcher Object argument passed to Object {{token}} does not return the correct object structure");
+        put("D1011", "Stack overflow. Check for non-terminating recursive function.  Consider rewriting as tail-recursive");
+        put("D1012", "Evaluation timeout after {{value}} milliseconds. Check for infinite loop");
         put("T2001", "The left side of the {{token}} operator must evaluate to a number");
         put("T2002", "The right side of the {{token}} operator must evaluate to a number");
         put("T2003", "The left side of the range operator (..) must evaluate to an integer");
@@ -2416,7 +2457,8 @@ public class Jsonata {
         put("T2011", "The insert/update clause of the transform expression must evaluate to an object: {{value}}");
         put("T2012", "The delete clause of the transform expression must evaluate to a string or array of strings: {{value}}");
         put("T2013", "The transform expression clones the input object using the $clone() function.  This has been overridden in the current scope by a non-function.");
-        put("D2014", "The size of the sequence allocated by the range operator (..) must not exceed 1e6.  Attempted to allocate {{value}}.");
+        put("D2014", "The size of the sequence allocated by the range operator (..) must not exceed 1e7.  Attempted to allocate {{value}}.");
+        put("D2015", "The maximum sequence length of {{value}} was exceeded.");
         put("D2016", "The size of the string requested by the $pad function must not exceed 1e7.  Attempted to allocate {{value}}.");
         put("D3001", "Attempting to invoke string Object on Infinity or NaN");
         put("D3010", "Second argument of replace Object cannot be an empty string");
@@ -2504,14 +2546,35 @@ public class Jsonata {
       * @throws JException An exception if an error occured.
       */
     public static Jsonata jsonata(String expression) {
-        return new Jsonata(expression);
+        return new Jsonata(expression, null);
     }
+    public static Jsonata jsonata(String expression, Options options) {
+        return new Jsonata(expression, options);
+    }
+
+    public static class Options {
+        public Long timeout;
+        public Integer stack;
+        public Integer sequence;
+
+        public static OptionsBuilder builder() { return new OptionsBuilder(); }
+        public static class OptionsBuilder {
+            private Options options = new Options();
+            public OptionsBuilder timeout(Long timeout) { options.timeout = timeout; return this; }
+            public OptionsBuilder stack(Integer stack) { options.stack = stack; return this; }
+            public OptionsBuilder sequence(Integer sequence) { options.sequence = sequence; return this; }
+            public Options build() { Options ret = options; options=null; return ret; }
+        }
+    }
+
+    Options options;
 
     /**
      * Internal constructor
      * @param expr
      */
-    Jsonata(String expr) { // boolean optionsRecover) {
+    Jsonata(String expr, Options options) { // boolean optionsRecover) {
+        this.options = options;
         try {
             ast = parser.parse(expr);//, optionsRecover);
             errors = ast.errors;
@@ -2635,12 +2698,18 @@ public class Jsonata {
         // the $now() and $millis() functions will return this value - whenever it is called
         timestamp = System.currentTimeMillis();
         //exec_env.timestamp = timestamp;
+        exec_env.time = timestamp;
+        exec_env.options = options;
 
         // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input
         if((input instanceof List) && !Utils.isSequence(input)) {
-            input = Utils.createSequence(input);
+            input = exec_env.createSequence(input);
             ((JList)input).outerWrapper = true;
         }
+
+        // Porting JS to Java note: guardrails function is in Java class Frame
+        exec_env.base = exec_env;
+        exec_env.depth = 0;
 
         if (validateInput)
             Functions.validateInput(input);
