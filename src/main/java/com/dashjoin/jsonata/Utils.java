@@ -74,9 +74,9 @@ public class Utils {
      * Create an empty sequence to contain query results
      * @returns {Array} - empty sequence
      */
-    public static List<Object> createSequence() { return createSequence(NONE); }
+    public static List<Object> __createSequence() { return __createSequence(NONE); }
 
-    public static List<Object> createSequence(Object el) {
+    public static List<Object> __createSequence(Object el) {
         JList<Object> sequence = new JList<>();
         sequence.sequence = true;
         if (el!=NONE) {
@@ -102,6 +102,31 @@ public class Utils {
         public boolean keepSingleton;
 
         public boolean cons;
+
+        protected int maxSize = Integer.MAX_VALUE;
+
+        // Limit the max size of sequences
+        public void setMaxSize(int _maxSize) {
+            maxSize = _maxSize;
+        }
+
+        public int getMaxSize() {
+            return maxSize;
+        }
+
+        @Override
+        public boolean add(E e) {
+            if (size()>=maxSize)
+                throw new JException("D2015", -1, maxSize);
+            return super.add(e);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends E> c) {
+            if (size()+c.size()>maxSize)
+                throw new JException("D2015", -1, maxSize);
+            return super.addAll(c);
+        }
     }
 
     public static boolean isSequence(Object result) {
