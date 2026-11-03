@@ -21,6 +21,7 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -200,48 +201,48 @@ public class Utils {
         throw new JException("Malformed URL", 0);
     }
 
-    static Object convertValue(Object val) {
+    /**
+     * Converts all occurrences of {@link Jsonata#NULL_VALUE} in the given object to null.
+     *
+     * The given object is not modified. Maps and lists that contain a NULL_VALUE
+     * (directly or nested) are copied to a LinkedHashMap or ArrayList, respectively.
+     * All other maps and lists are returned as is, so the result may share structure
+     * with the input.
+     *
+     * @param val Result object which might contain NULL_VALUEs
+     * @return The object with NULL_VALUEs replaced with null
+     */
+    @SuppressWarnings("unchecked")
+    public static Object convertNulls(Object val) {
+        if (val instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>)val;
+            Map<String, Object> copy = null;
+            for (Entry<String, Object> e : map.entrySet()) {
+                Object l = convertNulls(e.getValue());
+                if (l != e.getValue()) {
+                    if (copy == null)
+                        copy = new LinkedHashMap<>(map);
+                    copy.put(e.getKey(), l);
+                }
+            }
+            return copy != null ? copy : map;
+        }
+        if (val instanceof List) {
+            List<Object> list = (List<Object>)val;
+            List<Object> copy = null;
+            for (int i=0; i<list.size(); i++) {
+                Object l = convertNulls(list.get(i));
+                if (l != list.get(i)) {
+                    if (copy == null)
+                        copy = new ArrayList<>(list);
+                    copy.set(i, l);
+                }
+            }
+            return copy != null ? copy : list;
+        }
         return val != Jsonata.NULL_VALUE ? val : null;
     }
 
-    static void convertNulls(Map<String, Object> res) {
-        for (Entry<String, Object> e : res.entrySet()) {
-            Object val = e.getValue();
-            Object l = convertValue(val);
-            if (l!=val)
-                e.setValue(l);
-            recurse(val);
-        }
-    }
-
-    static void convertNulls(List<Object> res) {
-        for (int i=0; i<res.size(); i++) {
-            Object val = res.get(i);
-            Object l = convertValue(val);
-            if (l!=val)
-                res.set(i, l);
-            recurse(val);
-        }
-    }
-
-    static void recurse(Object val) {
-        if (val instanceof Map)
-            convertNulls((Map)val);
-        if (val instanceof List)
-            convertNulls((List)val);
-    }
-
-    /**
-     * Converts all occurrences of {@link Jsonata#NULL_VALUE} in the given object to null
-     * 
-     * @param res Result object which might contain NULL_VALUEs
-     * @return The same object with NULL_VALUEs replaced with null
-     */
-    public static Object convertNulls(Object res) {
-        recurse(res);
-        return convertValue(res);
-    }
-    
     /**
      * adapted from org.json.JSONObject https://github.com/stleary/JSON-java
      */
