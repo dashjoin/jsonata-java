@@ -412,16 +412,18 @@ public class Functions {
         // string, substr() uses 0 as the start index.
         // If length is omitted, substr() extracts characters to the end of the
         // string.
+        int remaining = strData.codePointCount(start, strData.length());
         if (length == null) {
-            length = strData.length();
+            length = remaining;
         } else if (length < 0) {
             // If length is 0 or negative, substr() returns an empty string.
             return "";
-        } else if (length > strData.length()) {
-            length = strData.length();
+        } else if (length > remaining) {
+            length = remaining;
         }
 
-        length = strData.offsetByCodePoints(0, length);
+        // convert length from code points (counted from start) to UTF-16 units
+        length = strData.offsetByCodePoints(start, length) - start;
 
         if (start >= 0) {
             // If start is positive and is greater than or equal to the length of

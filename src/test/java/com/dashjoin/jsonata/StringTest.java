@@ -141,6 +141,33 @@ public class StringTest {
         jsonata("$replace($, /{par}/, '')").evaluate("http://example.org/test{par}"));
   }
   
+  /**
+   * https://github.com/dashjoin/jsonata-java/issues/123
+   * non-BMP characters (surrogate pairs) must be counted as one code point
+   */
+  @Test
+  public void substringNonBmpTest() {
+    // length omitted or larger than the remaining code points
+    Assertions.assertEquals("bc", jsonata("$substring('😀bc', 1)").evaluate(null));
+    Assertions.assertEquals("bc", jsonata("$substring('𝒳bc', 1)").evaluate(null));
+    Assertions.assertEquals("😀bc", jsonata("$substring('😀bc', 0, 10)").evaluate(null));
+    Assertions.assertEquals("bc", jsonata("$substring('😀bc', -2)").evaluate(null));
+    Assertions.assertEquals("😀", jsonata("$substring('a😀😀', -1)").evaluate(null));
+
+    // length must be counted from start, not from the beginning of the string
+    Assertions.assertEquals("bc", jsonata("$substring('😀bc', 1, 2)").evaluate(null));
+    Assertions.assertEquals("a", jsonata("$substring('😀abc', 1, 1)").evaluate(null));
+    Assertions.assertEquals("b😀", jsonata("$substring('ab😀', 1, 2)").evaluate(null));
+    Assertions.assertEquals("b", jsonata("$substring('😀bc', -2, 1)").evaluate(null));
+    Assertions.assertEquals("😀", jsonata("$substring('😀😀😀x', 2, 1)").evaluate(null));
+
+    // $pad uses substr internally
+    Assertions.assertEquals("a😀😀😀😀", jsonata("$pad('a', 5, '😀')").evaluate(null));
+    Assertions.assertEquals("😀😀😀😀a", jsonata("$pad('a', -5, '😀')").evaluate(null));
+    Assertions.assertEquals("a😀x😀", jsonata("$pad('a', 4, '😀x')").evaluate(null));
+    Assertions.assertEquals("😀---", jsonata("$pad('😀', 4, '-')").evaluate(null));
+  }
+
   @Test
   public void testFieldnameWithSpecialChar() {
     Jsonata expr = jsonata("$ ~> |$|{}|");
