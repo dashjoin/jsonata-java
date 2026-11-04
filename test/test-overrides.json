@@ -136,11 +136,6 @@
             "reason": "toString precision should be 15, handled differently by Java Bigdecimal(..., new MathContext(15)"
         },
         { 
-            "name": "function-applications/case008.json",
-            "ignoreError": true,
-            "reason": "Exception instead null/empty result. OK because the path has no match so NULL_VALUE is used as argument for $substringAfter"
-        },
-        { 
             "name": "matchers/case000.json",
             "ignoreError": true,
             "reason": "Custom matcher function not supported in Java regexp lib. OK because not much value seen"
