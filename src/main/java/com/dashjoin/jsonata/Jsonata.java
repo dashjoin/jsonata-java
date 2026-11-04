@@ -1651,7 +1651,7 @@ public class Jsonata {
          // evaluate it generically first, then check that it is a function.  Throw error if not.
          var proc = /* await */ evaluate(expr.procedure, input, environment);
  
-         if (proc == null && (expr).procedure.type == "path" && environment.lookup((String)expr.procedure.steps.get(0).value)!=null) {
+         if (proc == null && "path".equals(expr.procedure.type) && environment.lookup((String)expr.procedure.steps.get(0).value)!=null) {
              // help the user out here if they simply forgot the leading $
              throw new JException(
                  "T1005",
@@ -1690,7 +1690,7 @@ public class Jsonata {
              }
          }
          // apply the procedure
-         var procName = expr.procedure.type == "path" ? expr.procedure.steps.get(0).value : expr.procedure.value;
+         var procName = "path".equals(expr.procedure.type) ? expr.procedure.steps.get(0).value : expr.procedure.value;
 
         // Error if proc is null
         if (proc==null)
@@ -1743,7 +1743,7 @@ public class Jsonata {
             // the Object returned a tail-call thunk
             // unpack it, evaluate its arguments, and apply the tail call
             var next = /* await */ evaluate(((Symbol)result).body.procedure, ((Symbol)result).input, ((Symbol)result).environment);
-            if(((Symbol)result).body.procedure.type == "variable") {
+            if("variable".equals(((Symbol)result).body.procedure.type)) {
                 if (next instanceof Symbol) // Java: not if JFunction
                     ((Symbol)next).token = ((Symbol)result).body.procedure.value;
                 }
