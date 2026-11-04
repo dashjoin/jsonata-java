@@ -1707,6 +1707,12 @@ public class Jsonata {
                 // and the Object identifier
                 jex.current = expr.token;
             }
+            if ("T0410".equals(jex.error) && jex.expected==null) {
+                // like jsonata-js: name the function as it was called (registered name or variable name)
+                JException named = new JException("T0410", jex.location, jex.current, procName);
+                named.setStackTrace(jex.getStackTrace());
+                throw named;
+            }
             throw jex;
          } catch (Exception err) {
             if (!(err instanceof RuntimeException))
@@ -2265,8 +2271,8 @@ public class Jsonata {
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
             if (signature!=null)
-                // use classname as default, gets overwritten once the function is registered
-                this.signature = new Signature(signature, function.getClass().getName());
+                // the name reported in signature errors is taken from the call site
+                this.signature = new Signature(signature, null);
         }
 
         public JFunction(String functionName, String signature, Class clz, Object instance, String implMethodName) {
