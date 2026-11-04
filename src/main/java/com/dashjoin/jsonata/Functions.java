@@ -1831,8 +1831,15 @@ public class Functions {
         var result = new LinkedHashMap<>();
 
         for (Object obj : arg) {
-            for (Entry entry : forIn(obj).entrySet()) {
-                result.put(entry.getKey(), entry.getValue());
+            if (obj instanceof List) {
+                // Java: JS "for (var prop in obj)" also iterates arrays (keys are the indexes as strings).
+                // Can happen where the signature is not validated, e.g. $merge(?)
+                for (int i=0; i<((List)obj).size(); i++)
+                    result.put(""+i, ((List)obj).get(i));
+            } else if (obj instanceof Map) {
+                for (Entry entry : ((Map<Object,Object>)obj).entrySet()) {
+                    result.put(entry.getKey(), entry.getValue());
+                }
             }
         }
         return result;
@@ -1859,43 +1866,39 @@ public class Functions {
     }
 
     /**
-     * Java: emulates JavaScript "for (var key in obj)", which also iterates arrays
-     * (keys are the indexes as strings). Needed where the signature is not validated,
-     * e.g. for partially applied native functions like $each(?, ...)
-     */
-    static Map<Object,Object> forIn(Object obj) {
-        if (obj instanceof List) {
-            var res = new LinkedHashMap<Object,Object>();
-            for (int i=0; i<((List)obj).size(); i++)
-                res.put(""+i, ((List)obj).get(i));
-            return res;
-        }
-        if (obj instanceof Map)
-            return (Map<Object,Object>)obj;
-        return Map.of();
-    }
-
-    /**
      *
      * @param {*} obj - the input object to iterate over
      * @param {*} func - the function to apply to each key/value pair
      * @throws Throwable
      * @returns {Array} - the resultant array
      */
-    public static List each(Object _obj, Object func) throws Throwable {
-        if (_obj==null) {
+    public static List each(Object obj, Object func) throws Throwable {
+        if (obj==null) {
             return null;
         }
-        var obj = forIn(_obj);
 
         var result = createSequence();
 
-        for (var key : obj.keySet()) {
-            var func_args = hofFuncArgs(func, obj.get(key), key, _obj);
-            // invoke func
-            var val = funcApply(func, func_args);
-            if(val != null) {
-                result.add(val);
+        if (obj instanceof List) {
+            // Java: JS "for (var key in obj)" also iterates arrays (keys are the indexes as strings).
+            // Can happen where the signature is not validated, e.g. $each(?, ...)
+            var list = (List)obj;
+            for (int i=0; i<list.size(); i++) {
+                var func_args = hofFuncArgs(func, list.get(i), ""+i, obj);
+                // invoke func
+                var val = funcApply(func, func_args);
+                if(val != null) {
+                    result.add(val);
+                }
+            }
+        } else if (obj instanceof Map) {
+            for (var key : ((Map)obj).keySet()) {
+                var func_args = hofFuncArgs(func, ((Map)obj).get(key), key, obj);
+                // invoke func
+                var val = funcApply(func, func_args);
+                if(val != null) {
+                    result.add(val);
+                }
             }
         }
 
