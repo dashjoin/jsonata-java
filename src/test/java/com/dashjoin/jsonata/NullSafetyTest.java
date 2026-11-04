@@ -200,4 +200,21 @@ public class NullSafetyTest {
         res = evaluateJsonata("[$]", List.of(Jsonata.NULL_VALUE, Jsonata.NULL_VALUE), null);
         Assertions.assertEquals(Arrays.asList(null, null), res);
     }
+
+    @Test
+    public void testConvertNullsDoesNotModifyInput() {
+        List<Object> list = new ArrayList<>(Arrays.asList(NULL_VALUE, 1));
+        Map<String, Object> map = new java.util.HashMap<>(Map.of("p", list));
+        Object res = Utils.convertNulls(map);
+        Assertions.assertEquals(Arrays.asList(null, 1), ((Map)res).get("p"));
+        Assertions.assertEquals(Arrays.asList(NULL_VALUE, 1), list);
+    }
+
+    @Test
+    public void testNestedEvaluateInCustomFunctionKeepsJsonNull() {
+        // the nested evaluate converts NULL_VALUE in its result, which is the outer expression's data
+        var expr = jsonata("( $t := {'p':[null, 1]}; $echo($t); $t.p.$type($) )");
+        expr.registerFunction("echo", (Object x) -> jsonata("$").evaluate(x));
+        Assertions.assertEquals(List.of("null", "number"), expr.evaluate(null));
+    }
 }
