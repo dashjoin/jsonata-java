@@ -83,6 +83,9 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
     put("t", "\t");
 }};
 
+    // compiled once (like the regex literal in jsonata-js), not per token
+    static final Pattern numregex = Pattern.compile("^-?(0|([1-9][0-9]*))(\\.[0-9]+)?([Ee][-+]?[0-9]+)?");
+
 // Tokenizer (lexer) - invoked by the parser to return one token at a time
     String path;
     int position = 0;
@@ -296,7 +299,6 @@ static HashMap<String, String> escapes = new HashMap<String, String>() {{
             throw new JException("S0101", position);
         }
         // test for numbers
-        Pattern numregex = Pattern.compile("^-?(0|([1-9][0-9]*))(\\.[0-9]+)?([Ee][-+]?[0-9]+)?");
         Matcher match = numregex.matcher(path.substring(position));
         if (match.find()) {
             double num = Double.parseDouble(match.group(0));

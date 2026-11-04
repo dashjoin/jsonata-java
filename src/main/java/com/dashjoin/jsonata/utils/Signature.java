@@ -299,12 +299,11 @@ public class Signature implements Serializable {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Object validate(Object _args, Object context) {
 
-        var result = new ArrayList<>();
-
         var args = (List)_args;
-        String suppliedSig = "";
+        StringBuilder sb = new StringBuilder(args.size());
         for (Object arg : args)
-            suppliedSig += getSymbol(arg);
+            sb.append(getSymbol(arg));
+        String suppliedSig = sb.toString();
         
         Matcher isValid = _regex.matcher(suppliedSig);
         if (isValid != null && isValid.matches()) {
@@ -338,11 +337,11 @@ public class Signature implements Serializable {
                 } else {
                     // may have matched multiple args (if the regex ends with a '+'
                     // split into single tokens
-                    String[] singles = match.split("");
-                    for (String single : singles) {
+                    // toCharArray instead of split("") which compiles a regex on every call
+                    for (char single : match.toCharArray()) {
                     //match.split('').forEach(function (single) {
                         if (param.type.equals("a")) {
-                            if (single.equals("m")) {
+                            if (single == 'm') {
                                 // missing (undefined)
                                 arg = null;
                             } else {
@@ -350,9 +349,9 @@ public class Signature implements Serializable {
                                 var arrayOK = true;
                                 // is there type information on the contents of the array?
                                 if (param.subtype != null) {
-                                    if (!single.equals("a") && !match.equals(param.subtype)) {
+                                    if (single != 'a' && !match.equals(param.subtype)) {
                                         arrayOK = false;
-                                    } else if (single.equals("a")) {
+                                    } else if (single == 'a') {
                                         List argArr = (List)arg;
                                         if (argArr.size() > 0) {
                                             var itemType = getSymbol(argArr.get(0));
@@ -378,7 +377,7 @@ public class Signature implements Serializable {
                                     );
                                 }
                                 // the function expects an array. If it's not one, make it so
-                                if (!single.equals("a")) {
+                                if (single != 'a') {
                                     List _arg = new ArrayList<>(); _arg.add(arg);
                                     arg = _arg;
                                 }
