@@ -126,7 +126,7 @@ public class Parser implements Serializable {
         // Procedure:
         Symbol procedure;
         List<Symbol> arguments;
-        Symbol body;
+        Object body; // Symbol, or JFunction for a partially applied native function
         List<Symbol> predicate;
         public List<Symbol> stages;
         public Object input;
@@ -1291,7 +1291,7 @@ public class Parser implements Serializable {
                 result.arguments = expr.arguments;
                 result.signature = expr.signature;
                 result.position = expr.position;
-                var body = processAST(expr.body);
+                var body = processAST((Symbol)expr.body);
                 result.body = tailCallOptimize(body);
                 break;
             case "condition":
