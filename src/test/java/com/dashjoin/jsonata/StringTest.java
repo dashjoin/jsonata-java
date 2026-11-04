@@ -3,8 +3,8 @@ package com.dashjoin.jsonata;
 import static com.dashjoin.jsonata.Jsonata.jsonata;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.regex.PatternSyntaxException;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -133,14 +133,19 @@ public class StringTest {
     // check for IndexOutOfBoundsException
     jsonata("/endsWithSlash-i/i");
   }
-  
-  @Disabled
+
+  /**
+   * https://github.com/dashjoin/jsonata-java/issues/55
+   * regexes use Java syntax, so a literal { must be escaped
+   */
   @Test
   public void replaceTest() {
-    Assertions.assertEquals("http://example.org/test", 
-        jsonata("$replace($, /{par}/, '')").evaluate("http://example.org/test{par}"));
+    Assertions.assertThrows(PatternSyntaxException.class,
+        () -> jsonata("$replace($, /{par}/, '')").evaluate("http://example.org/test{par}"));
+    Assertions.assertEquals("http://example.org/test",
+        jsonata("$replace($, /\\{par\\}/, '')").evaluate("http://example.org/test{par}"));
   }
-  
+
   /**
    * https://github.com/dashjoin/jsonata-java/issues/123
    * non-BMP characters (surrogate pairs) must be counted as one code point
