@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.dashjoin.jsonata.Jsonata.Frame;
@@ -43,7 +45,7 @@ import com.dashjoin.jsonata.utils.Signature;
 @SuppressWarnings({"unchecked"})
 public class Parser implements Serializable {
 
-    boolean dbg = false;
+    private static final Logger log = Logger.getLogger(Parser.class.getName());
     
     // This parser implements the 'Top down operator precedence' algorithm developed by Vaughan R Pratt; http://dl.acm.org/citation.cfm?id=512931.
     // and builds on the Javascript framework described by Douglas Crockford at http://javascript.crockford.com/tdop/tdop.html
@@ -216,7 +218,7 @@ public class Parser implements Serializable {
                 return cl;
             } catch (CloneNotSupportedException e) {
                 // never reached
-                if (dbg) e.printStackTrace();
+                log.log(Level.FINE, "clone failed", e);
                 return null;
             }
         }
@@ -232,10 +234,10 @@ public class Parser implements Serializable {
 
         Symbol s = symbolTable.get(t.id);
         if (s != null) {
-            if (dbg) System.out.println("Symbol in table "+t.id+" "+s.getClass().getName()+" -> "+ t.getClass().getName());
+            if (log.isLoggable(Level.FINE)) log.fine("Symbol in table "+t.id+" "+s.getClass().getName()+" -> "+ t.getClass().getName());
             //symbolTable.put(t.id, t);
             if (t.bp >= s.lbp) {
-                if (dbg) System.out.println("Symbol in table "+t.id+" lbp="+s.lbp+" -> "+t.bp);
+                if (log.isLoggable(Level.FINE)) log.fine("Symbol in table "+t.id+" lbp="+s.lbp+" -> "+t.bp);
                 s.lbp = t.bp;
             }
         } else {
@@ -281,7 +283,7 @@ public class Parser implements Serializable {
                 return handleError(err);
             }
             Token next_token = lexer.next(infix);
-            if (dbg) System.out.println("nextToken "+(next_token!=null ? next_token.type : null));
+            if (log.isLoggable(Level.FINE)) log.fine("nextToken "+(next_token!=null ? next_token.type : null));
             if (next_token == null) {
                 node = symbolTable.get("(end)");
                 node.position = source.length();
@@ -322,7 +324,7 @@ public class Parser implements Serializable {
             node.value = value;
             node.type = type;
             node.position = next_token.position;
-            if (dbg) System.out.println("advance "+node);
+            if (log.isLoggable(Level.FINE)) log.fine("advance "+node);
             return node;
         }
 
@@ -335,7 +337,7 @@ public class Parser implements Serializable {
             while (rbp < node.lbp) {
                 t = node;
                 advance(null, false);
-                if (dbg) System.out.println("t="+t+", left="+left.type);
+                if (log.isLoggable(Level.FINE)) log.fine("t="+t+", left="+left.type);
                 left = t.led(left);
             }
             return left;
@@ -618,7 +620,7 @@ public class Parser implements Serializable {
         //register(new Prefix("(") {
 
             @Override Symbol nud() {
-                if (dbg) System.out.println("Prefix (");
+                if (log.isLoggable(Level.FINE)) log.fine("Prefix (");
                 List<Symbol> expressions = new ArrayList<>();
                 while (!node.id.equals(")")) {
                     expressions.add(Parser.this.expression(0));
@@ -981,7 +983,7 @@ public class Parser implements Serializable {
     Symbol processAST(Symbol expr) {
         Symbol result = expr;
         if (expr==null) return null;
-        if (dbg) System.out.println(" > processAST type="+expr.type+" value='"+expr.value+"'");
+        if (log.isLoggable(Level.FINE)) log.fine(" > processAST type="+expr.type+" value='"+expr.value+"'");
         switch (expr.type != null ? expr.type : "(null)") {
             case "binary": {
                 switch (""+expr.value) {
@@ -1056,7 +1058,7 @@ public class Parser implements Serializable {
                         resolveAncestry(result);
                         break;
                     case "[":
-                            if (dbg) System.out.println("binary [");
+                            if (log.isLoggable(Level.FINE)) log.fine("binary [");
                             // predicated step
                             // LHS is a step or a predicated step
                             // RHS is the predicate expr
@@ -1236,7 +1238,7 @@ public class Parser implements Serializable {
                 // expr.value might be Character!
                 String exprValue = ""+expr.value;
                 if (exprValue.equals("[")) {
-                    if (dbg) System.out.println("unary [ "+result);
+                    if (log.isLoggable(Level.FINE)) log.fine("unary [ "+result);
                     // array constructor - process each item
                     final Symbol _result = result;
                     result.expressions = expr.expressions.stream().map(item -> {
@@ -1263,7 +1265,7 @@ public class Parser implements Serializable {
                     if (exprValue.equals("-") && result.expression.type.equals("number")) {
                         result = result.expression;
                         result.value = Utils.convertNumber( -((Number)result.value).doubleValue() );
-                        if (dbg) System.out.println("unary - value="+result.value);
+                        if (log.isLoggable(Level.FINE)) log.fine("unary - value="+result.value);
                     } else {
                         pushAncestry(result, result.expression);
                     }
