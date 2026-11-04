@@ -286,13 +286,14 @@ public class Signature implements Serializable {
             Matcher match = tester.matcher(badSig);
             if (match.matches() == false) {
                 // failed here
-                throw new JException("T0410", -1, (goodTo+1), functionName);
+                // like jsonata-js, the function name is filled in at the call site (see Jsonata.evaluateFunction)
+                throw new JException("T0410", -1, (goodTo+1), null);
             }
             goodTo = match.end();
         }
         // if it got this far, it's probably because of extraneous arguments (we
         // haven't added the trailing '$' in the regex yet.
-        throw new JException("T0410", -1, (goodTo+1), functionName);
+        throw new JException("T0410", -1, (goodTo+1), null);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
