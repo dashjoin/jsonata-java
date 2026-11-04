@@ -133,6 +133,25 @@ Whenever a computation is done, the engine tries to "fit" the result into an int
 This [test case](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/NumberTest.java)
 shows this behavior.
 
+### Regular Expressions
+
+JSONata regex literals like `/ab+c/i` are compiled with `java.util.regex.Pattern`,
+so they follow the [Java regex syntax](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html)
+rather than the Javascript syntax used by the reference implementation.
+The flags `i` and `m` map to `Pattern.CASE_INSENSITIVE` and `Pattern.MULTILINE`.
+
+Most everyday patterns behave the same, but there are differences, for instance:
+
+* A `{` that does not start a quantifier is a literal in Javascript, Java requires it to be escaped:
+  use `/\{par\}/` instead of `/{par}/` ([#55](https://github.com/dashjoin/jsonata-java/issues/55))
+* `[` and `&&` have special meaning inside Java character classes (nested classes and intersection) and must be escaped to be literals
+* Javascript's `[^]` (any character) and `[]` (nothing) are not supported, use `[\s\S]` and `(?!)` instead
+* Escaping a letter that has no special meaning (e.g. `\y`) is an error in Java, and some escapes differ: `\v` is any vertical whitespace in Java, `\e` and `\a` are control characters
+* `\s` only matches ASCII whitespace in Java, while Javascript also matches Unicode spaces like the non-breaking space ` `
+* Case-insensitive matching (`i`) is ASCII-only in Java, so `/ä/i` does not match `Ä`
+* Without the `m` flag, Java's `$` also matches before a final line terminator, Javascript's `$` only at the very end of the input
+* Java-specific features like `\p{L}`, `\Q...\E`, possessive quantifiers, or inline flags such as `(?i)` can be used
+
 ## Performance
 We conducted some experiments to measure performance, but it's not an 'overall benchmark' yet. Your mileage may vary...
 
