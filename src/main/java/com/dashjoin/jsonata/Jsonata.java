@@ -2027,7 +2027,7 @@ public class Jsonata {
         var sigArgs = getNativeFunctionArguments(_native);
         sigArgs = sigArgs.stream().map(sigArg -> {
             return "$" + sigArg;
-        }).toList();
+        }).collect(Collectors.toList());
         var body = "function(" + String.join(", ", sigArgs) + "){ _ }";
 
         var bodyAST = parser.parse(body);
@@ -2048,7 +2048,7 @@ public class Jsonata {
         // generate the array of arguments for invoking the function - look them up in the environment
         var args = sigArgs.stream().map(sigArg -> {
             return env.lookup(sigArg);
-        }).toList();
+        }).collect(Collectors.toList());
 
         var result = proc.call(null, args);
         return result;
