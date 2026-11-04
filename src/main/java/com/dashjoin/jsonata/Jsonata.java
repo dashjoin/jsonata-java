@@ -37,6 +37,8 @@ import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,6 +54,8 @@ import com.dashjoin.jsonata.utils.Signature;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Jsonata {
+
+    private static final Logger log = Logger.getLogger(Jsonata.class.getName());
  
      // Start of Evaluator code
  
@@ -180,7 +184,7 @@ public class Jsonata {
         this.input = input;
         this.environment = environment;
 
-        if (parser.dbg) System.out.println("eval expr="+expr+" type="+expr.type);//+" input="+input);
+        if (log.isLoggable(Level.FINE)) log.fine("eval expr="+expr+" type="+expr.type);//+" input="+input);
 
         environment.base.depth++;
         environment.base.guardrails();
@@ -202,7 +206,7 @@ public class Jsonata {
                 break;
             case "name":
                 result = evaluateName(expr, input, environment);
-                if (parser.dbg) System.out.println("evalName "+result);
+                if (log.isLoggable(Level.FINE)) log.fine("evalName "+result);
                 break;
             case "string":
             case "number":
@@ -1346,7 +1350,7 @@ public class Jsonata {
             result = input instanceof JList && ((JList)input).outerWrapper ? ((JList)input).get(0) : input;
         } else  {
             result = environment.lookup((String)expr.value);
-            if (parser.dbg) System.out.println("variable name="+expr.value+" val="+result);
+            if (log.isLoggable(Level.FINE)) log.fine("variable name="+expr.value+" val="+result);
         }
         return result;
     }
@@ -1824,7 +1828,7 @@ public class Jsonata {
                     result = _res;
                 }
              } else {
-                System.out.println("Proc not found "+proc);
+                log.warning("Proc not found "+proc);
                  throw new JException(
                      "T1006", 0
                      //stack: (new Error()).stack
@@ -2032,7 +2036,7 @@ public class Jsonata {
         var body = "function(" + String.join(", ", sigArgs) + "){";
         body += "$"+_native.functionName+"("+String.join(", ", sigArgs) + ") }";
 
-        if (parser.dbg) System.out.println("partial trampoline = "+body);
+        if (log.isLoggable(Level.FINE)) log.fine("partial trampoline = "+body);
 
         //  var sigArgs = getNativeFunctionArguments(_native);
         //  sigArgs = sigArgs.stream().map(sigArg -> {
@@ -2275,7 +2279,7 @@ public class Jsonata {
             this.method = Functions.getFunction(clz, implMethodName);
             this.methodInstance = instance;
             if (method==null) {
-                System.err.println("Function not implemented: "+functionName+" impl="+implMethodName);
+                log.severe("Function not implemented: "+functionName+" impl="+implMethodName);
             }
         }
 

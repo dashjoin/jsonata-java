@@ -89,6 +89,24 @@ You can set an execution timeout and a maximum recursion depth using the `setRun
 See [RuntimeTest.java](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/RuntimeTest.java) for details
 and an example of how to provide custom callbacks.
 
+### Logging
+
+jsonata-java does not write to `System.out` or `System.err`. It logs via the standard JDK logger (`java.util.logging`),
+so no additional dependency is required. Bridges such as `jul-to-slf4j` or `log4j-jul` can route these messages to your logging framework.
+
+* `com.dashjoin.jsonata.Jsonata` logs `WARNING` / `SEVERE` messages for unexpected internal states and `FINE` messages tracing expression evaluation
+* `com.dashjoin.jsonata.Parser` logs `FINE` messages tracing expression parsing
+
+`FINE` tracing is very verbose and disabled by default. To enable it, set the logger and handler levels, e.g. via `logging.properties`:
+
+```properties
+handlers = java.util.logging.ConsoleHandler
+java.util.logging.ConsoleHandler.level = FINE
+com.dashjoin.jsonata.level = FINE
+```
+
+See [LoggingTest.java](https://github.com/dashjoin/jsonata-java/blob/main/src/test/java/com/dashjoin/jsonata/LoggingTest.java) for an example.
+
 ## History
 We needed a high performance and 100% compatible engine for the ETL and data transformations of the [Dashjoin Low Code platform](https://github.com/dashjoin/platform). Being a JSON full stack based on Quarkus/Java, JSONata was a very good fit and is even more today.
 
