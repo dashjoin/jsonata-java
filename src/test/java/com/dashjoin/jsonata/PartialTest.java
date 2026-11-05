@@ -74,7 +74,7 @@ public class PartialTest {
     Assertions.assertEquals("T1007", ex.getError());
   }
 
-  // Known gap: a JFunctionCallable without signature has no arity (#83)
+  // #83: a JFunctionCallable without signature: arity = number of args supplied
   @Test
   public void customFunctionWithoutSignature() {
     var expression = jsonata("$add(1, 2) ~> $add(?, 3)");
@@ -88,7 +88,7 @@ public class PartialTest {
     Assertions.assertEquals(6, expression.evaluate(null));
   }
 
-  // Known gap: same for the Fn* factories when no signature is given
+  // Fn* factories without signature: arity of the lambda
   @Test
   public void fnFactoryWithoutSignature() {
     var expression = jsonata("$add(1, 2) ~> $add(?, 3)");
@@ -97,7 +97,7 @@ public class PartialTest {
     Assertions.assertEquals(6, expression.evaluate(null));
   }
 
-  // Known gap: Fn* lambdas bound via Frame.bind cannot be partially applied (T1008)
+  // Fn* lambdas bound via Frame.bind can be partially applied
   @Test
   public void boundLambda() {
     var expression = jsonata("$f(1, 2) ~> $f(?, 3)");
