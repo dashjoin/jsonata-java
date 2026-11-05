@@ -1834,8 +1834,9 @@ public class Functions {
             if (obj instanceof List) {
                 // Java: JS "for (var prop in obj)" also iterates arrays (keys are the indexes as strings).
                 // Can happen where the signature is not validated, e.g. $merge(?)
-                for (int i=0; i<((List)obj).size(); i++)
-                    result.put(""+i, ((List)obj).get(i));
+                int i = 0;
+                for (Object item : (List)obj)
+                    result.put(Integer.toString(i++), item);
             } else if (obj instanceof Map) {
                 for (Entry entry : ((Map<Object,Object>)obj).entrySet()) {
                     result.put(entry.getKey(), entry.getValue());
@@ -1882,9 +1883,9 @@ public class Functions {
         if (obj instanceof List) {
             // Java: JS "for (var key in obj)" also iterates arrays (keys are the indexes as strings).
             // Can happen where the signature is not validated, e.g. $each(?, ...)
-            var list = (List)obj;
-            for (int i=0; i<list.size(); i++) {
-                var func_args = hofFuncArgs(func, list.get(i), ""+i, obj);
+            int i = 0;
+            for (Object item : (List)obj) {
+                var func_args = hofFuncArgs(func, item, Integer.toString(i++), obj);
                 // invoke func
                 var val = funcApply(func, func_args);
                 if(val != null) {
