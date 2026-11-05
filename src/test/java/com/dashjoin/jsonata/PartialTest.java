@@ -6,6 +6,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import com.dashjoin.jsonata.Jsonata.JFunction;
+import com.dashjoin.jsonata.Jsonata.Fn2;
 import com.dashjoin.jsonata.Jsonata.JFunctionCallable;
 
 /**
@@ -71,5 +72,37 @@ public class PartialTest {
   public void missingDollar() {
     var ex = Assertions.assertThrows(JException.class, () -> jsonata("substring(?, 1)").evaluate(null));
     Assertions.assertEquals("T1007", ex.getError());
+  }
+
+  // #83: a JFunctionCallable without signature: arity = number of args supplied
+  @Test
+  public void customFunctionWithoutSignature() {
+    var expression = jsonata("$add(1, 2) ~> $add(?, 3)");
+    expression.registerFunction("add", new JFunction(new JFunctionCallable() {
+      @SuppressWarnings("rawtypes")
+      @Override
+      public Object call(Object input, List args) throws Throwable {
+        return (Integer) args.get(0) + (Integer) args.get(1);
+      }
+    }, null));
+    Assertions.assertEquals(6, expression.evaluate(null));
+  }
+
+  // Fn* factories without signature: arity of the lambda
+  @Test
+  public void fnFactoryWithoutSignature() {
+    var expression = jsonata("$add(1, 2) ~> $add(?, 3)");
+    expression.registerFunction("add",
+        Jsonata.function("add", (Fn2<Integer, Integer, Integer>) (a, b) -> a + b, null));
+    Assertions.assertEquals(6, expression.evaluate(null));
+  }
+
+  // Fn* lambdas bound via Frame.bind can be partially applied
+  @Test
+  public void boundLambda() {
+    var expression = jsonata("$f(1, 2) ~> $f(?, 3)");
+    var frame = expression.createFrame();
+    frame.bind("f", (Fn2<Integer, Integer, Integer>) (a, b) -> a + b);
+    Assertions.assertEquals(6, expression.evaluate(null, frame));
   }
 }

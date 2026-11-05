@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.dashjoin.jsonata.Jsonata.JFunction;
 import com.dashjoin.jsonata.json.Json;
 
-/** tests from PRs #80, #85, #87, adapted to the existing API (partial application of custom functions without signature: see #83) */
+/** tests from PRs #80, #85, #87, adapted to the existing API */
 public class OldPrsTest {
 
   static Object res(String name) throws Exception {
@@ -48,6 +48,28 @@ public class OldPrsTest {
     var expression = Jsonata.jsonata("$addWithFactor(1, 2)");
     expression.registerFunction("addWithFactor", addWithFactor);
     Assertions.assertEquals(9, expression.evaluate(Map.of("factor", "3")));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testFunctionWithInputData2() {
+    JFunction multiply = new JFunction((input, args) -> {
+      Object first = args.get(0);
+      Object second = args.size() > 1 ? args.get(1)
+          : Integer.parseInt(((Map<String, Object>) input).get("factor").toString());
+      return (Integer) first * (Integer) second;
+    }, null);
+    var expression = Jsonata.jsonata("$multiply(3) ~> $multiply(?, 2)");
+    expression.registerFunction("multiply", multiply);
+    Assertions.assertEquals(18, expression.evaluate(Map.of("factor", "3")));
+  }
+
+  @Test
+  public void testCustomFunctionPipe() {
+    JFunction add = new JFunction((input, args) -> (Integer) args.get(0) + (Integer) args.get(1), null);
+    var expression = Jsonata.jsonata("$add(1, 2) ~> $add(?, 3)");
+    expression.registerFunction("add", add);
+    Assertions.assertEquals(6, expression.evaluate(null));
   }
 
   // #87

@@ -1927,8 +1927,8 @@ public class Jsonata {
             result = partialApplyProcedure((Symbol)proc, (List)evaluatedArgs);
         } else if (Utils.isFunction(proc)) {
             result = partialApplyNativeFunction((JFunction)proc /*.implementation*/, evaluatedArgs);
-    //  } else if (typeof proc === "function") {
-    //      result = partialApplyNativeFunction(proc, evaluatedArgs);
+        } else if (proc instanceof JLambda) {
+            result = partialApplyNativeFunction(new JFunction((JLambda)proc, null), evaluatedArgs);
         } else {
             throw new JException("T1008",
                 //stack: (new Error()).stack,
@@ -2024,6 +2024,12 @@ public class Jsonata {
         // create a lambda Object that wraps and invokes the native function
         // get the list of declared arguments from the native function
         // this has to be picked out from the toString() value
+        if (_native.getNumberOfArgs() < 0) {
+            // Java: parameters unknown (callable without signature), use the number of args supplied
+            var fn = new JFunction(_native.function, null);
+            fn.numberOfArgs = args.size();
+            _native = fn;
+        }
         var sigArgs = getNativeFunctionArguments(_native);
         sigArgs = sigArgs.stream().map(sigArg -> {
             return "$" + sigArg;
@@ -2087,34 +2093,34 @@ public class Jsonata {
     }
 
     public static<A,B,R> JFunction function(String name, FnVarArgs<R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,R> JFunction function(String name, Fn0<R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,R> JFunction function(String name, Fn1<A,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,R> JFunction function(String name, Fn2<A,B,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,C,R> JFunction function(String name, Fn3<A,B,C,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,C,D,R> JFunction function(String name, Fn4<A,B,C,D,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,C,D,E,R> JFunction function(String name, Fn5<A,B,C,D,E,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,C,D,E,F,R> JFunction function(String name, Fn6<A,B,C,D,E,F,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,C,D,E,F,G,R> JFunction function(String name, Fn7<A,B,C,D,E,F,G,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
     public static<A,B,C,D,E,F,G,H,R> JFunction function(String name, Fn8<A,B,C,D,E,F,G,H,R> func, String signature) {
-        return new JFunction(func.getJFunctionCallable(), signature);
+        return new JFunction(func, signature);
     }
 
      /**
@@ -2170,6 +2176,14 @@ public class Jsonata {
     }
 
     public static interface JLambda {
+        JFunctionCallable getJFunctionCallable();
+
+        /**
+         * @return the number of declared parameters, -1 if unknown (varargs)
+         */
+        default int getNumberOfArgs() {
+            return -1;
+        }
     }
 
     public static interface FnVarArgs<R> extends JLambda, Function<List<?>, R> {
@@ -2180,21 +2194,25 @@ public class Jsonata {
         }
     }
     public static interface Fn0<R> extends JLambda, Supplier<R> {
+        default int getNumberOfArgs() { return 0; }
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> get();
         }
     }
     public static interface Fn1<A,R> extends JLambda, Function<A,R> {
+        default int getNumberOfArgs() { return 1; }
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0));
         }
     }
     public static interface Fn2<A,B,R> extends JLambda, BiFunction<A,B,R> {
+        default int getNumberOfArgs() { return 2; }
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0), (B) args.get(1));
         }
     }
     public static interface Fn3<A,B,C,R> extends JLambda {
+        default int getNumberOfArgs() { return 3; }
         R apply(A a, B b, C c);
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0), (B) args.get(1),
@@ -2202,6 +2220,7 @@ public class Jsonata {
         }
     }
     public static interface Fn4<A,B,C,D,R> extends JLambda {
+        default int getNumberOfArgs() { return 4; }
         R apply(A a, B b, C c, D d);
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0), (B) args.get(1),
@@ -2209,6 +2228,7 @@ public class Jsonata {
         }
     }
     public static interface Fn5<A,B,C,D,E,R> extends JLambda {
+        default int getNumberOfArgs() { return 5; }
         R apply(A a, B b, C c, D d, E e);
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0), (B) args.get(1),
@@ -2216,6 +2236,7 @@ public class Jsonata {
         }
     }
     public static interface Fn6<A,B,C,D,E,F,R> extends JLambda {
+        default int getNumberOfArgs() { return 6; }
         R apply(A a, B b, C c, D d, E e, F f);
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0), (B) args.get(1),
@@ -2224,6 +2245,7 @@ public class Jsonata {
         }
     }
     public static interface Fn7<A,B,C,D,E,F,G,R> extends JLambda {
+        default int getNumberOfArgs() { return 7; }
         R apply(A a, B b, C c, D d, E e, F f, G g);
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0), (B) args.get(1),
@@ -2232,6 +2254,7 @@ public class Jsonata {
         }
     }
     public static interface Fn8<A,B,C,D,E,F,G,H,R> extends JLambda {
+        default int getNumberOfArgs() { return 8; }
         R apply(A a, B b, C c, D d, E e, F f, G g, H h);
         default JFunctionCallable getJFunctionCallable() {
             return (input, args) -> apply((A) args.get(0), (B) args.get(1),
@@ -2260,6 +2283,12 @@ public class Jsonata {
         Signature signature;
         Method method;
         Object methodInstance;
+        int numberOfArgs = -1;
+
+        public JFunction(JLambda lambda, String signature) {
+            this(lambda.getJFunctionCallable(), signature);
+            this.numberOfArgs = lambda.getNumberOfArgs();
+        }
 
         public JFunction(JFunctionCallable function, String signature) {
             this.function = function;
@@ -2306,11 +2335,16 @@ public class Jsonata {
                 return args;
         }
 
+        /**
+         * @return the number of declared parameters, -1 if unknown
+         */
         public int getNumberOfArgs() {
             if (method != null)
                 return method.getParameterTypes().length;
+            if (numberOfArgs >= 0)
+                return numberOfArgs;
             // Java: a JFunctionCallable has no declared parameters, use the signature (if any)
-            return signature != null ? signature.getNumberOfArgs() : 0;
+            return signature != null ? signature.getNumberOfArgs() : -1;
         }
     }
 
