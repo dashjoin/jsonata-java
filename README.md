@@ -19,6 +19,10 @@ This is a 1:1 Java port of the [JSONata reference implementation](https://github
 * Enterprise support
     - [Premium support available from the original developers](https://dashjoin.com)
 
+## Built by Dashjoin
+
+jsonata-java is built by [Dashjoin](https://dashjoin.com), the open source platform for data and AI apps.
+
 ## Quick Start
 
 Add the dependency in pom.xml:

@@ -85,3 +85,7 @@ var result = expression.evaluate(data);  // returns 24
 ```
 
 See [this complete sample](https://github.com/dashjoin/jsonata-java/tree/main/samples/main-gson).
+
+## Built by Dashjoin
+
+jsonata-java is built by [Dashjoin](https://dashjoin.com), the open source platform for data and AI apps.
