@@ -911,7 +911,7 @@ public class Jsonata {
     Object evaluateEqualityExpression(Object lhs, Object rhs, String op) {
         Object result = null;
 
-        // type checks
+        // type checks (only used for null check, kept to mirror jsonata-js)
         var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
         var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
 
