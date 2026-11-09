@@ -911,11 +911,7 @@ public class Jsonata {
     Object evaluateEqualityExpression(Object lhs, Object rhs, String op) {
         Object result = null;
 
-        // type checks
-        var ltype = lhs!=null ? lhs.getClass().getSimpleName() : null;
-        var rtype = rhs!=null ? rhs.getClass().getSimpleName() : null;
-
-        if (ltype == null || rtype == null) {
+        if (lhs == null || rhs == null) {
             // if either side is undefined, the result is false
             return false;
         }
