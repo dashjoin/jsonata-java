@@ -1439,6 +1439,10 @@ public class Parser implements Serializable {
 
     public Symbol parse(String jsonata) {
         source = jsonata;
+        ancestry = new ArrayList<>();
+        ancestorIndex = 0;
+        ancestorLabel = 0;
+        errors = new ArrayList<>();
 
         // now invoke the tokenizer and the parser and return the syntax tree
         lexer = new Tokenizer(source);
