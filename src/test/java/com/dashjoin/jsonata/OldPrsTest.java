@@ -14,7 +14,8 @@ public class OldPrsTest {
 
   static Object res(String name) throws Exception {
     return Json.parseJson(new InputStreamReader(
-        OldPrsTest.class.getClassLoader().getResourceAsStream(name), StandardCharsets.UTF_8));
+        // Class (not ClassLoader) lookup: works when tests run inside the named module (e.g. Eclipse)
+        OldPrsTest.class.getResourceAsStream("/" + name), StandardCharsets.UTF_8));
   }
 
   // #80
