@@ -398,7 +398,7 @@ public class Functions {
         // below has to convert start and length for emojis and unicode
         int origLen = str.length();
 
-        String strData = Objects.requireNonNull(str).intern();
+        String strData = Objects.requireNonNull(str);
         int strLen = strData.codePointCount(0, strData.length());
         if (start >= strLen) {
             return "";
@@ -608,10 +608,10 @@ public class Functions {
             padStr = " ";
         }
 
-        String strData = Objects.requireNonNull(str).intern();
+        String strData = Objects.requireNonNull(str);
         int strLen = strData.codePointCount(0, strData.length());
 
-        String padData = Objects.requireNonNull(padStr).intern();
+        String padData = Objects.requireNonNull(padStr);
         int padLen = padData.codePointCount(0, padData.length());
 
         if (padLen == 0) {
@@ -637,10 +637,10 @@ public class Functions {
             padStr = " ";
         }
 
-        String strData = Objects.requireNonNull(str).intern();
+        String strData = Objects.requireNonNull(str);
         int strLen = strData.codePointCount(0, strData.length());
 
-        String padData = Objects.requireNonNull(padStr).intern();
+        String padData = Objects.requireNonNull(padStr);
         int padLen = padData.codePointCount(0, padData.length());
 
         if (padLen == 0) {
