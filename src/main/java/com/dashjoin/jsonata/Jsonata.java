@@ -258,7 +258,7 @@ public class Jsonata {
  
         if (expr.predicate!=null)
             for(var ii = 0; ii < expr.predicate.size(); ii++) {
-                result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment);
+                result = /* await */ evaluateFilter(expr.predicate.get(ii).expr, result, environment, ii < expr.predicate.size() - 1);
             }
  
         if (!expr.type.equals("path") && expr.group!=null) {
@@ -404,7 +404,7 @@ public class Jsonata {
             var res = /* await */ evaluate(expr, ((List)input).get(ii), environment);
             if(expr.stages!=null) {
                 for(var ss = 0; ss < expr.stages.size(); ss++) {
-                    res = /* await */ evaluateFilter(expr.stages.get(ss).expr, res, environment);
+                    res = /* await */ evaluateFilter(expr.stages.get(ss).expr, res, environment, ss < expr.stages.size() - 1);
                 }
             }
             if(res != null) {
@@ -437,7 +437,7 @@ public class Jsonata {
             var stage = stages.get(ss);
             switch(stage.type) {
                 case "filter":
-                    result = /* await */ evaluateFilter(stage.expr, result, environment);
+                    result = /* await */ evaluateFilter(stage.expr, result, environment, ss < stages.size() - 1 && stages.get(ss + 1).type.equals("filter"));
                     break;
                 case "index":
                     for(var ee = 0; ee < ((List)result).size(); ee++) {
@@ -534,9 +534,10 @@ public class Jsonata {
     * @param {Object} predicate - filter expression
     * @param {Object} input - Input data to apply predicates against
     * @param {Object} environment - Environment
+    * @param {boolean} chained - another predicate will be applied to the result
     * @returns {*} Result after applying predicates
     */
-    /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment) {
+    /* async */ Object evaluateFilter(Object _predicate, Object input, Frame environment, boolean chained) {
     Symbol predicate = (Symbol)_predicate;
         var results = environment.base.createSequence();
         if( input instanceof JList && ((JList)input).tupleStream) {
@@ -564,6 +565,9 @@ public class Jsonata {
                 }
             }
         } else {
+            // the position selected by the predicate, while it evaluates to the same number for every item
+            Integer position = null;
+            var samePosition = true;
             for (int index = 0; index < ((List)input).size(); index++) {
                 var item = ((List)input).get(index);
                 var context = item;
@@ -575,6 +579,8 @@ public class Jsonata {
                 var res = /* await */ evaluate(predicate, context, env);
                 if (Utils.isNumeric(res)) {
                     res = environment.base.createSequence(res);
+                } else {
+                    samePosition = false;
                 }
                 if (Utils.isArrayOfNumbers(res)) {
                 for (Object ires : ((List)res)) {
@@ -584,6 +590,10 @@ public class Jsonata {
                             // count in from end of array
                             ii = ((List)input).size() + ii;
                         }
+                        if (index > 0 && (position == null || ii != position)) {
+                            samePosition = false;
+                        }
+                        position = ii;
                         if (ii == index) {
                             results.add(item);
                         }
@@ -591,6 +601,12 @@ public class Jsonata {
                 } else if (boolize(res)) { // truthy
                     results.add(item);
                 }
+            }
+            if (chained && samePosition && results.size() == 1 && results.get(0) instanceof List) {
+                // an expression that evaluates to the same number for every item selects an array the same way
+                // a literal index does, so the next predicate is applied to that array rather than to a sequence
+                // containing it
+                results = (List)results.get(0);
             }
         }
         return results;
