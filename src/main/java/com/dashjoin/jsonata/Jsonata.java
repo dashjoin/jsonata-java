@@ -492,7 +492,7 @@ public class Jsonata {
             // res is the binding sequence for the output tuple stream
             if (_res!=null) { //(typeof res !== "undefined") {
                 List res;
-                if (!(_res instanceof List)) {
+                if (!(_res instanceof List) || (_res instanceof JList && ((JList)_res).cons && expr.stages == null)) {
                     res = new ArrayList<>(); res.add(_res);
                 } else {
                     res = (List)_res;
