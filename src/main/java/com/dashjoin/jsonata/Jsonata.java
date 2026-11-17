@@ -78,6 +78,8 @@ public class Jsonata {
             parent = enclosingEnvironment;
             if (enclosingEnvironment!=null) {
                 base = enclosingEnvironment.base;
+                // timestamp: enclosingEnvironment ? enclosingEnvironment.timestamp : null,
+                time = enclosingEnvironment.time;
             }
         }
 
@@ -2571,7 +2573,6 @@ public class Jsonata {
     List<Exception> errors;
     Frame environment;
     Symbol ast;
-    long timestamp;
     Object input;
 
     static {
@@ -2626,14 +2627,12 @@ public class Jsonata {
         }
         environment = createFrame(staticFrame);
 
-        timestamp = System.currentTimeMillis(); // will be overridden on each call to evalute()
-
         // Note: now and millis are implemented in Functions
         //  environment.bind("now", defineFunction(function(picture, timezone) {
-        //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
+        //      return datetime.fromMillis(this.environment.timestamp.getTime(), picture, timezone);
         //  }, "<s?s?:s>"));
         //  environment.bind("millis", defineFunction(function() {
-        //      return timestamp.getTime();
+        //      return this.environment.timestamp.getTime();
         //  }, "<:n>"));
 
         // FIXED: options.RegexEngine not implemented in Java
@@ -2656,7 +2655,6 @@ public class Jsonata {
     Jsonata(Jsonata other) {
         this.ast = other.ast;
         this.environment = other.environment;
-        this.timestamp = other.timestamp;
     }
 
     /**
@@ -2729,16 +2727,16 @@ public class Jsonata {
                 exec_env.bind(v, bindings.lookup(v));
             }
         } else {
-            exec_env = environment;
+            // Java: always use a per evaluation frame, so that concurrent evaluations
+            // of the same expression do not overwrite each other's timestamp
+            exec_env = createFrame(environment);
         }
         // put the input document into the environment as the root object
         exec_env.bind("$", input);
 
         // capture the timestamp and put it in the execution environment
         // the $now() and $millis() functions will return this value - whenever it is called
-        timestamp = System.currentTimeMillis();
-        //exec_env.timestamp = timestamp;
-        exec_env.time = timestamp;
+        exec_env.time = System.currentTimeMillis(); // exec_env.timestamp = new Date();
         exec_env.options = options;
 
         // if the input is a JSON array, then wrap it in a singleton sequence so it gets treated as a single input

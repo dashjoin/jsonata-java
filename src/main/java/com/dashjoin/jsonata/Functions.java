@@ -2445,18 +2445,18 @@ public class Functions {
     }
 
     //  environment.bind("now", defineFunction(function(picture, timezone) {
-    //      return datetime.fromMillis(timestamp.getTime(), picture, timezone);
+    //      return datetime.fromMillis(this.environment.timestamp.getTime(), picture, timezone);
     //  }, "<s?s?:s>"));
     public static String now(String picture, String timezone) {
-        long t = Jsonata.current.get().timestamp;
+        long t = Jsonata.current.get().environment.time;
         return dateTimeFromMillis(t, picture, timezone);
     }
 
     //  environment.bind("millis", defineFunction(function() {
-    //      return timestamp.getTime();
+    //      return this.environment.timestamp.getTime();
     //  }, "<:n>"));
     public static long millis() {
-        long t = Jsonata.current.get().timestamp;
+        long t = Jsonata.current.get().environment.time;
         return t;
     }
 
