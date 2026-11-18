@@ -144,6 +144,36 @@
             "name": "regex/case022.json",
             "ignoreError": true,
             "reason": "Java regexp OK with this case. Jsonata regexp throws error because the regexp matches 0 characters, which could cause an endless loop in the custom matcher."
+        },
+        { 
+            "name": "function-formatNumber/issue851.json_0",
+            "ignoreError": true,
+            "reason": "formatNumber irregular grouping (e.g. '#,##,##0') not implemented, java.text.DecimalFormat only supports regular grouping. See https://github.com/jsonata-js/jsonata/commit/67c36a50fdd9da20fb4ee7c25c8aaca213f23720"
+        },
+        { 
+            "name": "function-formatNumber/issue851.json_1",
+            "ignoreError": true,
+            "reason": "formatNumber irregular grouping (e.g. '#,##,##0') not implemented, java.text.DecimalFormat only supports regular grouping. See https://github.com/jsonata-js/jsonata/commit/67c36a50fdd9da20fb4ee7c25c8aaca213f23720"
+        },
+        { 
+            "name": "function-formatNumber/issue851.json_2",
+            "ignoreError": true,
+            "reason": "formatNumber irregular grouping (e.g. '#,##,##0') not implemented, java.text.DecimalFormat only supports regular grouping. See https://github.com/jsonata-js/jsonata/commit/67c36a50fdd9da20fb4ee7c25c8aaca213f23720"
+        },
+        { 
+            "name": "function-formatNumber/issue851.json_3",
+            "ignoreError": true,
+            "reason": "formatNumber irregular grouping (e.g. '#,##,##0') not implemented, java.text.DecimalFormat only supports regular grouping. See https://github.com/jsonata-js/jsonata/commit/67c36a50fdd9da20fb4ee7c25c8aaca213f23720"
+        },
+        { 
+            "name": "function-formatNumber/issue851.json_4",
+            "ignoreError": true,
+            "reason": "formatNumber irregular grouping (e.g. '#,##,##0') not implemented, java.text.DecimalFormat only supports regular grouping. See https://github.com/jsonata-js/jsonata/commit/67c36a50fdd9da20fb4ee7c25c8aaca213f23720"
+        },
+        { 
+            "name": "function-formatNumber/issue851.json_6",
+            "ignoreError": true,
+            "reason": "formatNumber irregular grouping (e.g. '#,##,##0') not implemented, java.text.DecimalFormat only supports regular grouping. See https://github.com/jsonata-js/jsonata/commit/67c36a50fdd9da20fb4ee7c25c8aaca213f23720"
         }
     ]
 }

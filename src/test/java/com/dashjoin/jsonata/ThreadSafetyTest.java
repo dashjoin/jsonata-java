@@ -293,4 +293,67 @@ public class ThreadSafetyTest {
         assertTrue(r2 > r1, "$millis() should advance across separate evaluations");
     }
 
+
+    /**
+     * Port of upstream test for https://github.com/jsonata-js/jsonata/commit/c5be11676cf038b048a1201069f85f59b504993f
+     * $millis() and $now() are not affected by an overlapping evaluate() call
+     */
+    @Test
+    public void testMillisNotAffectedByOverlappingEvaluate() throws Exception {
+        Jsonata expr = jsonata("($m := $millis(); $n := $now(); $pause($m); [$m = $millis(), $n = $now()])");
+        long[] secondMillis = new long[1];
+        Object[] second = new Object[1];
+
+        Jsonata.Frame env2 = expr.createFrame();
+        env2.bind("pause", (Jsonata.Fn1<Long, Object>) millis -> {
+            secondMillis[0] = millis;
+            return null;
+        });
+
+        long[] firstMillis = new long[1];
+        Jsonata.Frame env1 = expr.createFrame();
+        env1.bind("pause", (Jsonata.Fn1<Long, Object>) millis -> {
+            firstMillis[0] = millis;
+            // make sure the overlapping evaluation captures a later timestamp
+            while (System.currentTimeMillis() <= millis) {
+                try { Thread.sleep(1); } catch (InterruptedException e) { throw new RuntimeException(e); }
+            }
+            // the first evaluation is suspended here while the second one runs
+            second[0] = expr.evaluate(null, env2);
+            return null;
+        });
+
+        Object first = expr.evaluate(null, env1);
+        assertTrue(secondMillis[0] > firstMillis[0]);
+        assertEquals(Arrays.asList(true, true), second[0]);
+        assertEquals(Arrays.asList(true, true), first);
+    }
+
+    @Test
+    public void testMillisNotAffectedByOtherInstance() throws Exception {
+        Jsonata exprA = jsonata("$millis()");
+        Thread.sleep(2);
+        // constructing exprB must not make exprA return a stale timestamp
+        jsonata("$millis()");
+        Thread.sleep(2);
+        long before = System.currentTimeMillis();
+        long r = ((Number) exprA.evaluate(null)).longValue();
+        assertTrue(r >= before, "$millis() should return the timestamp of the current evaluation");
+    }
+
+    @Test
+    public void testMillisOnOtherThread() throws Exception {
+        Jsonata expr = jsonata("$millis()");
+        expr.evaluate(null);
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try {
+            pool.submit(() -> expr.evaluate(null)).get();
+            Thread.sleep(2);
+            long before = System.currentTimeMillis();
+            long r = ((Number) pool.submit(() -> expr.evaluate(null)).get()).longValue();
+            assertTrue(r >= before, "$millis() should return the timestamp of the current evaluation");
+        } finally {
+            pool.shutdown();
+        }
+    }
 }
